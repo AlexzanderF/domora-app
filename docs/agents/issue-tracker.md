@@ -11,7 +11,7 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI or GitHub
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
 
-Infer the repo from `git remote -v` (`ivanlipev15-ops/domora-app`).
+Infer the repo from `git remote -v` (`AlexzanderF/domora-app`).
 
 ## Pull requests as a triage surface
 

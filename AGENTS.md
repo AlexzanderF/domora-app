@@ -68,7 +68,7 @@ Always run and verify that checks pass before completing tasks:
 
 ### Issue tracker
 
-Issues and specs live as GitHub issues for `ivanlipev15-ops/domora-app`. See `docs/agents/issue-tracker.md`.
+Issues and specs live as GitHub issues for `AlexzanderF/domora-app`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
