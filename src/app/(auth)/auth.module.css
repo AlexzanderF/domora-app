@@ -1,0 +1,290 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--paper);
+  padding: 32px 16px;
+}
+
+.topBar {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 8px;
+}
+
+.backLink {
+  color: var(--muted);
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.backLink:hover {
+  color: var(--green);
+}
+
+.main {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.brandHeader {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.brand {
+  text-decoration: none;
+  color: var(--green);
+  font-size: 26px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mark {
+  background: var(--green);
+  color: white;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: 26px;
+}
+
+.tagline {
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+  margin: 10px 0 0;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.title {
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 24px;
+  line-height: 1.4;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.required {
+  color: #c93b2b;
+  margin-left: 2px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--ink);
+  background: #ffffff;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(27, 89, 75, 0.12);
+}
+
+.inputError {
+  composes: input;
+  border-color: #c93b2b;
+}
+
+.inputError:focus {
+  border-color: #c93b2b;
+  box-shadow: 0 0 0 3px rgba(201, 59, 43, 0.12);
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.passwordInput {
+  composes: input;
+  padding-right: 76px;
+}
+
+.passwordInputError {
+  composes: inputError;
+  padding-right: 76px;
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.passwordToggle:hover {
+  color: var(--green);
+}
+
+.errorMessage {
+  font-size: 13px;
+  color: #c93b2b;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+.checkboxField {
+  margin-top: 4px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.checkbox {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.submitButton {
+  width: 100%;
+  background: var(--green);
+  color: #ffffff;
+  padding: 13px 20px;
+  border-radius: 8px;
+  border: 0;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition:
+    background 0.15s ease,
+    transform 0.05s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #123e34;
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.alertError {
+  background: #fdf2f2;
+  border: 1px solid #f8b4b4;
+  color: #9b1c1c;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.switchPrompt {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 22px 0 0;
+}
+
+.link {
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.specialistSection {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.footer {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 24px 0 8px;
+}
