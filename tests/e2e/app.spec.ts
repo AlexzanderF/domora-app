@@ -23,7 +23,9 @@ test("renders real routes, supports browser history and fits the viewport", asyn
   await expect(
     page.getByRole("heading", { name: "Основно почистване" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Абонаменти", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Разгледай абонаментите", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/plans\/?$/);
   await page.goBack();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(

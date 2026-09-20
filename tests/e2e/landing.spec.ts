@@ -120,3 +120,49 @@ test("builds trust and answers common questions accessibly", async ({
   await page.keyboard.press("Enter");
   await expect(paymentAnswer).toBeVisible();
 });
+
+test("wraps the landing page with navigation and final signup paths", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const navigation = page.getByRole("navigation", {
+    name: "Навигация на началната страница",
+  });
+  for (const [name, href] of [
+    ["Как работи", "#how-it-works"],
+    ["Услуги", "#services"],
+    ["ЧЗВ", "#faq"],
+    ["Вход", "/login"],
+    ["Регистрация", "/signup"],
+  ]) {
+    await expect(navigation.getByRole("link", { name })).toHaveAttribute(
+      "href",
+      href,
+    );
+  }
+  await expect(page.getByLabel("Разгледай като")).toHaveCount(0);
+
+  const finalCta = page.getByRole("region", {
+    name: "Готови ли сте за по-спокоен и чист дом?",
+  });
+  await expect(
+    finalCta.getByRole("link", { name: "Регистрирай се безплатно" }),
+  ).toHaveAttribute("href", "/signup");
+
+  const footer = page.getByRole("contentinfo");
+  await expect(
+    footer.getByRole("link", { name: "hello@domora.bg" }),
+  ).toHaveAttribute("href", "mailto:hello@domora.bg");
+  await expect(
+    footer.getByRole("link", { name: "Условия за ползване" }),
+  ).toHaveAttribute("href", "/terms");
+  await expect(
+    footer.getByRole("link", { name: "Поверителност" }),
+  ).toHaveAttribute("href", "/privacy");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+});

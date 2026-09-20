@@ -1,16 +1,37 @@
+import type { Metadata } from "next";
 import { Hero } from "@/features/landing/hero";
 import { HowItWorks } from "@/features/landing/how-it-works";
+import {
+  FinalCta,
+  LandingFooter,
+  LandingHeader,
+} from "@/features/landing/landing-chrome";
 import { ServiceShowcase } from "@/features/landing/service-showcase";
 import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
+import styles from "./landing.module.css";
+
+export const metadata: Metadata = {
+  title: "DOMORA — спокойствие за вашия дом",
+  description:
+    "Надеждни домашни услуги, проверени специалисти и абонаментна грижа с ясни цени.",
+};
 
 export default function HomePage() {
   return (
     <>
-      <Hero />
-      <HowItWorks />
-      <ServiceShowcase />
-      <TrustAndTestimonials />
-      <Faq />
+      <a href="#main" className="skip-link">
+        Към съдържанието
+      </a>
+      <LandingHeader />
+      <main id="main" className={styles.main}>
+        <Hero />
+        <HowItWorks />
+        <ServiceShowcase />
+        <TrustAndTestimonials />
+        <Faq />
+        <FinalCta />
+      </main>
+      <LandingFooter />
     </>
   );
 }
