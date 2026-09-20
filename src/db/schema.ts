@@ -106,10 +106,7 @@ export const tariffs = pgTable("tariffs", {
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
-  specialistProfile: one(specialistProfiles, {
-    fields: [users.id],
-    references: [specialistProfiles.userId],
-  }),
+  specialistProfile: one(specialistProfiles),
   clientRequests: many(requests, { relationName: "clientRequests" }),
   specialistRequests: many(requests, { relationName: "specialistRequests" }),
 }));

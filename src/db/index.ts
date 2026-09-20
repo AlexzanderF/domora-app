@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
@@ -5,6 +6,24 @@ import * as schema from "./schema";
 const { Pool } = pg;
 
 export type DomoraDatabase = NodePgDatabase<typeof schema>;
+
+export function loadEnvFiles(): void {
+  if (typeof process.loadEnvFile !== "function") return;
+  for (const envFile of [".env.local", ".env"]) {
+    try {
+      if (fs.existsSync(envFile)) {
+        process.loadEnvFile(envFile);
+      }
+    } catch {
+      // Ignore errors loading environment files
+    }
+  }
+}
+
+// Load env files if running in CLI script contexts where Next hasn't preloaded them
+if (!process.env.DATABASE_URL) {
+  loadEnvFiles();
+}
 
 export const isDbConfigured = Boolean(
   process.env.NEXT_STATIC_EXPORT !== "1" && process.env.DATABASE_URL?.trim(),
@@ -15,15 +34,21 @@ declare global {
   var __domora_drizzle_db: DomoraDatabase | undefined;
 }
 
+let prodPool: pg.Pool | null = null;
+let prodDb: DomoraDatabase | null = null;
+
 export function getDbPool(): pg.Pool | null {
   if (!isDbConfigured) {
     return null;
   }
 
   if (process.env.NODE_ENV === "production") {
-    return new Pool({
-      connectionString: process.env.DATABASE_URL,
-    });
+    if (!prodPool) {
+      prodPool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+      });
+    }
+    return prodPool;
   }
 
   if (!globalThis.__domora_pg_pool) {
@@ -41,8 +66,13 @@ export function getDb(): DomoraDatabase | null {
   }
 
   if (process.env.NODE_ENV === "production") {
-    const pool = getDbPool();
-    return pool ? drizzle(pool, { schema }) : null;
+    if (!prodDb) {
+      const pool = getDbPool();
+      if (pool) {
+        prodDb = drizzle(pool, { schema });
+      }
+    }
+    return prodDb;
   }
 
   if (!globalThis.__domora_drizzle_db) {
@@ -66,6 +96,11 @@ export function requireDb(): DomoraDatabase {
 }
 
 export async function closeDbPool(): Promise<void> {
+  if (prodPool) {
+    await prodPool.end();
+    prodPool = null;
+    prodDb = null;
+  }
   if (globalThis.__domora_pg_pool) {
     await globalThis.__domora_pg_pool.end();
     globalThis.__domora_pg_pool = undefined;

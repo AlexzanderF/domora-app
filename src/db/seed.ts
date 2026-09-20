@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { loadEnvFiles } from "./index";
 import {
   specialistProfiles,
   tariffs,
@@ -9,6 +10,8 @@ import {
   type TariffInsert,
   type UserInsert,
 } from "./schema";
+
+loadEnvFiles();
 
 const { Pool } = pg;
 
@@ -65,26 +68,6 @@ const seedUsers: {
       area: "София и област",
       experienceYears: 10,
       bio: "Лицензиран електротехник за битови инсталации и табла.",
-    },
-  },
-  {
-    user: {
-      id: "spec-rejected-1",
-      name: "Стоян Василев",
-      email: "stoyan@remonti-stoyan.bg",
-      phone: "0887112233",
-      passwordHash: defaultPasswordHash,
-      role: "SPECIALIST",
-      status: "REJECTED",
-    },
-    profile: {
-      id: "profile-spec-rejected-1",
-      category: "Боядисване",
-      area: "Пловдив",
-      experienceYears: 2,
-      bio: "Бояджийски услуги за жилища и търговски обекти.",
-      companyName: "Василев Строй ЕООД",
-      eik: "102938475",
     },
   },
   {
