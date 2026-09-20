@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Hero } from "@/features/landing/hero";
+import { HowItWorks } from "@/features/landing/how-it-works";
 import { RequestList } from "@/features/requests/request-list";
 import { ServiceGrid } from "@/features/services/service-grid";
 
@@ -7,6 +8,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <HowItWorks />
       <div className="banner">
         <div>
           <span className="eyebrow">ПО-МАЛКО ЗАДАЧИ. ПОВЕЧЕ ВРЕМЕ.</span>

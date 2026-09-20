@@ -1,0 +1,103 @@
+.section {
+  padding: clamp(4rem, 8vw, 7rem) 0;
+  scroll-margin-top: 5rem;
+}
+
+.intro {
+  max-width: 680px;
+  margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.65rem;
+  color: #1b594b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.intro h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  letter-spacing: -0.035em;
+}
+
+.intro > p:last-child {
+  margin: 1rem 0 0;
+  color: #5f7069;
+  font-size: 1.05rem;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.step {
+  min-width: 0;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border: 1px solid #dbe4de;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2.75rem;
+}
+
+.icon {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border-radius: 14px;
+  background: #eaf2ec;
+  color: #1b594b;
+}
+
+.icon svg {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
+.number {
+  color: #a5b2ac;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.step h3 {
+  margin: 0;
+  color: #182e29;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.step p {
+  margin: 0.75rem 0 0;
+  color: #63736d;
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 700px) {
+  .section {
+    padding: 3.5rem 0;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .stepHeader {
+    margin-bottom: 1.75rem;
+  }
+}
