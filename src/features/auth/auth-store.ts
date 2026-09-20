@@ -128,6 +128,45 @@ function safeLocalStorageRemove(key: string): void {
   }
 }
 
+function safeSessionStorageGet(key: string): string | null {
+  if (
+    typeof window === "undefined" ||
+    typeof window.sessionStorage === "undefined"
+  )
+    return null;
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSessionStorageSet(key: string, value: string): void {
+  if (
+    typeof window === "undefined" ||
+    typeof window.sessionStorage === "undefined"
+  )
+    return;
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    // Ignore quota or security errors
+  }
+}
+
+function safeSessionStorageRemove(key: string): void {
+  if (
+    typeof window === "undefined" ||
+    typeof window.sessionStorage === "undefined"
+  )
+    return;
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Ignore
+  }
+}
+
 export function toPublicUser(stored: StoredUser): User {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password, ...user } = stored;
@@ -140,6 +179,17 @@ export function getStoredUsers(): StoredUser[] {
     try {
       const parsed = JSON.parse(json);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        // Ensure initial seed users exist even if stored users list is modified
+        const existingIds = new Set(parsed.map((u: StoredUser) => u.id));
+        const missingSeeds = initialSeedUsers.filter(
+          (seed) => !existingIds.has(seed.id),
+        );
+        if (missingSeeds.length > 0) {
+          const merged = [...parsed, ...missingSeeds];
+          memoryUsers = merged;
+          safeLocalStorageSet(STORAGE_KEY_USERS, JSON.stringify(merged));
+          return merged;
+        }
         memoryUsers = parsed;
         return parsed;
       }
@@ -157,20 +207,34 @@ export function saveStoredUsers(users: StoredUser[]): void {
 }
 
 export function getActiveUserId(): string | null {
+  const sessionId = safeSessionStorageGet(STORAGE_KEY_ACTIVE_USER);
+  if (sessionId) {
+    memoryActiveUserId = sessionId;
+    return sessionId;
+  }
+
   const storedId = safeLocalStorageGet(STORAGE_KEY_ACTIVE_USER);
-  if (storedId !== null) {
+  if (storedId) {
     memoryActiveUserId = storedId;
     return storedId;
   }
+
   return memoryActiveUserId;
 }
 
-export function setActiveUserId(id: string | null): void {
+export function setActiveUserId(id: string | null, rememberMe = true): void {
   memoryActiveUserId = id;
   if (id === null) {
     safeLocalStorageRemove(STORAGE_KEY_ACTIVE_USER);
+    safeSessionStorageRemove(STORAGE_KEY_ACTIVE_USER);
   } else {
-    safeLocalStorageSet(STORAGE_KEY_ACTIVE_USER, id);
+    if (rememberMe) {
+      safeSessionStorageRemove(STORAGE_KEY_ACTIVE_USER);
+      safeLocalStorageSet(STORAGE_KEY_ACTIVE_USER, id);
+    } else {
+      safeLocalStorageRemove(STORAGE_KEY_ACTIVE_USER);
+      safeSessionStorageSet(STORAGE_KEY_ACTIVE_USER, id);
+    }
   }
   notifyListeners();
 }
@@ -198,7 +262,9 @@ export function getAuthSnapshot(): AuthSnapshot {
   const current = getActiveUser();
   if (
     cachedSnapshot.user?.id !== current?.id ||
-    cachedSnapshot.user?.name !== current?.name
+    cachedSnapshot.user?.name !== current?.name ||
+    cachedSnapshot.user?.role !== current?.role ||
+    cachedSnapshot.user?.status !== current?.status
   ) {
     cachedSnapshot = current
       ? { user: current, status: "authenticated" }
@@ -292,6 +358,7 @@ export function registerClientInStore(input: ClientRegistrationInput): User {
 export function authenticateUser(
   identifier: string,
   password: string,
+  rememberMe = true,
 ): User | null {
   const users = getStoredUsers();
   const match = users.find(
@@ -302,7 +369,7 @@ export function authenticateUser(
     return null;
   }
 
-  setActiveUserId(match.id);
+  setActiveUserId(match.id, rememberMe);
   return toPublicUser(match);
 }
 

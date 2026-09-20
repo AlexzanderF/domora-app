@@ -28,7 +28,11 @@ export interface AuthContextValue {
   status: "loading" | "authenticated" | "unauthenticated";
   isAuthenticated: boolean;
   registerClient: (input: ClientRegistrationInput) => Promise<User>;
-  login: (identifier: string, password: string) => Promise<LoginResult>;
+  login: (
+    identifier: string,
+    password: string,
+    rememberMe?: boolean,
+  ) => Promise<LoginResult>;
   logout: () => Promise<void>;
   switchUser: (user: User | null) => void;
 }
@@ -65,12 +69,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const login = useCallback(
-    async (identifier: string, password: string): Promise<LoginResult> => {
-      const authed = authenticateUser(identifier, password);
+    async (
+      identifier: string,
+      password: string,
+      rememberMe = true,
+    ): Promise<LoginResult> => {
+      const authed = authenticateUser(identifier, password, rememberMe);
       if (!authed) {
         return {
           success: false,
-          error: "Невалиден имейл/телефон или грешна парола.",
+          error: "Невалиден имейл/телефон или парола.",
         };
       }
       return {

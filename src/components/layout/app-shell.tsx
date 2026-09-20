@@ -36,7 +36,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => logout()}
                 className="textbutton"
-                style={{ marginLeft: "8px" }}
+                style={{ marginLeft: "8px", cursor: "pointer" }}
+                aria-label="Изход от профила"
               >
                 Изход
               </button>
