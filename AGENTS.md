@@ -11,7 +11,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 # DOMORA Agent Guidelines
 
 ## Project Overview
+
 DOMORA is a property care and home service management web application.
+
 - **Tech Stack**: Next.js 16 (App Router), React 19, TypeScript, Vitest, Playwright.
 - **Engine**: Node.js 24 (`>=24 <25`).
 - **UI & Language**: Bulgarian (`bg`) for all user-facing copy, labels, placeholders, and feedback messages. Keep tone and vocabulary consistent with existing components.
@@ -19,6 +21,7 @@ DOMORA is a property care and home service management web application.
 ---
 
 ## Architectural Conventions
+
 1. **Server vs. Client Components**:
    - Default to React Server Components (RSC).
    - Only add `"use client"` at interactive leaf components (event listeners, state, browser APIs).
@@ -35,7 +38,9 @@ DOMORA is a property care and home service management web application.
 ---
 
 ## Verification & Validation Commands
+
 Always run and verify that checks pass before completing tasks:
+
 - `npm run check`: Primary gate (runs ESLint `--max-warnings=0`, `next typegen && tsc --noEmit`, Prettier check, and Vitest).
 - `npm run test:e2e`: Run Playwright tests whenever updating routes, dialogs, or user interaction flows.
 - `npm run build`: Verify production build succeeds before committing.
@@ -44,6 +49,7 @@ Always run and verify that checks pass before completing tasks:
 ---
 
 ## Team Collaboration & Guardrails
+
 - **Feature Isolation**: Work on dedicated feature branches (e.g., `feature/<task-name>`).
 - **Shared Files**: Avoid editing `src/app/globals.css` or `src/app/providers.tsx` unless necessary, and keep changes isolated to prevent merge conflicts with teammates.
 - **Scope**: Keep changes and PRs tightly focused on the requested task.
@@ -52,4 +58,5 @@ Always run and verify that checks pass before completing tasks:
 ---
 
 ## Available Skills
+
 - **/grill-me** (`.agents/skills/grill-me/SKILL.md`): When requested (or invoked via `/grill-me`), interview the user one question at a time with recommendations to stress-test plans, edge cases, and architecture before writing code.
