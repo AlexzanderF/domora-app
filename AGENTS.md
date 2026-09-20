@@ -29,7 +29,7 @@ DOMORA is a property care and home service management web application.
 2. **Directory Structure**:
    - Routes: `src/app/`
    - Shared UI & Layouts: `src/components/ui/` and `src/components/layout/`
-   - Feature Modules: `src/features/<feature-name>/` (colocate UI components, types, demo data, and unit tests).
+   - Feature Modules: `src/features/<feature-name>/` (colocate UI components, types, and demo data).
 3. **State & Mocking**:
    - Use the demo provider pattern (e.g., `src/features/requests/demo-provider.tsx`) when prototyping interactive flows without a backend.
 4. **Generated Files**:
@@ -42,9 +42,9 @@ DOMORA is a property care and home service management web application.
 Always run and verify that checks pass before completing tasks:
 
 - `npm run check`: Primary gate (runs ESLint `--max-warnings=0`, `next typegen && tsc --noEmit`, Prettier check, and Vitest).
-- `npm run test:e2e`: Run Playwright tests whenever updating routes, dialogs, or user interaction flows.
 - `npm run build`: Verify production build succeeds before committing.
 - `npm run format`: Format code with Prettier when needed.
+  _(Note: Do NOT run `npm run test:e2e` or create Playwright tests unless explicitly instructed by the user.)_
 
 ---
 
@@ -54,7 +54,11 @@ Always run and verify that checks pass before completing tasks:
 - **Shared Files**: Avoid editing `src/app/globals.css` or `src/app/providers.tsx` unless necessary, and keep changes isolated to prevent merge conflicts with teammates.
 - **Scope**: Keep changes and PRs tightly focused on the requested task.
 - **Automated PR Creation**: When completing work on a feature branch or pushing changes, automatically push the branch to `origin` and open a pull request against `main` containing a clear summary of changes, problem addressed, and verification results.
-- **No Automated Test Writing**: Do NOT write new tests (unit tests, integration tests, or TDD) on implementations unless explicitly requested by the user. Focus solely on direct implementation and verifying that existing tests and type checks pass.
+- **Strict Prohibition on Writing Tests**:
+  - Do NOT write, generate, or add ANY new tests (including E2E, Playwright, `*.spec.ts`, unit tests, integration tests, or TDD) on implementations unless explicitly requested by the user.
+  - Do NOT create or edit files in `tests/e2e/`.
+  - When breaking down specs or tickets (via `/to-spec`, `/to-tickets`, etc.), do NOT include test writing or testing seams in the acceptance criteria or task breakdown.
+  - Focus solely on direct implementation and verifying that existing tests, type checks, and production builds pass.
 
 ---
 

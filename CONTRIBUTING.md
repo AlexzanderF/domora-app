@@ -5,7 +5,7 @@
 3. Keep routes in `src/app`, shared UI in `src/components`, and business logic with its feature in `src/features`.
 4. Use Server Components by default. Add `"use client"` at interactive boundaries. Do not move secrets or privileged operations into browser components.
 5. Keep Bulgarian UI copy, responsive layout and keyboard access consistent with the existing app.
-6. Run `npm run format`, `npm run check`, and `npm run build`. Run `npm run test:e2e` for changes to routes or user flows. Add tests for new business rules and regressions.
+6. Run `npm run format`, `npm run check`, and `npm run build`. Do not write new tests unless explicitly requested.
 7. Open a pull request with the problem, changed behavior, screenshots for UI changes, and relevant validation. Ask your teammate to review before merging.
 
 Agree on feature ownership before editing shared state or global CSS. Keep pull requests focused so reviews stay manageable. Do not hand-edit generated files in `dist/` or `.next/`.
