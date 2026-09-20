@@ -61,3 +61,30 @@ test("explains how DOMORA works in three responsive steps", async ({
     expect(positions[2]?.x).toBeGreaterThan(positions[1]?.x ?? 0);
   }
 });
+
+test("shows service highlights and the value of a monthly plan", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const showcase = page.getByRole("region", {
+    name: "Услуги и абонаменти",
+  });
+  for (const category of [
+    "Основно почистване",
+    "Поддръжка на вход",
+    "Домашни ремонти",
+  ]) {
+    await expect(
+      showcase.getByRole("heading", { level: 3, name: category }),
+    ).toBeVisible();
+  }
+
+  await expect(showcase.getByText(/Спестете до 20%/)).toBeVisible();
+  await expect(
+    showcase.getByRole("link", { name: "Разгледай абонаментите" }),
+  ).toHaveAttribute("href", "/plans");
+  await expect(
+    showcase.getByRole("link", { name: "Заяви услуга" }).first(),
+  ).toHaveAttribute("href", "/requests");
+});
