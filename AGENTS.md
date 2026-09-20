@@ -48,3 +48,8 @@ Always run and verify that checks pass before completing tasks:
 - **Shared Files**: Avoid editing `src/app/globals.css` or `src/app/providers.tsx` unless necessary, and keep changes isolated to prevent merge conflicts with teammates.
 - **Scope**: Keep changes and PRs tightly focused on the requested task.
 - **Automated PR Creation**: When completing work on a feature branch or pushing changes, automatically push the branch to `origin` and open a pull request against `main` containing a clear summary of changes, problem addressed, and verification results.
+
+---
+
+## Available Skills
+- **/grill-me** (`.agents/skills/grill-me/SKILL.md`): When requested (or invoked via `/grill-me`), interview the user one question at a time with recommendations to stress-test plans, edge cases, and architecture before writing code.
