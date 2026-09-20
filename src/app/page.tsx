@@ -1,19 +1,12 @@
 import Link from "next/link";
-import { PageHeading } from "@/components/ui/page-heading";
-import { BookingButton } from "@/features/bookings/booking-button";
+import { Hero } from "@/features/landing/hero";
 import { RequestList } from "@/features/requests/request-list";
 import { ServiceGrid } from "@/features/services/service-grid";
 
 export default function HomePage() {
   return (
     <>
-      <PageHeading
-        eyebrow="ДОБРЕ ДОШЛИ В DOMORA"
-        title="Спокойствие за вашия дом."
-        description="Всичко за дома, подредено на едно място."
-      >
-        <BookingButton />
-      </PageHeading>
+      <Hero />
       <div className="banner">
         <div>
           <span className="eyebrow">ПО-МАЛКО ЗАДАЧИ. ПОВЕЧЕ ВРЕМЕ.</span>
@@ -31,11 +24,13 @@ export default function HomePage() {
           Разгледай абонаментите ↗
         </Link>
       </div>
-      <div className="sectionhead">
-        <h2>От какво се нуждаете?</h2>
-        <span className="muted">6 категории</span>
-      </div>
-      <ServiceGrid />
+      <section id="services" aria-labelledby="services-title">
+        <div className="sectionhead">
+          <h2 id="services-title">От какво се нуждаете?</h2>
+          <span className="muted">6 категории</span>
+        </div>
+        <ServiceGrid />
+      </section>
       <div className="lower">
         <section>
           <div className="sectionhead">

@@ -1,0 +1,212 @@
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(250px, 0.65fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+  min-height: 540px;
+  padding: clamp(2rem, 5vw, 4.5rem);
+  overflow: hidden;
+  border-radius: 24px;
+  background: #174c41;
+  color: #ffffff;
+}
+
+.hero::before {
+  position: absolute;
+  inset: auto auto -170px -110px;
+  width: 360px;
+  height: 360px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 50%;
+  content: "";
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+}
+
+.eyebrow {
+  margin: 0 0 1.25rem;
+  color: #d7ef77;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.title {
+  max-width: 700px;
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2.35rem, 4.5vw, 4.75rem);
+  line-height: 1.03;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+.description {
+  max-width: 610px;
+  margin: 1.5rem 0 0;
+  color: #d9e8e3;
+  font-size: clamp(1rem, 1.4vw, 1.2rem);
+  line-height: 1.65;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.primaryAction,
+.secondaryAction {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.35rem;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.primaryAction {
+  background: #d7ef77;
+  color: #17362f;
+}
+
+.primaryAction:hover {
+  background: #e5f6a3;
+}
+
+.secondaryAction {
+  border-color: rgb(255 255 255 / 65%);
+  color: #ffffff;
+}
+
+.secondaryAction:hover {
+  border-color: #ffffff;
+  background: rgb(255 255 255 / 9%);
+}
+
+.primaryAction:focus-visible,
+.secondaryAction:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.trustBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  padding: 0;
+  margin: 2rem 0 0;
+  list-style: none;
+  color: #eff7f4;
+  font-size: 0.875rem;
+}
+
+.trustBadges li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.trustBadges span {
+  display: inline-grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #d7ef77;
+  color: #17362f;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.visual {
+  position: relative;
+  align-self: stretch;
+  min-height: 360px;
+}
+
+.sun {
+  position: absolute;
+  top: 3%;
+  right: 0;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: #d7ef77;
+}
+
+.home {
+  position: absolute;
+  right: -12%;
+  bottom: 7%;
+  width: min(410px, 125%);
+  color: #f6f2e8;
+  filter: drop-shadow(0 24px 28px rgb(7 34 28 / 28%));
+}
+
+.visualLabel {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 0.2rem;
+  max-width: 220px;
+  padding: 1rem 1.15rem;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 12px;
+  background: rgb(16 57 48 / 88%);
+  box-shadow: 0 16px 35px rgb(7 34 28 / 20%);
+  backdrop-filter: blur(8px);
+}
+
+.visualLabel span {
+  color: #d7ef77;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.visualLabel strong {
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 1050px) {
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .visual {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 2rem 1.25rem;
+    border-radius: 18px;
+  }
+
+  .title {
+    font-size: clamp(2.1rem, 11vw, 3rem);
+  }
+
+  .actions {
+    display: grid;
+  }
+
+  .trustBadges {
+    display: grid;
+  }
+}
