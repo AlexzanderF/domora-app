@@ -88,3 +88,35 @@ test("shows service highlights and the value of a monthly plan", async ({
     showcase.getByRole("link", { name: "Заяви услуга" }).first(),
   ).toHaveAttribute("href", "/requests");
 });
+
+test("builds trust and answers common questions accessibly", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const trust = page.getByRole("region", {
+    name: "Защо да изберете DOMORA",
+  });
+  await expect(trust.getByRole("article")).toHaveCount(3);
+  for (const benefit of [
+    "Застраховка на имуществото",
+    "Фиксирани прозрачни цени",
+    "Проверени специалисти с рейтинг",
+  ]) {
+    await expect(
+      trust.getByRole("heading", { level: 3, name: benefit }),
+    ).toBeVisible();
+  }
+
+  const faq = page.getByRole("region", {
+    name: "Често задавани въпроси",
+  });
+  const paymentQuestion = faq.getByText("Как се извършва плащането?", {
+    exact: true,
+  });
+  const paymentAnswer = faq.getByText(/Плащате сигурно след потвърждение/);
+  await expect(paymentAnswer).toBeHidden();
+  await paymentQuestion.focus();
+  await page.keyboard.press("Enter");
+  await expect(paymentAnswer).toBeVisible();
+});

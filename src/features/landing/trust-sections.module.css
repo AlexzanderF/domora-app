@@ -1,0 +1,220 @@
+.trustSection {
+  padding: clamp(4rem, 8vw, 7rem) 0;
+}
+
+.sectionHeading {
+  max-width: 700px;
+  margin-bottom: 2.5rem;
+}
+
+.sectionHeading p,
+.testimonialHeading p,
+.faqIntro > p {
+  margin: 0 0 0.65rem;
+  color: #1b594b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.sectionHeading h2,
+.faqIntro h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  letter-spacing: -0.035em;
+}
+
+.benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.benefits li {
+  display: flex;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid #dbe4de;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.benefitIcon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  background: #eaf2ec;
+  color: #1b594b;
+}
+
+.benefitIcon svg {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.benefits h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.benefits p {
+  margin: 0.55rem 0 0;
+  color: #63736d;
+  font-size: 0.88rem;
+}
+
+.testimonialHeading {
+  max-width: 690px;
+  margin: clamp(4rem, 7vw, 6rem) 0 2rem;
+}
+
+.testimonialHeading h3 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.5vw, 2.7rem);
+  letter-spacing: -0.03em;
+}
+
+.testimonials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.testimonials article {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border-radius: 18px;
+  background: #174c41;
+  color: #ffffff;
+}
+
+.rating {
+  color: #d7ef77;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+}
+
+.testimonials blockquote {
+  flex: 1;
+  margin: 1.25rem 0 2rem;
+  color: #f4f8f6;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.testimonials footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #d7ef77;
+  color: #17362f;
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.testimonials footer div {
+  display: grid;
+}
+
+.testimonials footer span:last-child {
+  color: #bdd0c9;
+  font-size: 0.78rem;
+}
+
+.faq {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  gap: clamp(2rem, 7vw, 6rem);
+  padding: clamp(4rem, 8vw, 7rem) 0;
+  scroll-margin-top: 5rem;
+}
+
+.faqIntro span {
+  display: block;
+  max-width: 430px;
+  margin-top: 1rem;
+  color: #61726c;
+}
+
+.questions details {
+  border-top: 1px solid #cedbd3;
+}
+
+.questions details:last-child {
+  border-bottom: 1px solid #cedbd3;
+}
+
+.questions summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.4rem 0;
+  color: #182e29;
+  font-size: 1.05rem;
+  font-weight: 750;
+  cursor: pointer;
+  list-style: none;
+}
+
+.questions summary::-webkit-details-marker {
+  display: none;
+}
+
+.questions summary::after {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf2ec;
+  color: #1b594b;
+  content: "+";
+}
+
+.questions details[open] summary::after {
+  content: "−";
+}
+
+.questions summary:focus-visible {
+  outline: 3px solid #84b998;
+  outline-offset: 4px;
+}
+
+.questions details p {
+  max-width: 680px;
+  padding: 0 3rem 1.4rem 0;
+  margin: 0;
+  color: #61726c;
+}
+
+@media (max-width: 850px) {
+  .benefits,
+  .testimonials,
+  .faq {
+    grid-template-columns: 1fr;
+  }
+
+  .faq {
+    gap: 2rem;
+  }
+}
