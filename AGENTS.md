@@ -60,3 +60,19 @@ Always run and verify that checks pass before completing tasks:
 ## Available Skills
 
 - **/grill-me** (`.agents/skills/grill-me/SKILL.md`): When requested (or invoked via `/grill-me`), interview the user one question at a time with recommendations to stress-test plans, edge cases, and architecture before writing code.
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues for `ivanlipev15-ops/domora-app`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical five-role triage vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context repository layout (`CONTEXT.md` at root). See `docs/agents/domain.md`.
