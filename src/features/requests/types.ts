@@ -14,6 +14,8 @@ export interface ServiceRequest {
   status: RequestStatus;
   description: string;
   plan?: Plan;
+  visitsPerMonth?: number;
+  propertySize?: number;
   master?: string;
   report?: string;
   cancelled?: boolean;

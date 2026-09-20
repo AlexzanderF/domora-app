@@ -49,7 +49,11 @@ export function RequestList({
             </span>{" "}
             {request.plan && (
               <span className="badge">
-                {request.plan === "home" ? "За дома" : "За входа"}
+                {request.visitsPerMonth && request.propertySize
+                  ? `${request.visitsPerMonth} ${request.visitsPerMonth === 1 ? "посещение" : "посещения"} / месец · ${request.propertySize} ${request.plan === "home" ? "м²" : "етажа"}`
+                  : request.plan === "home"
+                    ? "За дома"
+                    : "За входа"}
               </span>
             )}
             {actions && (
