@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
@@ -10,7 +11,7 @@ import {
 } from "./validation";
 
 export interface StoredUser extends User {
-  password: string;
+  passwordHash: string;
 }
 
 export interface AuthSnapshot {
@@ -24,7 +25,7 @@ export const initialSeedUsers: StoredUser[] = [
     name: "Иван Иванов",
     email: "client@domora.bg",
     phone: "0888123456",
-    password: "password123",
+    passwordHash: bcrypt.hashSync("password", 10),
     role: "CLIENT",
     status: "ACTIVE",
     createdAt: "2026-01-15T10:00:00.000Z",
@@ -35,7 +36,7 @@ export const initialSeedUsers: StoredUser[] = [
     name: "Димитър Петров",
     email: "dimitar@vik-master.bg",
     phone: "0888765432",
-    password: "password123",
+    passwordHash: bcrypt.hashSync("password", 10),
     role: "SPECIALIST",
     status: "PENDING",
     specialistProfile: {
@@ -54,7 +55,7 @@ export const initialSeedUsers: StoredUser[] = [
     name: "Георги Тодоров",
     email: "georgi@el-service.bg",
     phone: "0878123456",
-    password: "password123",
+    passwordHash: bcrypt.hashSync("password", 10),
     role: "SPECIALIST",
     status: "ACTIVE",
     specialistProfile: {
@@ -71,7 +72,7 @@ export const initialSeedUsers: StoredUser[] = [
     name: "Стоян Василев",
     email: "stoyan@remonti-stoyan.bg",
     phone: "0887112233",
-    password: "password123",
+    passwordHash: bcrypt.hashSync("password", 10),
     role: "SPECIALIST",
     status: "REJECTED",
     specialistProfile: {
@@ -90,7 +91,7 @@ export const initialSeedUsers: StoredUser[] = [
     name: "Администратор",
     email: "admin@domora.bg",
     phone: "0899000111",
-    password: "adminpassword",
+    passwordHash: bcrypt.hashSync("password", 10),
     role: "ADMIN",
     status: "ACTIVE",
     createdAt: "2026-01-01T08:00:00.000Z",
@@ -196,7 +197,7 @@ function safeSessionStorageRemove(key: string): void {
 
 export function toPublicUser(stored: StoredUser): User {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { password, ...user } = stored;
+  const { passwordHash, ...user } = stored;
   return user;
 }
 
@@ -206,19 +207,32 @@ export function getStoredUsers(): StoredUser[] {
     try {
       const parsed = JSON.parse(json);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        // Ensure legacy records with plaintext password get migrated to passwordHash
+        const normalized: StoredUser[] = parsed.map(
+          (u: Partial<StoredUser> & { password?: string }) => {
+            if (!u.passwordHash && u.password) {
+              const { password: legacyPassword, ...rest } = u;
+              return {
+                ...rest,
+                passwordHash: bcrypt.hashSync(legacyPassword, 10),
+              } as StoredUser;
+            }
+            return u as StoredUser;
+          },
+        );
         // Ensure initial seed users exist even if stored users list is modified
-        const existingIds = new Set(parsed.map((u: StoredUser) => u.id));
+        const existingIds = new Set(normalized.map((u: StoredUser) => u.id));
         const missingSeeds = initialSeedUsers.filter(
           (seed) => !existingIds.has(seed.id),
         );
         if (missingSeeds.length > 0) {
-          const merged = [...parsed, ...missingSeeds];
+          const merged = [...normalized, ...missingSeeds];
           memoryUsers = merged;
           safeLocalStorageSet(STORAGE_KEY_USERS, JSON.stringify(merged));
           return merged;
         }
-        memoryUsers = parsed;
-        return parsed;
+        memoryUsers = normalized;
+        return normalized;
       }
     } catch {
       // Fallback to memory
@@ -269,12 +283,6 @@ export function setActiveUserId(id: string | null, rememberMe = true): void {
 export function getActiveUser(): User | null {
   const id = getActiveUserId();
   if (!id) return null;
-  const users = getStoredUsers();
-  const found = users.find((u) => u.id === id);
-  return found ? toPublicUser(found) : null;
-}
-
-export function findUserById(id: string): User | null {
   const users = getStoredUsers();
   const found = users.find((u) => u.id === id);
   return found ? toPublicUser(found) : null;
@@ -364,7 +372,7 @@ export function registerClientInStore(input: ClientRegistrationInput): User {
     name: input.name.trim(),
     email: trimmedEmail,
     phone: input.phone.trim(),
-    password: input.password,
+    passwordHash: bcrypt.hashSync(input.password, 10),
     role: "CLIENT",
     status: "ACTIVE",
     createdAt: now,
@@ -416,7 +424,7 @@ export function registerSpecialistInStore(
     name: input.name.trim(),
     email: trimmedEmail,
     phone: input.phone.trim(),
-    password: input.password,
+    passwordHash: bcrypt.hashSync(input.password, 10),
     role: "SPECIALIST",
     status: "PENDING",
     specialistProfile: {
@@ -449,7 +457,10 @@ export function authenticateUser(
 ): User | null {
   const users = getStoredUsers();
   const match = users.find(
-    (u) => matchesIdentifier(u, identifier) && u.password === password,
+    (u) =>
+      matchesIdentifier(u, identifier) &&
+      Boolean(u.passwordHash) &&
+      bcrypt.compareSync(password, u.passwordHash),
   );
 
   if (!match) {

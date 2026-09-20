@@ -8,7 +8,7 @@ import styles from "../auth.module.css";
 
 export default function PendingApprovalPage() {
   const router = useRouter();
-  const { user, status, refreshUser, updateStatus, logout } = useAuth();
+  const { user, status, refreshUser, logout } = useAuth();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -51,15 +51,6 @@ export default function PendingApprovalPage() {
   const handleLogout = async () => {
     await logout();
     router.push("/login");
-  };
-
-  const handleSimulateApproval = async () => {
-    if (!user) return;
-    await updateStatus("ACTIVE");
-    setNotice(
-      "Статусът беше успешно променен на Одобрен! Натиснете 'Провери статус', за да влезете.",
-    );
-    setNoticeType("success");
   };
 
   if (status === "loading") {
@@ -230,27 +221,6 @@ export default function PendingApprovalPage() {
           style={{ textAlign: "center" }}
         >
           Изход
-        </button>
-      </div>
-
-      {/* Demo helper */}
-      <div className={styles.specialistSection}>
-        <p
-          style={{
-            margin: "0 0 8px 0",
-            fontSize: "12px",
-            color: "var(--muted)",
-          }}
-        >
-          Демо режим: искате да тествате как работи одобрението?
-        </p>
-        <button
-          type="button"
-          onClick={handleSimulateApproval}
-          className="secondary"
-          style={{ padding: "6px 12px", fontSize: "12px" }}
-        >
-          Симулирай одобрение на кандидатурата
         </button>
       </div>
     </>

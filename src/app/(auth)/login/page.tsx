@@ -101,32 +101,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async (id: string, pass: string) => {
-    setIdentifier(id);
-    setPassword(pass);
-    setErrors({});
-    setErrorBanner(null);
-    setIsSubmitting(true);
-    const result = await login(id, pass, true);
-    setIsSubmitting(false);
-    if (result.success && result.user) {
-      if (
-        result.user.role === "SPECIALIST" &&
-        result.user.status === "PENDING"
-      ) {
-        router.push("/pending-approval");
-      } else if (result.user.role === "SPECIALIST") {
-        router.push("/specialist");
-      } else if (result.user.role === "ADMIN") {
-        router.push("/admin");
-      } else {
-        router.push("/");
-      }
-    } else {
-      setErrorBanner(result.error ?? "Невалиден имейл/телефон или парола.");
-    }
-  };
-
   return (
     <>
       <h1 className={styles.title}>Вход в DOMORA</h1>
@@ -284,59 +258,6 @@ export default function LoginPage() {
           Регистрация
         </Link>
       </p>
-
-      <div className={styles.specialistSection}>
-        <p
-          style={{ fontWeight: 600, color: "var(--ink)", marginBottom: "8px" }}
-        >
-          Бърз демо вход:
-        </p>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "6px",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => handleQuickLogin("client@domora.bg", "password123")}
-            className="secondary"
-            style={{ padding: "6px 10px", fontSize: "12px" }}
-          >
-            Клиент
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              handleQuickLogin("georgi@el-service.bg", "password123")
-            }
-            className="secondary"
-            style={{ padding: "6px 10px", fontSize: "12px" }}
-          >
-            Специалист
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              handleQuickLogin("dimitar@vik-master.bg", "password123")
-            }
-            className="secondary"
-            style={{ padding: "6px 10px", fontSize: "12px" }}
-          >
-            Чакащ специалист
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickLogin("admin@domora.bg", "adminpassword")}
-            className="secondary"
-            style={{ padding: "6px 10px", fontSize: "12px" }}
-          >
-            Администратор
-          </button>
-        </div>
-      </div>
     </>
   );
 }

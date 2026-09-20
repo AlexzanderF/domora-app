@@ -27,7 +27,7 @@ export default function AuthLayout({
             </span>
             <span>DOMORA</span>
           </Link>
-          <p className={styles.tagline}>WE TAKE CARE OF YOUR HOME</p>
+          <p className={styles.tagline}>Вашият дом. Нашата грижа.</p>
         </div>
 
         <div className={styles.card}>{children}</div>
