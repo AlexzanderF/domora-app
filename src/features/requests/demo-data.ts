@@ -1,9 +1,10 @@
 import type { ServiceRequest, Tariffs } from "./types";
+import { defaultPlanPrices } from "@/features/plans/pricing";
+import { defaultServicePrices } from "@/features/services/pricing";
 
 export const initialTariffs: Tariffs = {
-  categories: { 0: 45, 1: 35, 2: 55, 3: 25, 4: 65, 5: 25 },
-  home: 1.5,
-  entry: 18,
+  categories: { ...defaultServicePrices },
+  ...defaultPlanPrices,
 };
 
 export const initialRequests: ServiceRequest[] = [

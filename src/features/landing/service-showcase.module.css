@@ -1,0 +1,193 @@
+.section {
+  padding: clamp(4rem, 8vw, 7rem) 0;
+  scroll-margin-top: 5rem;
+}
+
+.heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.heading > p {
+  max-width: 500px;
+  margin: 0;
+  color: #61726c;
+}
+
+.eyebrow {
+  margin: 0 0 0.65rem;
+  color: #1b594b;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+}
+
+.heading h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  letter-spacing: -0.035em;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: clamp(1.4rem, 3vw, 2rem);
+  border: 1px solid #dbe4de;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.icon {
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  place-items: center;
+  margin-bottom: 1.75rem;
+  border-radius: 14px;
+  background: #eaf2ec;
+}
+
+.icon svg {
+  width: 1.8rem;
+  height: 1.8rem;
+  stroke: #1b594b;
+}
+
+.category {
+  color: #718079;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.card h3 {
+  margin: 0.45rem 0 0;
+  font-size: 1.25rem;
+}
+
+.card p {
+  flex: 1;
+  margin: 0.75rem 0 1.5rem;
+  color: #63736d;
+  font-size: 0.94rem;
+}
+
+.card strong {
+  color: #1b594b;
+  font-size: 1.05rem;
+}
+
+.cardAction {
+  margin-top: 1.2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #1b594b;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.cardAction:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
+.comparison {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.6rem, 4vw, 2.75rem);
+  margin-top: 1rem;
+  border-radius: 18px;
+  background: #d7ef77;
+  color: #17362f;
+}
+
+.comparison span {
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+}
+
+.comparison h3 {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.35rem, 3vw, 2rem);
+}
+
+.comparison p {
+  max-width: 650px;
+  margin: 0.65rem 0 0;
+}
+
+.comparisonDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.comparisonDetails > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 210px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgb(23 54 47 / 18%);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 28%);
+}
+
+.comparisonDetails small {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.comparisonDetails strong {
+  font-size: 0.86rem;
+}
+
+.comparison a {
+  flex: 0 0 auto;
+  padding: 0.85rem 1.2rem;
+  border-radius: 9px;
+  background: #174c41;
+  color: #ffffff;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.comparison a:hover {
+  background: #103b32;
+}
+
+@media (max-width: 800px) {
+  .heading,
+  .comparison {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison a {
+    width: 100%;
+    text-align: center;
+  }
+}

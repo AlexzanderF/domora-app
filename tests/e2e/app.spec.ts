@@ -18,16 +18,18 @@ test("renders real routes, supports browser history and fits the viewport", asyn
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Спокойствие за вашия дом.",
+    "Спокойствие за вашия дом — надеждни домашни услуги и абонаменти",
   );
   await expect(
-    page.getByRole("button", { name: "ВиК", exact: true }),
+    page.getByRole("heading", { name: "Основно почистване" }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Абонаменти", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Разгледай абонаментите", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/plans\/?$/);
   await page.goBack();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Спокойствие за вашия дом.",
+    "Спокойствие за вашия дом — надеждни домашни услуги и абонаменти",
   );
   for (const route of ["/requests", "/plans", "/specialist", "/admin"]) {
     await page.goto(route);
@@ -44,9 +46,12 @@ test("renders real routes, supports browser history and fits the viewport", asyn
 test("creates a request, keeps it across navigation and allows cancellation", async ({
   page,
 }) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: "Електро", exact: true }).click();
+  await page.goto("/requests");
+  await page.getByRole("button", { name: "+ Нова заявка" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "Категория", exact: true })
+    .selectOption("1");
   await expect(page.locator(".quote strong")).toContainText("35");
   await fillBooking(page);
   await page.getByRole("button", { name: "Изпрати демо заявка" }).click();
@@ -139,7 +144,7 @@ test("tariff changes affect new bookings without rewriting existing prices", asy
 test("invalid booking stays open and photo previews reset on close", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/requests");
   await page.getByRole("button", { name: "+ Нова заявка" }).click();
   await page.getByRole("button", { name: "Изпрати демо заявка" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
