@@ -16,6 +16,8 @@ import {
   authenticateUser,
   clearActiveSession,
   getAuthSnapshot,
+  getSpecialistsSnapshot,
+  getServerSpecialistsSnapshot,
   refreshActiveUser,
   registerClientInStore,
   registerSpecialistInStore,
@@ -46,6 +48,10 @@ export interface AuthContextValue {
   switchUser: (user: User | null) => void;
   refreshUser: () => Promise<User | null>;
   updateStatus: (status: UserStatus) => Promise<User | null>;
+  updateUserStatus: (
+    userId: string,
+    status: UserStatus,
+  ) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -132,6 +138,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [snapshot.user],
   );
 
+  const updateUserStatus = useCallback(
+    async (userId: string, status: UserStatus): Promise<User | null> => {
+      return updateUserStatusInStore(userId, status);
+    },
+    [],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -146,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         switchUser,
         refreshUser,
         updateStatus,
+        updateUserStatus,
       }}
     >
       {children}
@@ -159,4 +173,13 @@ export function useAuth(): AuthContextValue {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+}
+
+export function useSpecialists(): User[] {
+  const specialists = useSyncExternalStore(
+    subscribe,
+    getSpecialistsSnapshot,
+    getServerSpecialistsSnapshot,
+  );
+  return specialists;
 }
