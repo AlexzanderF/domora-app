@@ -1,4 +1,5 @@
 import { Sidebar } from "./sidebar";
+import { HeaderAccount } from "./header-account";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -10,9 +11,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="workspace">
         <header>
           <span>Вашият дом. Нашата грижа.</span>
-          <div className="account">
-            <span className="avatar">Д</span> Демо профил
-          </div>
+          <HeaderAccount />
         </header>
         <main id="main">{children}</main>
         <footer>
