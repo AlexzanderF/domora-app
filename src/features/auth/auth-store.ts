@@ -67,6 +67,25 @@ export const initialSeedUsers: StoredUser[] = [
     updatedAt: "2026-01-10T09:00:00.000Z",
   },
   {
+    id: "spec-rejected-1",
+    name: "Стоян Василев",
+    email: "stoyan@remonti-stoyan.bg",
+    phone: "0887112233",
+    password: "password123",
+    role: "SPECIALIST",
+    status: "REJECTED",
+    specialistProfile: {
+      category: "Боядисване",
+      area: "Пловдив",
+      experienceYears: 2,
+      bio: "Бояджийски услуги за жилища и търговски обекти.",
+      companyName: "Василев Строй ЕООД",
+      eik: "102938475",
+    },
+    createdAt: "2026-01-20T14:00:00.000Z",
+    updatedAt: "2026-01-22T16:00:00.000Z",
+  },
+  {
     id: "admin-1",
     name: "Администратор",
     email: "admin@domora.bg",
@@ -481,4 +500,30 @@ export function updateUserStatusInStore(
   updatedUsers[index] = updatedUser;
   saveStoredUsers(updatedUsers);
   return toPublicUser(updatedUser);
+}
+
+let cachedSpecialists: User[] = [];
+let cachedSpecialistsHash = "";
+
+/**
+ * Returns a stable cached snapshot of all registered specialists.
+ */
+export function getSpecialistsSnapshot(): User[] {
+  const users = getStoredUsers();
+  const specs = users.filter((u) => u.role === "SPECIALIST").map(toPublicUser);
+  const hash = specs.map((s) => `${s.id}:${s.status}:${s.updatedAt}`).join("|");
+  if (hash !== cachedSpecialistsHash) {
+    cachedSpecialistsHash = hash;
+    cachedSpecialists = specs;
+  }
+  return cachedSpecialists;
+}
+
+/**
+ * Server snapshot for SSR hydration.
+ */
+export function getServerSpecialistsSnapshot(): User[] {
+  return initialSeedUsers
+    .filter((u) => u.role === "SPECIALIST")
+    .map(toPublicUser);
 }

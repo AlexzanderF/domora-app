@@ -3,20 +3,24 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-const navigation = [
-  { href: "/", label: "Начало", icon: "⌂" },
-  { href: "/requests", label: "Моите заявки", icon: "▤" },
-  { href: "/plans", label: "Абонаменти", icon: "◈" },
-];
-
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const rolePath = pathname.startsWith("/admin")
+  const isAdmin = pathname.startsWith("/admin");
+  const rolePath = isAdmin
     ? "/admin"
     : pathname.startsWith("/specialist")
       ? "/specialist"
       : "/";
+
+  const navigation = [
+    { href: isAdmin ? "/admin" : "/", label: "Начало", icon: "⌂" },
+    ...(isAdmin
+      ? [{ href: "/admin/specialists", label: "Специалисти", icon: "👥" }]
+      : []),
+    { href: "/requests", label: "Моите заявки", icon: "▤" },
+    { href: "/plans", label: "Абонаменти", icon: "◈" },
+  ];
   return (
     <aside>
       <Link className="brand" href="/">
