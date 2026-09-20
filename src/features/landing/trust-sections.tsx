@@ -1,3 +1,4 @@
+import { LandingIcon } from "./landing-icon";
 import styles from "./trust-sections.module.css";
 
 const testimonials = [
@@ -63,20 +64,6 @@ const questions = [
   },
 ];
 
-function Icon({ path }: { path: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d={path}
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 export function TrustAndTestimonials() {
   return (
     <section className={styles.trustSection} aria-labelledby="trust-title">
@@ -89,7 +76,7 @@ export function TrustAndTestimonials() {
         {benefits.map((benefit) => (
           <li key={benefit.title}>
             <span className={styles.benefitIcon}>
-              <Icon path={benefit.icon} />
+              <LandingIcon path={benefit.icon} />
             </span>
             <div>
               <h3>{benefit.title}</h3>

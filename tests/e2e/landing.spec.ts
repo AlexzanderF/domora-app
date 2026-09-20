@@ -85,8 +85,14 @@ test("shows service highlights and the value of a monthly plan", async ({
     showcase.getByRole("link", { name: "Разгледай абонаментите" }),
   ).toHaveAttribute("href", "/plans");
   await expect(
-    showcase.getByRole("link", { name: "Заяви услуга" }).first(),
-  ).toHaveAttribute("href", "/requests");
+    showcase.getByText("Стандартна цена при всяка заявка"),
+  ).toBeVisible();
+  await expect(showcase.getByText("До 20% по-ниска обща цена")).toBeVisible();
+  await showcase.getByRole("button", { name: "Заяви услуга" }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(
+    page.getByRole("combobox", { name: "Категория", exact: true }),
+  ).toHaveValue("4");
 });
 
 test("builds trust and answers common questions accessibly", async ({

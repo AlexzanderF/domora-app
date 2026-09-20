@@ -92,14 +92,17 @@
   font-size: 1.05rem;
 }
 
-.card a {
+.cardAction {
   margin-top: 1.2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #1b594b;
   font-weight: 750;
   text-decoration: none;
 }
 
-.card a:hover {
+.cardAction:hover {
   text-decoration: underline;
   text-underline-offset: 0.25rem;
 }
@@ -130,6 +133,32 @@
 .comparison p {
   max-width: 650px;
   margin: 0.65rem 0 0;
+}
+
+.comparisonDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.comparisonDetails > span {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 210px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgb(23 54 47 / 18%);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 28%);
+}
+
+.comparisonDetails small {
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.comparisonDetails strong {
+  font-size: 0.86rem;
 }
 
 .comparison a {

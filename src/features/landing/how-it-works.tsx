@@ -1,3 +1,4 @@
+import { LandingIcon } from "./landing-icon";
 import styles from "./how-it-works.module.css";
 
 const steps = [
@@ -42,15 +43,7 @@ export function HowItWorks() {
           <li key={step.title} className={styles.step}>
             <div className={styles.stepHeader}>
               <span className={styles.icon} aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d={step.icon}
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                <LandingIcon path={step.icon} />
               </span>
               <span className={styles.number} aria-hidden="true">
                 {String(index + 1).padStart(2, "0")}

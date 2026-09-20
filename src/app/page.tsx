@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
+import { FinalCta } from "@/features/landing/final-cta";
 import { Hero } from "@/features/landing/hero";
 import { HowItWorks } from "@/features/landing/how-it-works";
-import {
-  FinalCta,
-  LandingFooter,
-  LandingHeader,
-} from "@/features/landing/landing-chrome";
+import { LandingFooter } from "@/features/landing/landing-footer";
+import { LandingHeader } from "@/features/landing/landing-header";
 import { ServiceShowcase } from "@/features/landing/service-showcase";
 import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
 import styles from "./landing.module.css";
