@@ -9,18 +9,18 @@ export function HeaderAccount() {
   const { user, status, logout } = useAuth();
   const router = useRouter();
 
-  const isPendingSpecialist =
+  const isPendingOrRejectedSpecialist =
     status === "authenticated" &&
     user?.role === "SPECIALIST" &&
-    user?.status === "PENDING";
+    (user?.status === "PENDING" || user?.status === "REJECTED");
 
   useEffect(() => {
-    if (isPendingSpecialist) {
+    if (isPendingOrRejectedSpecialist) {
       router.replace("/pending-approval");
     }
-  }, [isPendingSpecialist, router]);
+  }, [isPendingOrRejectedSpecialist, router]);
 
-  if (isPendingSpecialist) {
+  if (isPendingOrRejectedSpecialist) {
     return null;
   }
 

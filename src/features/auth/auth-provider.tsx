@@ -45,7 +45,6 @@ export interface AuthContextValue {
   ) => Promise<LoginResult>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<User | null>;
-  updateStatus: (status: UserStatus) => Promise<User | null>;
   updateUserStatus: (
     userId: string,
     status: UserStatus,
@@ -120,14 +119,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return refreshActiveUser();
   }, []);
 
-  const updateStatus = useCallback(
-    async (status: UserStatus): Promise<User | null> => {
-      if (!snapshot.user) return null;
-      return updateUserStatusInStore(snapshot.user.id, status);
-    },
-    [snapshot.user],
-  );
-
   const updateUserStatus = useCallback(
     async (userId: string, status: UserStatus): Promise<User | null> => {
       return updateUserStatusInStore(userId, status);
@@ -147,7 +138,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         refreshUser,
-        updateStatus,
         updateUserStatus,
       }}
     >
