@@ -22,7 +22,6 @@ import {
   registerClientInStore,
   registerSpecialistInStore,
   serverAuthSnapshot,
-  setActiveUserId,
   subscribeToAuth,
   updateUserStatusInStore,
 } from "./auth-store";
@@ -45,7 +44,6 @@ export interface AuthContextValue {
     rememberMe?: boolean,
   ) => Promise<LoginResult>;
   logout: () => Promise<void>;
-  switchUser: (user: User | null) => void;
   refreshUser: () => Promise<User | null>;
   updateStatus: (status: UserStatus) => Promise<User | null>;
   updateUserStatus: (
@@ -118,14 +116,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     clearActiveSession();
   }, []);
 
-  const switchUser = useCallback((nextUser: User | null) => {
-    if (nextUser) {
-      setActiveUserId(nextUser.id);
-    } else {
-      clearActiveSession();
-    }
-  }, []);
-
   const refreshUser = useCallback(async (): Promise<User | null> => {
     return refreshActiveUser();
   }, []);
@@ -156,7 +146,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         registerSpecialist,
         login,
         logout,
-        switchUser,
         refreshUser,
         updateStatus,
         updateUserStatus,
