@@ -6,15 +6,23 @@ import {
   useContext,
   useSyncExternalStore,
 } from "react";
-import type { ClientRegistrationInput, User } from "./types";
+import type {
+  ClientRegistrationInput,
+  SpecialistRegistrationInput,
+  User,
+  UserStatus,
+} from "./types";
 import {
   authenticateUser,
   clearActiveSession,
   getAuthSnapshot,
+  refreshActiveUser,
   registerClientInStore,
+  registerSpecialistInStore,
   serverAuthSnapshot,
   setActiveUserId,
   subscribeToAuth,
+  updateUserStatusInStore,
 } from "./auth-store";
 
 export interface LoginResult {
@@ -28,9 +36,12 @@ export interface AuthContextValue {
   status: "loading" | "authenticated" | "unauthenticated";
   isAuthenticated: boolean;
   registerClient: (input: ClientRegistrationInput) => Promise<User>;
+  registerSpecialist: (input: SpecialistRegistrationInput) => Promise<User>;
   login: (identifier: string, password: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   switchUser: (user: User | null) => void;
+  refreshUser: () => Promise<User | null>;
+  updateStatus: (status: UserStatus) => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -59,6 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const registerClient = useCallback(
     async (input: ClientRegistrationInput): Promise<User> => {
       const newUser = registerClientInStore(input);
+      return newUser;
+    },
+    [],
+  );
+
+  const registerSpecialist = useCallback(
+    async (input: SpecialistRegistrationInput): Promise<User> => {
+      const newUser = registerSpecialistInStore(input);
       return newUser;
     },
     [],
@@ -93,6 +112,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const refreshUser = useCallback(async (): Promise<User | null> => {
+    return refreshActiveUser();
+  }, []);
+
+  const updateStatus = useCallback(
+    async (status: UserStatus): Promise<User | null> => {
+      if (!snapshot.user) return null;
+      return updateUserStatusInStore(snapshot.user.id, status);
+    },
+    [snapshot.user],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -101,9 +132,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated:
           snapshot.status === "authenticated" && snapshot.user !== null,
         registerClient,
+        registerSpecialist,
         login,
         logout,
         switchUser,
+        refreshUser,
+        updateStatus,
       }}
     >
       {children}

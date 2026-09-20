@@ -1,5 +1,13 @@
-import type { ClientRegistrationInput, User } from "./types";
-import { validateClientRegistration } from "./validation";
+import type {
+  ClientRegistrationInput,
+  SpecialistRegistrationInput,
+  User,
+  UserStatus,
+} from "./types";
+import {
+  validateClientRegistration,
+  validateSpecialistRegistration,
+} from "./validation";
 
 export interface StoredUser extends User {
   password: string;
@@ -286,6 +294,66 @@ export function registerClientInStore(input: ClientRegistrationInput): User {
 }
 
 /**
+ * Registers a new specialist, persists with PENDING status, and immediately signs them in.
+ */
+export function registerSpecialistInStore(
+  input: SpecialistRegistrationInput,
+): User {
+  const validation = validateSpecialistRegistration(input);
+  if (!validation.isValid) {
+    const firstErrorMessage =
+      Object.values(validation.errors)[0] ??
+      "Невалидни данни за регистрация на специалист.";
+    throw new Error(firstErrorMessage);
+  }
+
+  const users = getStoredUsers();
+  const trimmedEmail = input.email.trim().toLowerCase();
+  const cleanPhone = input.phone.replace(/\D/g, "");
+
+  const existingEmail = users.find(
+    (u) => u.email.toLowerCase() === trimmedEmail,
+  );
+  if (existingEmail) {
+    throw new Error("Вече съществува потребител с този имейл адрес.");
+  }
+
+  const existingPhone = users.find(
+    (u) => u.phone.replace(/\D/g, "") === cleanPhone,
+  );
+  if (existingPhone) {
+    throw new Error("Вече съществува потребител с този телефонен номер.");
+  }
+
+  const now = new Date().toISOString();
+  const newUser: StoredUser = {
+    id: `spec-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    name: input.name.trim(),
+    email: trimmedEmail,
+    phone: input.phone.trim(),
+    password: input.password,
+    role: "SPECIALIST",
+    status: "PENDING",
+    specialistProfile: {
+      category: input.category,
+      area: input.area.trim(),
+      experienceYears: Number(input.experienceYears),
+      bio: input.bio.trim(),
+      companyName: input.companyName?.trim() || undefined,
+      eik: input.eik?.trim() || undefined,
+    },
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const updatedUsers = [...users, newUser];
+  saveStoredUsers(updatedUsers);
+  setActiveUserId(newUser.id);
+
+  return toPublicUser(newUser);
+}
+
+/**
  * Authenticates user by email or phone and password.
  * Sets the active session on success.
  */
@@ -311,4 +379,39 @@ export function authenticateUser(
  */
 export function clearActiveSession(): void {
   setActiveUserId(null);
+}
+
+/**
+ * Refreshes the active user record from stored users and notifies listeners.
+ */
+export function refreshActiveUser(): User | null {
+  const id = getActiveUserId();
+  if (!id) return null;
+  const users = getStoredUsers();
+  const found = users.find((u) => u.id === id);
+  if (!found) return null;
+  notifyListeners();
+  return toPublicUser(found);
+}
+
+/**
+ * Updates a user's status in store (e.g. for demoing approval).
+ */
+export function updateUserStatusInStore(
+  userId: string,
+  status: UserStatus,
+): User | null {
+  const users = getStoredUsers();
+  const index = users.findIndex((u) => u.id === userId);
+  if (index === -1) return null;
+
+  const updatedUser: StoredUser = {
+    ...users[index],
+    status,
+    updatedAt: new Date().toISOString(),
+  };
+  const updatedUsers = [...users];
+  updatedUsers[index] = updatedUser;
+  saveStoredUsers(updatedUsers);
+  return toPublicUser(updatedUser);
 }

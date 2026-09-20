@@ -37,7 +37,18 @@ export default function LoginPage() {
         setError(result.error ?? "Невалиден имейл/телефон или грешна парола.");
         return;
       }
-      router.push("/");
+      if (
+        result.user?.role === "SPECIALIST" &&
+        result.user.status === "PENDING"
+      ) {
+        router.push("/pending-approval");
+      } else if (result.user?.role === "SPECIALIST") {
+        router.push("/specialist");
+      } else if (result.user?.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } catch {
       setError("Възникна грешка при влизането в профила.");
     } finally {
@@ -52,8 +63,19 @@ export default function LoginPage() {
     setIsSubmitting(true);
     const result = await login(id, pass);
     setIsSubmitting(false);
-    if (result.success) {
-      router.push("/");
+    if (result.success && result.user) {
+      if (
+        result.user.role === "SPECIALIST" &&
+        result.user.status === "PENDING"
+      ) {
+        router.push("/pending-approval");
+      } else if (result.user.role === "SPECIALIST") {
+        router.push("/specialist");
+      } else if (result.user.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     } else {
       setError(result.error ?? "Неуспешен вход.");
     }
@@ -182,6 +204,16 @@ export default function LoginPage() {
             style={{ padding: "6px 10px", fontSize: "12px" }}
           >
             Специалист
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              handleQuickLogin("dimitar@vik-master.bg", "password123")
+            }
+            className="secondary"
+            style={{ padding: "6px 10px", fontSize: "12px" }}
+          >
+            Чакащ специалист
           </button>
           <button
             type="button"

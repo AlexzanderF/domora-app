@@ -1,11 +1,29 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "./sidebar";
 import { useAuth } from "@/features/auth/auth-provider";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, status, logout } = useAuth();
+  const router = useRouter();
+
+  const isPendingSpecialist =
+    status === "authenticated" &&
+    user?.role === "SPECIALIST" &&
+    user?.status === "PENDING";
+
+  useEffect(() => {
+    if (isPendingSpecialist) {
+      router.replace("/pending-approval");
+    }
+  }, [isPendingSpecialist, router]);
+
+  if (isPendingSpecialist) {
+    return null;
+  }
 
   const roleLabel =
     user?.role === "SPECIALIST"
