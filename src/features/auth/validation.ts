@@ -118,3 +118,31 @@ export function validateClientRegistration(input: ClientRegistrationInput): {
     errors,
   };
 }
+
+export interface LoginErrors {
+  identifier?: string;
+  password?: string;
+}
+
+/**
+ * Validates login input: identifier and password must not be empty.
+ */
+export function validateLogin(
+  identifier: string,
+  password: string,
+): {
+  isValid: boolean;
+  errors: LoginErrors;
+} {
+  const errors: LoginErrors = {};
+  if (!identifier.trim()) {
+    errors.identifier = "Моля, въведете имейл или телефон.";
+  }
+  if (!password) {
+    errors.password = "Моля, въведете парола.";
+  }
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
+  };
+}
