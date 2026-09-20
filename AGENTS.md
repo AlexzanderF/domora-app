@@ -54,6 +54,7 @@ Always run and verify that checks pass before completing tasks:
 - **Shared Files**: Avoid editing `src/app/globals.css` or `src/app/providers.tsx` unless necessary, and keep changes isolated to prevent merge conflicts with teammates.
 - **Scope**: Keep changes and PRs tightly focused on the requested task.
 - **Automated PR Creation**: When completing work on a feature branch or pushing changes, automatically push the branch to `origin` and open a pull request against `main` containing a clear summary of changes, problem addressed, and verification results.
+- **No Automated Test Writing**: Do NOT write new tests (unit tests, integration tests, or TDD) on implementations unless explicitly requested by the user. Focus solely on direct implementation and verifying that existing tests and type checks pass.
 
 ---
 
