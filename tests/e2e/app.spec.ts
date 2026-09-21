@@ -114,8 +114,16 @@ test("configures and books a subscription from the standalone plans page", async
   await page.getByLabel("Адрес на имота").fill("София, ул. Тестова 42");
   const date = new Date();
   date.setDate(date.getDate() + 1);
-  const tomorrow = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  await page.getByLabel("Предпочитана начална дата").fill(tomorrow);
+  const month = new Intl.DateTimeFormat("bg-BG", { month: "long" }).format(
+    date,
+  );
+  await page.getByLabel("Предпочитана начална дата").click();
+  await page
+    .getByRole("dialog", { name: "Избор на дата" })
+    .getByRole("button", {
+      name: new RegExp(`${date.getDate()}.*${month}`, "i"),
+    })
+    .click();
   await page.getByLabel("Часови диапазон").selectOption("09:00–12:00");
   await page.getByRole("button", { name: "Изпрати заявка" }).click();
 

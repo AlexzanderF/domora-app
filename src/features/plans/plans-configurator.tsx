@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
+import { DatePicker } from "@/features/plans/date-picker";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote } from "@/features/requests/pricing";
 import type { Plan } from "@/features/requests/types";
@@ -264,14 +265,10 @@ export function PlansConfigurator() {
               error={errors.date}
               id="date-error"
             >
-              <input
-                className={styles.dateInput}
-                name="date"
-                type="date"
+              <DatePicker
                 min={today}
-                aria-invalid={Boolean(errors.date)}
-                aria-describedby={errors.date ? "date-error" : undefined}
-                onClick={(event) => event.currentTarget.showPicker()}
+                invalid={Boolean(errors.date)}
+                describedBy={errors.date ? "date-error" : undefined}
               />
             </Field>
             <Field label="Часови диапазон" error={errors.time} id="time-error">
