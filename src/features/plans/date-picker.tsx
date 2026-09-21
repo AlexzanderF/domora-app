@@ -69,9 +69,7 @@ export function DatePicker({
         aria-describedby={describedBy}
         onClick={() => setOpen((current) => !current)}
       >
-        <span className={selected ? styles.selectedDateValue : undefined}>
-          {selected ? formatDisplayDate(selected) : "Изберете дата"}
-        </span>
+        <span>{selected ? formatDisplayDate(selected) : "Изберете дата"}</span>
         <span className={styles.dateChevron} aria-hidden="true">
           ▾
         </span>

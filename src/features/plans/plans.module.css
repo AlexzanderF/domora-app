@@ -476,13 +476,6 @@
   font-size: 0.8rem;
 }
 
-.selectedDateValue {
-  text-decoration: underline;
-  text-decoration-color: #7fa699;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-}
-
 .calendarPopover {
   position: absolute;
   z-index: 20;
@@ -577,9 +570,6 @@
   background: #175246;
   color: #fff;
   font-weight: 800;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
 }
 
 .calendarPopover :global(.rdp-today:not(.rdp-selected) .rdp-day_button) {
