@@ -124,6 +124,14 @@ test("configures and books a subscription from the standalone plans page", async
       name: new RegExp(`${date.getDate()}.*${month}`, "i"),
     })
     .click();
+  const formattedDate = [
+    String(date.getDate()).padStart(2, "0"),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    date.getFullYear(),
+  ].join(".");
+  const dateTrigger = page.getByLabel("Предпочитана начална дата");
+  await expect(dateTrigger).toContainText(formattedDate);
+  await expect(dateTrigger).not.toContainText("г.");
   await page.getByLabel("Часови диапазон").selectOption("09:00–12:00");
   await page.getByRole("button", { name: "Изпрати заявка" }).click();
 
