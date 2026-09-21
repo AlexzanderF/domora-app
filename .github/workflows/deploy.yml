@@ -66,6 +66,12 @@ jobs:
               DATABASE_URL="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}"
             fi
 
+            # Ensure APP_DOMAIN is valid (default to :80 HTTP if empty or raw IP)
+            APP_DOMAIN="${APP_DOMAIN:-:80}"
+            if [[ "$APP_DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              APP_DOMAIN="http://${APP_DOMAIN}"
+            fi
+
             # Automatically write .env from GitHub Secrets
             cat <<EOF > .env
             DATABASE_URL=${DATABASE_URL}
