@@ -83,6 +83,8 @@ export function LoginForm() {
         return;
       }
 
+      router.refresh();
+
       if (result.user?.role === "SPECIALIST") {
         if (result.user.status === "PENDING") {
           router.push("/pending-approval");
@@ -104,7 +106,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/");
+      router.push("/requests");
     } catch {
       setErrorBanner("Възникна грешка при влизането в профила.");
     } finally {
