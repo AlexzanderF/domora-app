@@ -1,0 +1,452 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  width: 100%;
+}
+
+.demoBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: #f0f7f4;
+  border: 1px dashed #84b998;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+
+.demoBannerText {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.demoBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  background: var(--green);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.demoButton {
+  padding: 0.45rem 0.9rem;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--green);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.demoButton:hover {
+  background: #e8f3ed;
+  border-color: #84b998;
+}
+
+/* Subscribed View Styles */
+.planCard {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 3%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.planCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.tierInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.planEyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.planName {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.planDescription {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.statusActive {
+  background: #e6f7ec;
+  color: #176536;
+  border: 1px solid #b3e7c5;
+}
+
+.statusCancelled {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.statusExpired {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.metricCard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.metricIcon {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.metricLabel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metricValue {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.metricSubtext {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Features Included */
+.coverageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.coverageList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.coverageItem {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.checkIcon {
+  color: var(--green);
+  font-weight: 800;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #e6f7ec;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Plan Actions */
+.planActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.primaryButton:hover {
+  opacity: 0.92;
+}
+
+.dangerOutlineButton {
+  padding: 0.65rem 1.1rem;
+  background: transparent;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dangerOutlineButton:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+/* Unsubscribed View Styles */
+.introBanner {
+  background: linear-gradient(135deg, #f0f7f4 0%, #e6f2ec 100%);
+  border: 1px solid #c9e0d4;
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.introBanner h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.introBanner p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #29453e;
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+.plansGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.tierCard {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 3%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.tierCard:hover {
+  box-shadow: 0 8px 24px rgb(0 0 0 / 6%);
+  border-color: #84b998;
+}
+
+.tierFeatured {
+  border-color: var(--green);
+  box-shadow: 0 4px 20px rgb(27 89 75 / 10%);
+}
+
+.featuredBadge {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tierHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tierTitle {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.tierSubtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.pricingBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.priceFrom {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.priceNumber {
+  font-size: 2rem;
+  font-weight: 850;
+  color: var(--green);
+  line-height: 1;
+}
+
+.priceUnit {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tierFeatures {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.tierFeatureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.subscribeCta {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  background: var(--green);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
+}
+
+.subscribeCta:hover {
+  opacity: 0.92;
+}
+
+.subscribeCtaOutline {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  background: transparent;
+  color: var(--green);
+  border: 2px solid var(--green);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.subscribeCtaOutline:hover {
+  background: var(--green);
+  color: white;
+}

@@ -4,9 +4,11 @@ import pg from "pg";
 import { loadEnvFiles } from "./index";
 import {
   specialistProfiles,
+  subscriptions,
   tariffs,
   users,
   type SpecialistProfileInsert,
+  type SubscriptionInsert,
   type TariffInsert,
   type UserInsert,
 } from "./schema";
@@ -134,6 +136,19 @@ const seedTariffs: TariffInsert[] = [
   },
 ];
 
+const seedSubscriptions: SubscriptionInsert[] = [
+  {
+    id: "sub-demo-1",
+    userId: "client-demo-1",
+    planType: "HOME",
+    propertyAddress: "София, ул. Примерна 12, ап. 5",
+    propertyArea: 85,
+    status: "ACTIVE",
+    visitsRemaining: 3,
+    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  },
+];
+
 async function seedDatabase(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL?.trim();
   if (!databaseUrl) {
@@ -203,6 +218,25 @@ async function seedDatabase(): Promise<void> {
             urgentRate: tariff.urgentRate,
             holidayRate: tariff.holidayRate,
             emergencyRate: tariff.emergencyRate,
+            updatedAt: new Date(),
+          },
+        });
+    }
+
+    console.log("Seeding baseline subscriptions...");
+    for (const sub of seedSubscriptions) {
+      await db
+        .insert(subscriptions)
+        .values(sub)
+        .onConflictDoUpdate({
+          target: subscriptions.id,
+          set: {
+            planType: sub.planType,
+            propertyAddress: sub.propertyAddress,
+            propertyArea: sub.propertyArea,
+            status: sub.status,
+            visitsRemaining: sub.visitsRemaining,
+            validUntil: sub.validUntil,
             updatedAt: new Date(),
           },
         });
