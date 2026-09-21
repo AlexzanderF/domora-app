@@ -280,6 +280,27 @@ export function setActiveUserId(id: string | null, rememberMe = true): void {
   notifyListeners();
 }
 
+export function syncExternalUser(user: User | null): void {
+  if (user) {
+    const users = getStoredUsers();
+    const existingIndex = users.findIndex((u) => u.id === user.id);
+    if (existingIndex >= 0) {
+      users[existingIndex] = {
+        ...users[existingIndex],
+        ...user,
+      };
+      saveStoredUsers(users);
+    } else {
+      users.push({
+        ...user,
+        passwordHash: "",
+      });
+      saveStoredUsers(users);
+    }
+    setActiveUserId(user.id);
+  }
+}
+
 export function getActiveUser(): User | null {
   const id = getActiveUserId();
   if (!id) return null;

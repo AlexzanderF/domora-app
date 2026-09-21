@@ -9,9 +9,10 @@ export type DomoraDatabase = NodePgDatabase<typeof schema>;
 
 export function loadEnvFiles(): void {
   if (typeof process.loadEnvFile !== "function") return;
+  if (process.env.NODE_ENV === "production") return;
   for (const envFile of [".env.local", ".env"]) {
     try {
-      if (fs.existsSync(envFile)) {
+      if (fs.existsSync(/* turbopackIgnore: true */ envFile)) {
         process.loadEnvFile(envFile);
       }
     } catch {

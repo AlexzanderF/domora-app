@@ -43,7 +43,10 @@ export function HeaderAccount() {
         <span className="badge">{roleLabel}</span>
         <button
           type="button"
-          onClick={() => logout()}
+          onClick={async () => {
+            await logout();
+            router.push("/login");
+          }}
           className="textbutton"
           style={{ marginLeft: "8px", cursor: "pointer" }}
           aria-label="Изход от профила"
