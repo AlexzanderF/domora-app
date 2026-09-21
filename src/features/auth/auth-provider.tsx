@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useSyncExternalStore,
 } from "react";
 import type {
@@ -23,8 +24,14 @@ import {
   registerSpecialistInStore,
   serverAuthSnapshot,
   subscribeToAuth,
+  syncExternalUser,
   updateUserStatusInStore,
 } from "./auth-store";
+import {
+  loginAction,
+  logoutAction,
+  registerClientAction,
+} from "@/features/auth/server/actions";
 
 export interface LoginResult {
   success: boolean;
@@ -67,17 +74,69 @@ function subscribe(callback: () => void): () => void {
   };
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+function fallbackDemoLogin(
+  identifier: string,
+  password: string,
+  rememberMe: boolean,
+): LoginResult {
+  const authed = authenticateUser(identifier, password, rememberMe);
+  if (!authed) {
+    return {
+      success: false,
+      error: "Невалиден имейл/телефон или парола.",
+    };
+  }
+  return {
+    success: true,
+    user: authed,
+  };
+}
+
+export function AuthProvider({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode;
+  initialUser?: User | null;
+}) {
+  const initialSnapshot = initialUser
+    ? { user: initialUser, status: "authenticated" as const }
+    : serverAuthSnapshot;
+
   const snapshot = useSyncExternalStore(
     subscribe,
     getAuthSnapshot,
-    () => serverAuthSnapshot,
+    () => initialSnapshot,
   );
+
+  useEffect(() => {
+    if (initialUser) {
+      syncExternalUser(initialUser);
+    }
+  }, [initialUser]);
 
   const registerClient = useCallback(
     async (input: ClientRegistrationInput): Promise<User> => {
-      const newUser = registerClientInStore(input);
-      return newUser;
+      try {
+        const actionResult = await registerClientAction(input);
+        if ("mode" in actionResult && actionResult.mode === "demo") {
+          return registerClientInStore(input);
+        }
+        if (actionResult.success) {
+          syncExternalUser(actionResult.user);
+          return actionResult.user;
+        }
+        throw new Error(actionResult.error);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          !error.message.includes("fetch") &&
+          !error.message.includes("network")
+        ) {
+          throw error;
+        }
+        return registerClientInStore(input);
+      }
     },
     [],
   );
@@ -96,22 +155,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       password: string,
       rememberMe = true,
     ): Promise<LoginResult> => {
-      const authed = authenticateUser(identifier, password, rememberMe);
-      if (!authed) {
+      try {
+        const actionResult = await loginAction(identifier, password);
+        if ("mode" in actionResult && actionResult.mode === "demo") {
+          return fallbackDemoLogin(identifier, password, rememberMe);
+        }
+
+        if (actionResult.success) {
+          syncExternalUser(actionResult.user);
+          return {
+            success: true,
+            user: actionResult.user,
+          };
+        }
+
         return {
           success: false,
-          error: "Невалиден имейл/телефон или парола.",
+          error: actionResult.error,
         };
+      } catch {
+        return fallbackDemoLogin(identifier, password, rememberMe);
       }
-      return {
-        success: true,
-        user: authed,
-      };
     },
     [],
   );
 
   const logout = useCallback(async (): Promise<void> => {
+    try {
+      await logoutAction();
+    } catch {
+      // Ignore errors on logout
+    }
     clearActiveSession();
   }, []);
 
