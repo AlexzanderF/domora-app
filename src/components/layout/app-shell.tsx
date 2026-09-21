@@ -10,7 +10,7 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <a href="#main" className="skip-link">
         Към съдържанието
       </a>
-      <Sidebar />
+      <Sidebar initialUser={serverUser} />
       <div className="workspace">
         <header>
           <span>Вашият дом. Нашата грижа.</span>

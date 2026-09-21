@@ -112,7 +112,7 @@ export function PlansConfigurator() {
       propertySize: quantity,
     });
     notify("Абонаментната заявка е създадена успешно.");
-    router.push("/requests");
+    router.push("/client/requests");
   }
 
   return (

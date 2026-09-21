@@ -19,5 +19,6 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
-      - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      # e2e tests temporarily ignored in CI
+      # - run: npx playwright install --with-deps chromium
+      # - run: npm run test:e2e

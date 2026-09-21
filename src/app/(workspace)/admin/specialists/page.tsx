@@ -20,7 +20,7 @@ export default async function AdminSpecialistsPage() {
       redirect("/login");
     }
     if (user.role !== "ADMIN") {
-      redirect(user.role === "SPECIALIST" ? "/specialist" : "/requests");
+      redirect(user.role === "SPECIALIST" ? "/specialist" : "/client");
     }
   }
 

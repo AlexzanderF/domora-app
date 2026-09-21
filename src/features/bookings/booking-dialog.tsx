@@ -96,7 +96,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           plan,
         });
         closeBooking();
-        router.push("/requests");
+        router.push("/client/requests");
         notify(
           "Демо заявката е създадена. Не е изпратена до реален специалист.",
         );
@@ -108,7 +108,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           addRequest(actionResult.request);
         }
         closeBooking();
-        router.push("/requests");
+        router.push("/client/requests");
         notify("Заявката е създадена успешно.");
         return;
       }
@@ -131,7 +131,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         plan,
       });
       closeBooking();
-      router.push("/requests");
+      router.push("/client/requests");
       notify("Демо заявката е създадена. Не е изпратена до реален специалист.");
     } finally {
       setIsSubmitting(false);

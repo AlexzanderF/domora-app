@@ -2,11 +2,21 @@ import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { sessions } from "@/db/schema";
+import {
+  ROLE_COOKIE_NAME,
+  SESSION_COOKIE_NAME,
+  STATUS_COOKIE_NAME,
+  SESSION_MAX_AGE,
+} from "../constants";
 import type { User } from "../types";
 import { findUserBySessionToken } from "./queries";
 
-export const SESSION_COOKIE_NAME = "domora_session";
-export const SESSION_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
+export {
+  ROLE_COOKIE_NAME,
+  SESSION_COOKIE_NAME,
+  STATUS_COOKIE_NAME,
+  SESSION_MAX_AGE,
+};
 
 export async function getServerSession(): Promise<User | null> {
   if (process.env.NEXT_STATIC_EXPORT === "1" || !isDbConfigured) {
@@ -24,7 +34,11 @@ export async function getServerSession(): Promise<User | null> {
   }
 }
 
-export async function createSession(userId: string): Promise<string | null> {
+export async function createSession(
+  userId: string,
+  role?: string,
+  status?: string,
+): Promise<string | null> {
   if (!isDbConfigured) return null;
   const db = getDb();
   if (!db) return null;
@@ -32,6 +46,21 @@ export async function createSession(userId: string): Promise<string | null> {
   const token = crypto.randomUUID();
   const sessionId = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000);
+
+  let userRole = role;
+  let userStatus = status;
+
+  if (!userRole || !userStatus) {
+    const { users } = await import("@/db/schema");
+    const [user] = await db
+      .select({ role: users.role, status: users.status })
+      .from(users)
+      .where(eq(users.id, userId));
+    if (user) {
+      userRole = user.role;
+      userStatus = user.status;
+    }
+  }
 
   await db.insert(sessions).values({
     id: sessionId,
@@ -49,6 +78,28 @@ export async function createSession(userId: string): Promise<string | null> {
     maxAge: SESSION_MAX_AGE,
     expires: expiresAt,
   });
+
+  if (userRole) {
+    cookieStore.set(ROLE_COOKIE_NAME, userRole, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: SESSION_MAX_AGE,
+      expires: expiresAt,
+    });
+  }
+
+  if (userStatus) {
+    cookieStore.set(STATUS_COOKIE_NAME, userStatus, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: SESSION_MAX_AGE,
+      expires: expiresAt,
+    });
+  }
 
   return token;
 }
@@ -68,6 +119,8 @@ export async function deleteSession(): Promise<void> {
     }
 
     cookieStore.delete(SESSION_COOKIE_NAME);
+    cookieStore.delete(ROLE_COOKIE_NAME);
+    cookieStore.delete(STATUS_COOKIE_NAME);
   } catch {
     // Gracefully handle deletion in static or non-request environments
   }

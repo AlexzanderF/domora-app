@@ -32,6 +32,14 @@ export interface ServiceRequestActionResult {
   request?: ServiceRequest;
 }
 
+function revalidateWorkspaceRequests(): void {
+  revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
+  revalidatePath("/specialist");
+  revalidatePath("/admin");
+}
+
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
@@ -88,9 +96,7 @@ export async function createServiceRequestAction(
     clientPhone: user.phone || "0888000000",
   });
 
-  revalidatePath("/requests");
-  revalidatePath("/specialist");
-  revalidatePath("/admin");
+  revalidateWorkspaceRequests();
 
   const createdRequest: ServiceRequest = {
     id: requestId,
@@ -155,6 +161,8 @@ export async function assignSpecialistAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -208,6 +216,8 @@ export async function startWorkAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -262,6 +272,8 @@ export async function completeWorkAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -317,6 +329,8 @@ export async function cancelRequestAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -370,9 +384,7 @@ export async function transitionRequestServerAction(
         })
         .where(eq(requests.id, requestId));
 
-      revalidatePath("/requests");
-      revalidatePath("/specialist");
-      revalidatePath("/admin");
+      revalidateWorkspaceRequests();
       return { success: true, mode: "db" };
     }
     case "issue": {
@@ -392,9 +404,7 @@ export async function transitionRequestServerAction(
         })
         .where(eq(requests.id, requestId));
 
-      revalidatePath("/requests");
-      revalidatePath("/specialist");
-      revalidatePath("/admin");
+      revalidateWorkspaceRequests();
       return { success: true, mode: "db" };
     }
     default:

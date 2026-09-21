@@ -23,7 +23,7 @@ export default async function SignUpPage() {
           user.status === "PENDING" ? "/pending-approval" : "/specialist",
         );
       }
-      redirect("/requests");
+      redirect("/client");
     }
   }
 
