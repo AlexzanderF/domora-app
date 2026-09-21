@@ -5,19 +5,22 @@ import { requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
 import { useDemo } from "./demo-provider";
 import { RequestActions } from "./request-actions";
-import type { Role } from "./types";
+import type { Role, ServiceRequest } from "./types";
 
 export function RequestList({
   limit,
   actions = false,
   role = "client",
+  initialRequests,
 }: {
   limit?: number;
   actions?: boolean;
   role?: Role;
+  initialRequests?: ServiceRequest[] | null;
 }) {
-  const { requests } = useDemo();
-  const items = limit ? requests.slice(0, limit) : requests;
+  const { requests: demoRequests } = useDemo();
+  const sourceRequests = initialRequests ?? demoRequests;
+  const items = limit ? sourceRequests.slice(0, limit) : sourceRequests;
   if (!items.length)
     return (
       <div className="empty">

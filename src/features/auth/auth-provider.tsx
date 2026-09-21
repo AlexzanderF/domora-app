@@ -30,8 +30,11 @@ import {
 import {
   loginAction,
   logoutAction,
+  refreshUserAction,
   registerClientAction,
+  registerSpecialistAction,
 } from "@/features/auth/server/actions";
+import { updateSpecialistStatusAction } from "@/features/admin/server/actions";
 
 export interface LoginResult {
   success: boolean;
@@ -143,8 +146,26 @@ export function AuthProvider({
 
   const registerSpecialist = useCallback(
     async (input: SpecialistRegistrationInput): Promise<User> => {
-      const newUser = registerSpecialistInStore(input);
-      return newUser;
+      try {
+        const actionResult = await registerSpecialistAction(input);
+        if ("mode" in actionResult && actionResult.mode === "demo") {
+          return registerSpecialistInStore(input);
+        }
+        if (actionResult.success) {
+          syncExternalUser(actionResult.user);
+          return actionResult.user;
+        }
+        throw new Error(actionResult.error);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          !error.message.includes("fetch") &&
+          !error.message.includes("network")
+        ) {
+          throw error;
+        }
+        return registerSpecialistInStore(input);
+      }
     },
     [],
   );
@@ -190,11 +211,36 @@ export function AuthProvider({
   }, []);
 
   const refreshUser = useCallback(async (): Promise<User | null> => {
-    return refreshActiveUser();
+    try {
+      const res = await refreshUserAction();
+      if (res.mode === "db" && res.user) {
+        syncExternalUser(res.user);
+        return res.user;
+      }
+      return refreshActiveUser();
+    } catch {
+      return refreshActiveUser();
+    }
   }, []);
 
   const updateUserStatus = useCallback(
     async (userId: string, status: UserStatus): Promise<User | null> => {
+      if (status === "ACTIVE" || status === "REJECTED") {
+        try {
+          const res = await updateSpecialistStatusAction(userId, status);
+          if (res.mode === "db" && !res.success) {
+            throw new Error(res.error);
+          }
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            !error.message.includes("fetch") &&
+            !error.message.includes("network")
+          ) {
+            throw error;
+          }
+        }
+      }
       return updateUserStatusInStore(userId, status);
     },
     [],

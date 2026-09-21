@@ -53,14 +53,31 @@ function formatCompany(companyName?: string, eik?: string): string {
   return "Физическо лице";
 }
 
-export function SpecialistsReview() {
-  const specialists = useSpecialists();
+export interface SpecialistsReviewProps {
+  initialSpecialists?: User[] | null;
+}
+
+export function SpecialistsReview({
+  initialSpecialists,
+}: SpecialistsReviewProps = {}) {
+  const demoSpecialists = useSpecialists();
+  const [overrideStatuses, setOverrideStatuses] = useState<
+    Record<string, UserStatus>
+  >({});
   const { updateUserStatus } = useAuth();
   const notify = useToast();
 
   const [activeTab, setActiveTab] = useState<FilterTab>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const specialists = useMemo(() => {
+    const baseList = initialSpecialists ?? demoSpecialists;
+    return baseList.map((s) => {
+      const override = overrideStatuses[s.id];
+      return override ? { ...s, status: override } : s;
+    });
+  }, [initialSpecialists, demoSpecialists, overrideStatuses]);
 
   const counts = useMemo(() => {
     return {
@@ -104,6 +121,7 @@ export function SpecialistsReview() {
     try {
       setProcessingId(spec.id);
       await updateUserStatus(spec.id, "ACTIVE");
+      setOverrideStatuses((prev) => ({ ...prev, [spec.id]: "ACTIVE" }));
       notify(`Кандидатурата на ${spec.name} е одобрена успешно.`);
     } catch {
       notify("Възникна грешка при одобряване на кандидатурата.");
@@ -116,6 +134,7 @@ export function SpecialistsReview() {
     try {
       setProcessingId(spec.id);
       await updateUserStatus(spec.id, "REJECTED");
+      setOverrideStatuses((prev) => ({ ...prev, [spec.id]: "REJECTED" }));
       notify(`Кандидатурата на ${spec.name} е отказана.`);
     } catch {
       notify("Възникна грешка при отказване на кандидатурата.");

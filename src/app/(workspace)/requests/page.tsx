@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { BookingButton } from "@/features/bookings/booking-button";
 import { RequestList } from "@/features/requests/request-list";
+import { findClientRequests } from "@/features/requests/server/queries";
+import { getServerSession } from "@/features/auth/server/session";
 
 export const metadata: Metadata = { title: "Моите заявки" };
 
-export default function RequestsPage() {
+export default async function RequestsPage() {
+  const user = await getServerSession();
+  const initialRequests = user ? await findClientRequests(user.id) : null;
+
   return (
     <>
       <PageHeading
@@ -16,7 +21,7 @@ export default function RequestsPage() {
         <BookingButton />
       </PageHeading>
       <div className="card">
-        <RequestList actions />
+        <RequestList actions initialRequests={initialRequests} />
       </div>
     </>
   );

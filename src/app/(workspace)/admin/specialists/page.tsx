@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { SpecialistsReview } from "@/features/admin/specialists-review";
+import { findSpecialistApplications } from "@/features/admin/server/queries";
 
 export const metadata: Metadata = {
   title: "Кандидатури на специалисти · Администрация DOMORA",
@@ -8,7 +9,9 @@ export const metadata: Metadata = {
     "Преглед и одобрение на кандидатстващи специалисти в платформата DOMORA.",
 };
 
-export default function AdminSpecialistsPage() {
+export default async function AdminSpecialistsPage() {
+  const initialSpecialists = await findSpecialistApplications();
+
   return (
     <>
       <PageHeading
@@ -16,7 +19,7 @@ export default function AdminSpecialistsPage() {
         title="Кандидатури на специалисти"
         description="Прегледайте подадените заявления от кандидатстващи специалисти и вземете решение за одобрение или отказ."
       />
-      <SpecialistsReview />
+      <SpecialistsReview initialSpecialists={initialSpecialists} />
     </>
   );
 }
