@@ -241,56 +241,67 @@ export function PlansConfigurator() {
         </p>
 
         <form className={styles.bookingForm} onSubmit={submit} noValidate>
-          <h3>Заявете старт</h3>
-          <Field
-            label="Адрес на имота"
-            error={errors.address}
-            id="address-error"
-          >
-            <input
-              name="address"
-              autoComplete="street-address"
-              aria-invalid={Boolean(errors.address)}
-              aria-describedby={errors.address ? "address-error" : undefined}
-              placeholder="Град, улица, номер, вход"
-            />
-          </Field>
-          <Field
-            label="Предпочитана начална дата"
-            error={errors.date}
-            id="date-error"
-          >
-            <input
-              name="date"
-              type="date"
-              min={today}
-              aria-invalid={Boolean(errors.date)}
-              aria-describedby={errors.date ? "date-error" : undefined}
-            />
-          </Field>
-          <Field label="Часови диапазон" error={errors.time} id="time-error">
-            <select
-              name="time"
-              defaultValue=""
-              aria-invalid={Boolean(errors.time)}
-              aria-describedby={errors.time ? "time-error" : undefined}
+          <div className={styles.bookingHeading}>
+            <span>СТЪПКА 04</span>
+            <h3>Заявете старт</h3>
+          </div>
+          <div className={styles.bookingFields}>
+            <Field
+              label="Адрес на имота"
+              error={errors.address}
+              id="address-error"
             >
-              <option value="" disabled>
-                Изберете диапазон
-              </option>
-              <option>09:00–12:00</option>
-              <option>12:00–15:00</option>
-              <option>15:00–18:00</option>
-            </select>
-          </Field>
-          <label>
-            Бележки <span className={styles.optional}>(по желание)</span>
-            <textarea
-              name="notes"
-              rows={3}
-              placeholder="Достъп, предпочитания или друга важна информация"
-            />
-          </label>
+              <input
+                name="address"
+                autoComplete="street-address"
+                aria-invalid={Boolean(errors.address)}
+                aria-describedby={errors.address ? "address-error" : undefined}
+                placeholder="Град, улица, номер, вход"
+              />
+            </Field>
+            <div className={styles.bookingRow}>
+              <Field
+                label="Предпочитана начална дата"
+                error={errors.date}
+                id="date-error"
+              >
+                <input
+                  name="date"
+                  type="date"
+                  min={today}
+                  aria-invalid={Boolean(errors.date)}
+                  aria-describedby={errors.date ? "date-error" : undefined}
+                />
+              </Field>
+              <Field
+                label="Часови диапазон"
+                error={errors.time}
+                id="time-error"
+              >
+                <select
+                  name="time"
+                  defaultValue=""
+                  aria-invalid={Boolean(errors.time)}
+                  aria-describedby={errors.time ? "time-error" : undefined}
+                >
+                  <option value="" disabled>
+                    Изберете диапазон
+                  </option>
+                  <option>09:00–12:00</option>
+                  <option>12:00–15:00</option>
+                  <option>15:00–18:00</option>
+                </select>
+              </Field>
+            </div>
+            <label className={styles.bookingField}>
+              Бележки <span className={styles.optional}>(по желание)</span>
+              <textarea
+                name="notes"
+                rows={3}
+                placeholder="Достъп, предпочитания или друга важна информация"
+              />
+            </label>
+          </div>
           <button className={styles.submit} type="submit">
             Изпрати заявка
           </button>
@@ -315,7 +326,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label>
+    <label className={styles.bookingField}>
       {label}
       {children}
       {error && (
