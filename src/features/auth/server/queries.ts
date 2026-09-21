@@ -1,4 +1,4 @@
-import { and, eq, gt, or } from "drizzle-orm";
+import { and, eq, gt, or, type SQL } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import {
   sessions,
@@ -44,15 +44,10 @@ function mapToDomainUser(
   };
 }
 
-export async function findUserByEmailOrPhone(
-  identifier: string,
-): Promise<User | null> {
+async function querySingleUserRow(whereCondition: SQL) {
   if (!isDbConfigured) return null;
   const db = getDb();
   if (!db) return null;
-
-  const cleanIdentifier = identifier.trim().toLowerCase();
-  const rawIdentifier = identifier.trim();
 
   const rows = await db
     .select({
@@ -61,73 +56,59 @@ export async function findUserByEmailOrPhone(
     })
     .from(users)
     .leftJoin(specialistProfiles, eq(users.id, specialistProfiles.userId))
-    .where(
-      or(
-        eq(users.email, cleanIdentifier),
-        eq(users.phone, rawIdentifier),
-        eq(users.phone, cleanIdentifier),
-      ),
-    )
+    .where(whereCondition)
     .limit(1);
 
-  if (rows.length === 0) return null;
+  return rows.length > 0 ? rows[0] : null;
+}
 
-  return mapToDomainUser(rows[0].user, rows[0].profile);
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const normalizedEmail = email.trim().toLowerCase();
+  const result = await querySingleUserRow(eq(users.email, normalizedEmail));
+  return result ? mapToDomainUser(result.user, result.profile) : null;
+}
+
+export async function findUserByPhone(phone: string): Promise<User | null> {
+  const normalizedPhone = phone.trim();
+  const result = await querySingleUserRow(eq(users.phone, normalizedPhone));
+  return result ? mapToDomainUser(result.user, result.profile) : null;
+}
+
+export async function findUserByEmailOrPhone(
+  identifier: string,
+): Promise<User | null> {
+  const normalized = identifier.trim();
+  const normalizedEmail = normalized.toLowerCase();
+
+  const result = await querySingleUserRow(
+    or(eq(users.email, normalizedEmail), eq(users.phone, normalized)) as SQL,
+  );
+
+  return result ? mapToDomainUser(result.user, result.profile) : null;
 }
 
 export async function findUserWithPasswordByEmailOrPhone(
   identifier: string,
 ): Promise<UserWithPassword | null> {
-  if (!isDbConfigured) return null;
-  const db = getDb();
-  if (!db) return null;
+  const normalized = identifier.trim();
+  const normalizedEmail = normalized.toLowerCase();
 
-  const cleanIdentifier = identifier.trim().toLowerCase();
-  const rawIdentifier = identifier.trim();
+  const result = await querySingleUserRow(
+    or(eq(users.email, normalizedEmail), eq(users.phone, normalized)) as SQL,
+  );
 
-  const rows = await db
-    .select({
-      user: users,
-      profile: specialistProfiles,
-    })
-    .from(users)
-    .leftJoin(specialistProfiles, eq(users.id, specialistProfiles.userId))
-    .where(
-      or(
-        eq(users.email, cleanIdentifier),
-        eq(users.phone, rawIdentifier),
-        eq(users.phone, cleanIdentifier),
-      ),
-    )
-    .limit(1);
+  if (!result) return null;
 
-  if (rows.length === 0) return null;
-
-  const domainUser = mapToDomainUser(rows[0].user, rows[0].profile);
+  const domainUser = mapToDomainUser(result.user, result.profile);
   return {
     ...domainUser,
-    passwordHash: rows[0].user.passwordHash,
+    passwordHash: result.user.passwordHash,
   };
 }
 
 export async function findUserById(userId: string): Promise<User | null> {
-  if (!isDbConfigured) return null;
-  const db = getDb();
-  if (!db) return null;
-
-  const rows = await db
-    .select({
-      user: users,
-      profile: specialistProfiles,
-    })
-    .from(users)
-    .leftJoin(specialistProfiles, eq(users.id, specialistProfiles.userId))
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  if (rows.length === 0) return null;
-
-  return mapToDomainUser(rows[0].user, rows[0].profile);
+  const result = await querySingleUserRow(eq(users.id, userId));
+  return result ? mapToDomainUser(result.user, result.profile) : null;
 }
 
 export async function findUserBySessionToken(

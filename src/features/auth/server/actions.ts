@@ -6,8 +6,9 @@ import { users } from "@/db/schema";
 import type { ClientRegistrationInput, User } from "../types";
 import { validateClientRegistration, validateLogin } from "../validation";
 import {
-  findUserByEmailOrPhone,
+  findUserByEmail,
   findUserById,
+  findUserByPhone,
   findUserWithPasswordByEmailOrPhone,
 } from "./queries";
 import { createSession, deleteSession } from "./session";
@@ -52,6 +53,17 @@ export async function loginAction(
     };
   }
 
+  if (
+    userWithPassword.role === "SPECIALIST" &&
+    userWithPassword.status === "REJECTED"
+  ) {
+    return {
+      success: false,
+      error:
+        "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
+    };
+  }
+
   await createSession(userWithPassword.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -77,7 +89,7 @@ export async function registerClientAction(
     };
   }
 
-  const existingEmail = await findUserByEmailOrPhone(input.email);
+  const existingEmail = await findUserByEmail(input.email);
   if (existingEmail) {
     return {
       success: false,
@@ -85,7 +97,7 @@ export async function registerClientAction(
     };
   }
 
-  const existingPhone = await findUserByEmailOrPhone(input.phone);
+  const existingPhone = await findUserByPhone(input.phone);
   if (existingPhone) {
     return {
       success: false,

@@ -74,6 +74,24 @@ function subscribe(callback: () => void): () => void {
   };
 }
 
+function fallbackDemoLogin(
+  identifier: string,
+  password: string,
+  rememberMe: boolean,
+): LoginResult {
+  const authed = authenticateUser(identifier, password, rememberMe);
+  if (!authed) {
+    return {
+      success: false,
+      error: "Невалиден имейл/телефон или парола.",
+    };
+  }
+  return {
+    success: true,
+    user: authed,
+  };
+}
+
 export function AuthProvider({
   children,
   initialUser,
@@ -81,10 +99,14 @@ export function AuthProvider({
   children: React.ReactNode;
   initialUser?: User | null;
 }) {
+  const initialSnapshot = initialUser
+    ? { user: initialUser, status: "authenticated" as const }
+    : serverAuthSnapshot;
+
   const snapshot = useSyncExternalStore(
     subscribe,
     getAuthSnapshot,
-    () => serverAuthSnapshot,
+    () => initialSnapshot,
   );
 
   useEffect(() => {
@@ -136,17 +158,7 @@ export function AuthProvider({
       try {
         const actionResult = await loginAction(identifier, password);
         if ("mode" in actionResult && actionResult.mode === "demo") {
-          const authed = authenticateUser(identifier, password, rememberMe);
-          if (!authed) {
-            return {
-              success: false,
-              error: "Невалиден имейл/телефон или парола.",
-            };
-          }
-          return {
-            success: true,
-            user: authed,
-          };
+          return fallbackDemoLogin(identifier, password, rememberMe);
         }
 
         if (actionResult.success) {
@@ -162,17 +174,7 @@ export function AuthProvider({
           error: actionResult.error,
         };
       } catch {
-        const authed = authenticateUser(identifier, password, rememberMe);
-        if (!authed) {
-          return {
-            success: false,
-            error: "Невалиден имейл/телефон или парола.",
-          };
-        }
-        return {
-          success: true,
-          user: authed,
-        };
+        return fallbackDemoLogin(identifier, password, rememberMe);
       }
     },
     [],

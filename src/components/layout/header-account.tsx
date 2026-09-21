@@ -4,42 +4,46 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
+import type { User } from "@/features/auth/types";
 
-export function HeaderAccount() {
+export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
   const { user, status, logout } = useAuth();
   const router = useRouter();
 
+  const activeUser = user ?? initialUser ?? null;
+
   const isPendingOrRejectedSpecialist =
-    status === "authenticated" &&
-    user?.role === "SPECIALIST" &&
-    (user?.status === "PENDING" || user?.status === "REJECTED");
+    activeUser?.role === "SPECIALIST" &&
+    (activeUser?.status === "PENDING" || activeUser?.status === "REJECTED");
 
   useEffect(() => {
-    if (isPendingOrRejectedSpecialist) {
+    if (isPendingOrRejectedSpecialist && status === "authenticated") {
       router.replace("/pending-approval");
     }
-  }, [isPendingOrRejectedSpecialist, router]);
+  }, [isPendingOrRejectedSpecialist, status, router]);
 
   if (isPendingOrRejectedSpecialist) {
     return null;
   }
 
   const roleLabel =
-    user?.role === "SPECIALIST"
+    activeUser?.role === "SPECIALIST"
       ? "Специалист"
-      : user?.role === "ADMIN"
+      : activeUser?.role === "ADMIN"
         ? "Администратор"
         : "Клиент";
 
-  const initial = user?.name ? user.name.trim().charAt(0).toUpperCase() : "Д";
+  const initial = activeUser?.name
+    ? activeUser.name.trim().charAt(0).toUpperCase()
+    : "Д";
 
-  if (user) {
+  if (activeUser) {
     return (
       <div className="account">
         <span className="avatar" aria-hidden="true">
           {initial}
         </span>
-        <span>{user.name}</span>
+        <span>{activeUser.name}</span>
         <span className="badge">{roleLabel}</span>
         <button
           type="button"
