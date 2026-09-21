@@ -259,40 +259,36 @@ export function PlansConfigurator() {
                 placeholder="Град, улица, номер, вход"
               />
             </Field>
-            <div className={styles.bookingRow}>
-              <Field
-                label="Предпочитана начална дата"
-                error={errors.date}
-                id="date-error"
+            <Field
+              label="Предпочитана начална дата"
+              error={errors.date}
+              id="date-error"
+            >
+              <input
+                className={styles.dateInput}
+                name="date"
+                type="date"
+                min={today}
+                aria-invalid={Boolean(errors.date)}
+                aria-describedby={errors.date ? "date-error" : undefined}
+                onClick={(event) => event.currentTarget.showPicker()}
+              />
+            </Field>
+            <Field label="Часови диапазон" error={errors.time} id="time-error">
+              <select
+                name="time"
+                defaultValue=""
+                aria-invalid={Boolean(errors.time)}
+                aria-describedby={errors.time ? "time-error" : undefined}
               >
-                <input
-                  name="date"
-                  type="date"
-                  min={today}
-                  aria-invalid={Boolean(errors.date)}
-                  aria-describedby={errors.date ? "date-error" : undefined}
-                />
-              </Field>
-              <Field
-                label="Часови диапазон"
-                error={errors.time}
-                id="time-error"
-              >
-                <select
-                  name="time"
-                  defaultValue=""
-                  aria-invalid={Boolean(errors.time)}
-                  aria-describedby={errors.time ? "time-error" : undefined}
-                >
-                  <option value="" disabled>
-                    Изберете диапазон
-                  </option>
-                  <option>09:00–12:00</option>
-                  <option>12:00–15:00</option>
-                  <option>15:00–18:00</option>
-                </select>
-              </Field>
-            </div>
+                <option value="" disabled>
+                  Изберете диапазон
+                </option>
+                <option>09:00–12:00</option>
+                <option>12:00–15:00</option>
+                <option>15:00–18:00</option>
+              </select>
+            </Field>
             <label className={styles.bookingField}>
               Бележки <span className={styles.optional}>(по желание)</span>
               <textarea
