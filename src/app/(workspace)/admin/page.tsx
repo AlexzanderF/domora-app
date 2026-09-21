@@ -3,22 +3,33 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { RequestList } from "@/features/requests/request-list";
 import { WorkspaceStats } from "@/features/workspace/workspace-stats";
 import { TariffForm } from "@/features/workspace/tariff-form";
+import {
+  findAllRequestsForAdmin,
+  findDatabaseTariffs,
+  findOperationalMetrics,
+} from "@/features/admin/server/metrics";
 
 export const metadata: Metadata = { title: "Администратор" };
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const [initialStats, initialRequests, initialTariffs] = await Promise.all([
+    findOperationalMetrics(),
+    findAllRequestsForAdmin(),
+    findDatabaseTariffs(),
+  ]);
+
   return (
     <>
       <PageHeading
-        eyebrow="ДЕМО РАБОТНО ПРОСТРАНСТВО"
+        eyebrow="АДМИНИСТРАТИВЕН ПАНЕЛ"
         title="Общ поглед върху DOMORA"
-        description="Управлявайте заявките и демонстрационните тарифи."
+        description="Управлявайте заявките, оперативните метрики и актуалните тарифи."
       />
-      <WorkspaceStats />
+      <WorkspaceStats initialStats={initialStats} />
       <div className="card">
-        <RequestList actions role="admin" />
+        <RequestList actions role="admin" initialRequests={initialRequests} />
       </div>
-      <TariffForm />
+      <TariffForm initialTariffs={initialTariffs} />
     </>
   );
 }
