@@ -22,16 +22,17 @@ import {
 import { createSession, deleteSession, getServerSession } from "./session";
 
 export type AuthActionResult<T = User> =
-  | { success: true; user: T; mode?: "db" }
-  | { success: false; error: string; mode?: "db" }
-  | { mode: "demo" };
+  { success: true; user: T } | { success: false; error: string };
 
 export async function loginAction(
   identifier: string,
   password: string,
 ): Promise<AuthActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
-    return { mode: "demo" };
+    return {
+      success: false,
+      error: "Грешка при свързване с базата данни.",
+    };
   }
 
   const validation = validateLogin(identifier, password);
@@ -86,7 +87,10 @@ export async function registerClientAction(
   input: ClientRegistrationInput,
 ): Promise<AuthActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
-    return { mode: "demo" };
+    return {
+      success: false,
+      error: "Грешка при свързване с базата данни.",
+    };
   }
 
   const validation = validateClientRegistration(input);
@@ -154,7 +158,10 @@ export async function registerSpecialistAction(
   input: SpecialistRegistrationInput,
 ): Promise<AuthActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
-    return { mode: "demo" };
+    return {
+      success: false,
+      error: "Грешка при свързване с базата данни.",
+    };
   }
 
   const validation = validateSpecialistRegistration(input);
@@ -233,14 +240,13 @@ export async function registerSpecialistAction(
 export async function refreshUserAction(): Promise<{
   success: boolean;
   user: User | null;
-  mode?: "db" | "demo";
 }> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
-    return { success: true, user: null, mode: "demo" };
+    return { success: true, user: null };
   }
 
   const user = await getServerSession();
-  return { success: true, user, mode: "db" };
+  return { success: true, user };
 }
 
 export async function logoutAction(): Promise<{ success: boolean }> {

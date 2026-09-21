@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAuth, useSpecialists } from "@/features/auth/auth-provider";
+import { useAuth } from "@/features/auth/auth-provider";
 import type { User, UserStatus } from "@/features/auth/types";
 import { useToast } from "@/components/ui/toast-provider";
 import styles from "./specialists-review.module.css";
@@ -60,7 +60,6 @@ export interface SpecialistsReviewProps {
 export function SpecialistsReview({
   initialSpecialists,
 }: SpecialistsReviewProps = {}) {
-  const demoSpecialists = useSpecialists();
   const [overrideStatuses, setOverrideStatuses] = useState<
     Record<string, UserStatus>
   >({});
@@ -72,12 +71,12 @@ export function SpecialistsReview({
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const specialists = useMemo(() => {
-    const baseList = initialSpecialists ?? demoSpecialists;
+    const baseList = initialSpecialists ?? [];
     return baseList.map((s) => {
       const override = overrideStatuses[s.id];
       return override ? { ...s, status: override } : s;
     });
-  }, [initialSpecialists, demoSpecialists, overrideStatuses]);
+  }, [initialSpecialists, overrideStatuses]);
 
   const counts = useMemo(() => {
     return {

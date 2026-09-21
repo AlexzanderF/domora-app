@@ -1,32 +1,12 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useSyncExternalStore,
-} from "react";
+import { createContext, useCallback, useContext, useState } from "react";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
   User,
   UserStatus,
 } from "./types";
-import {
-  authenticateUser,
-  clearActiveSession,
-  getAuthSnapshot,
-  getSpecialistsSnapshot,
-  getServerSpecialistsSnapshot,
-  refreshActiveUser,
-  registerClientInStore,
-  registerSpecialistInStore,
-  serverAuthSnapshot,
-  subscribeToAuth,
-  syncExternalUser,
-  updateUserStatusInStore,
-} from "./auth-store";
 import {
   loginAction,
   logoutAction,
@@ -63,38 +43,6 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function subscribe(callback: () => void): () => void {
-  const unsub = subscribeToAuth(callback);
-  const storageHandler = () => callback();
-  if (typeof window !== "undefined") {
-    window.addEventListener("storage", storageHandler);
-  }
-  return () => {
-    unsub();
-    if (typeof window !== "undefined") {
-      window.removeEventListener("storage", storageHandler);
-    }
-  };
-}
-
-function fallbackDemoLogin(
-  identifier: string,
-  password: string,
-  rememberMe: boolean,
-): LoginResult {
-  const authed = authenticateUser(identifier, password, rememberMe);
-  if (!authed) {
-    return {
-      success: false,
-      error: "Невалиден имейл/телефон или парола.",
-    };
-  }
-  return {
-    success: true,
-    user: authed,
-  };
-}
-
 export function AuthProvider({
   children,
   initialUser,
@@ -102,70 +50,40 @@ export function AuthProvider({
   children: React.ReactNode;
   initialUser?: User | null;
 }) {
-  const initialSnapshot = initialUser
-    ? { user: initialUser, status: "authenticated" as const }
-    : serverAuthSnapshot;
+  const [user, setUser] = useState<User | null>(initialUser ?? null);
+  const [status, setStatus] = useState<
+    "loading" | "authenticated" | "unauthenticated"
+  >(initialUser ? "authenticated" : "unauthenticated");
 
-  const snapshot = useSyncExternalStore(
-    subscribe,
-    getAuthSnapshot,
-    () => initialSnapshot,
-  );
-
-  useEffect(() => {
-    if (initialUser) {
-      syncExternalUser(initialUser);
-    }
-  }, [initialUser]);
+  const [prevInitialUser, setPrevInitialUser] = useState(initialUser);
+  if (prevInitialUser !== initialUser) {
+    setPrevInitialUser(initialUser);
+    setUser(initialUser ?? null);
+    setStatus(initialUser ? "authenticated" : "unauthenticated");
+  }
 
   const registerClient = useCallback(
     async (input: ClientRegistrationInput): Promise<User> => {
-      try {
-        const actionResult = await registerClientAction(input);
-        if ("mode" in actionResult && actionResult.mode === "demo") {
-          return registerClientInStore(input);
-        }
-        if (actionResult.success) {
-          syncExternalUser(actionResult.user);
-          return actionResult.user;
-        }
-        throw new Error(actionResult.error);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          !error.message.includes("fetch") &&
-          !error.message.includes("network")
-        ) {
-          throw error;
-        }
-        return registerClientInStore(input);
+      const actionResult = await registerClientAction(input);
+      if (actionResult.success) {
+        setUser(actionResult.user);
+        setStatus("authenticated");
+        return actionResult.user;
       }
+      throw new Error(actionResult.error);
     },
     [],
   );
 
   const registerSpecialist = useCallback(
     async (input: SpecialistRegistrationInput): Promise<User> => {
-      try {
-        const actionResult = await registerSpecialistAction(input);
-        if ("mode" in actionResult && actionResult.mode === "demo") {
-          return registerSpecialistInStore(input);
-        }
-        if (actionResult.success) {
-          syncExternalUser(actionResult.user);
-          return actionResult.user;
-        }
-        throw new Error(actionResult.error);
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          !error.message.includes("fetch") &&
-          !error.message.includes("network")
-        ) {
-          throw error;
-        }
-        return registerSpecialistInStore(input);
+      const actionResult = await registerSpecialistAction(input);
+      if (actionResult.success) {
+        setUser(actionResult.user);
+        setStatus("authenticated");
+        return actionResult.user;
       }
+      throw new Error(actionResult.error);
     },
     [],
   );
@@ -174,28 +92,31 @@ export function AuthProvider({
     async (
       identifier: string,
       password: string,
-      rememberMe = true,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _rememberMe = true,
     ): Promise<LoginResult> => {
       try {
         const actionResult = await loginAction(identifier, password);
-        if ("mode" in actionResult && actionResult.mode === "demo") {
-          return fallbackDemoLogin(identifier, password, rememberMe);
-        }
-
         if (actionResult.success) {
-          syncExternalUser(actionResult.user);
+          setUser(actionResult.user);
+          setStatus("authenticated");
           return {
             success: true,
             user: actionResult.user,
           };
         }
-
         return {
           success: false,
           error: actionResult.error,
         };
-      } catch {
-        return fallbackDemoLogin(identifier, password, rememberMe);
+      } catch (err) {
+        return {
+          success: false,
+          error:
+            err instanceof Error
+              ? err.message
+              : "Възникна неочаквана грешка при вход.",
+        };
       }
     },
     [],
@@ -207,41 +128,43 @@ export function AuthProvider({
     } catch {
       // Ignore errors on logout
     }
-    clearActiveSession();
+    setUser(null);
+    setStatus("unauthenticated");
   }, []);
 
   const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
       const res = await refreshUserAction();
-      if (res.mode === "db" && res.user) {
-        syncExternalUser(res.user);
+      if (res.success && res.user) {
+        setUser(res.user);
+        setStatus("authenticated");
         return res.user;
       }
-      return refreshActiveUser();
+      setUser(null);
+      setStatus("unauthenticated");
+      return null;
     } catch {
-      return refreshActiveUser();
+      return null;
     }
   }, []);
 
   const updateUserStatus = useCallback(
-    async (userId: string, status: UserStatus): Promise<User | null> => {
-      if (status === "ACTIVE" || status === "REJECTED") {
-        try {
-          const res = await updateSpecialistStatusAction(userId, status);
-          if (res.mode === "db" && !res.success) {
-            throw new Error(res.error);
-          }
-        } catch (error) {
-          if (
-            error instanceof Error &&
-            !error.message.includes("fetch") &&
-            !error.message.includes("network")
-          ) {
-            throw error;
-          }
+    async (userId: string, newStatus: UserStatus): Promise<User | null> => {
+      if (newStatus === "ACTIVE" || newStatus === "REJECTED") {
+        const res = await updateSpecialistStatusAction(userId, newStatus);
+        if (!res.success) {
+          throw new Error(res.error || "Грешка при актуализиране на статуса.");
         }
       }
-      return updateUserStatusInStore(userId, status);
+      let updatedUser: User | null = null;
+      setUser((current) => {
+        if (current && current.id === userId) {
+          updatedUser = { ...current, status: newStatus };
+          return updatedUser;
+        }
+        return current;
+      });
+      return updatedUser;
     },
     [],
   );
@@ -249,10 +172,9 @@ export function AuthProvider({
   return (
     <AuthContext.Provider
       value={{
-        user: snapshot.user,
-        status: snapshot.status,
-        isAuthenticated:
-          snapshot.status === "authenticated" && snapshot.user !== null,
+        user,
+        status,
+        isAuthenticated: status === "authenticated" && user !== null,
         registerClient,
         registerSpecialist,
         login,
@@ -275,10 +197,5 @@ export function useAuth(): AuthContextValue {
 }
 
 export function useSpecialists(): User[] {
-  const specialists = useSyncExternalStore(
-    subscribe,
-    getSpecialistsSnapshot,
-    getServerSpecialistsSnapshot,
-  );
-  return specialists;
+  return [];
 }
