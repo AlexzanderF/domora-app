@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import { DatePicker } from "@/features/plans/date-picker";
+import { TimePicker } from "@/features/plans/time-picker";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote } from "@/features/requests/pricing";
 import type { Plan } from "@/features/requests/types";
@@ -272,19 +273,10 @@ export function PlansConfigurator() {
               />
             </Field>
             <Field label="Часови диапазон" error={errors.time} id="time-error">
-              <select
-                name="time"
-                defaultValue=""
-                aria-invalid={Boolean(errors.time)}
-                aria-describedby={errors.time ? "time-error" : undefined}
-              >
-                <option value="" disabled>
-                  Изберете диапазон
-                </option>
-                <option>09:00–12:00</option>
-                <option>12:00–15:00</option>
-                <option>15:00–18:00</option>
-              </select>
+              <TimePicker
+                invalid={Boolean(errors.time)}
+                describedBy={errors.time ? "time-error" : undefined}
+              />
             </Field>
             <label className={styles.bookingField}>
               Бележки <span className={styles.optional}>(по желание)</span>
