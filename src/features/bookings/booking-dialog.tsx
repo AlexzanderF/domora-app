@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote, quoteScope } from "@/features/requests/pricing";
+import { createServiceRequestAction } from "@/features/requests/server/actions";
 import type { BookingSelection, CategoryId } from "@/features/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
@@ -48,10 +49,12 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
     return () => element?.close();
   }, []);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    if (!form.reportValidity() || price === null) return;
+    if (!form.reportValidity() || price === null || isSubmitting) return;
     const data = new FormData(form);
     const description = String(data.get("description") ?? "").trim();
     const address = String(data.get("address") ?? "").trim();
@@ -59,23 +62,80 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
       notify("Въведете адрес и описание с поне 5 символа.");
       return;
     }
-    addRequest({
-      id: crypto.randomUUID(),
-      category,
-      service: plan
-        ? `Абонамент ${plan === "home" ? "За дома" : "За входа"}`
-        : categories[category].services[serviceIndex],
-      address,
-      description,
-      date: String(data.get("date")),
-      time: String(data.get("time")),
-      price,
-      status: 0,
-      plan,
-    });
-    closeBooking();
-    router.push("/requests");
-    notify("Демо заявката е създадена. Не е изпратена до реален специалист.");
+
+    const serviceName = plan
+      ? `Абонамент ${plan === "home" ? "За дома" : "За входа"}`
+      : categories[category].services[serviceIndex];
+    const dateStr = String(data.get("date"));
+    const timeStr = String(data.get("time"));
+
+    setIsSubmitting(true);
+    try {
+      const actionResult = await createServiceRequestAction({
+        category,
+        service: serviceName,
+        address,
+        description,
+        date: dateStr,
+        time: timeStr,
+        price,
+        plan,
+      });
+
+      if (actionResult.mode === "demo") {
+        addRequest({
+          id: crypto.randomUUID(),
+          category,
+          service: serviceName,
+          address,
+          description,
+          date: dateStr,
+          time: timeStr,
+          price,
+          status: 0,
+          plan,
+        });
+        closeBooking();
+        router.push("/requests");
+        notify(
+          "Демо заявката е създадена. Не е изпратена до реален специалист.",
+        );
+        return;
+      }
+
+      if (actionResult.success) {
+        if (actionResult.request) {
+          addRequest(actionResult.request);
+        }
+        closeBooking();
+        router.push("/requests");
+        notify("Заявката е създадена успешно.");
+        return;
+      }
+
+      notify(
+        actionResult.error ?? "Възникна грешка при създаване на заявката.",
+      );
+    } catch {
+      // Fallback to demo in case of network issue
+      addRequest({
+        id: crypto.randomUUID(),
+        category,
+        service: serviceName,
+        address,
+        description,
+        date: dateStr,
+        time: timeStr,
+        price,
+        status: 0,
+        plan,
+      });
+      closeBooking();
+      router.push("/requests");
+      notify("Демо заявката е създадена. Не е изпратена до реален специалист.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -206,8 +266,8 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           Часът подлежи на потвърждение. Материали и допълнителна работа се
           одобряват отделно.
         </p>
-        <button className="primary full" type="submit">
-          Изпрати демо заявка →
+        <button className="primary full" type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Изпращане..." : "Изпрати заявка →"}
         </button>
       </form>
     </dialog>

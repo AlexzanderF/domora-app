@@ -23,6 +23,10 @@ const nextConfig: NextConfig = {
           resolveAlias: {
             "@/features/auth/server/actions":
               "./src/features/auth/server/actions.static.ts",
+            "@/features/admin/server/actions":
+              "./src/features/admin/server/actions.static.ts",
+            "@/features/requests/server/actions":
+              "./src/features/requests/server/actions.static.ts",
           },
         },
         webpack: (config) => {
@@ -32,6 +36,16 @@ const nextConfig: NextConfig = {
             process.cwd(),
             "src/features/auth/server/actions.static.ts",
           );
+          config.resolve.alias["@/features/admin/server/actions"] =
+            path.resolve(
+              process.cwd(),
+              "src/features/admin/server/actions.static.ts",
+            );
+          config.resolve.alias["@/features/requests/server/actions"] =
+            path.resolve(
+              process.cwd(),
+              "src/features/requests/server/actions.static.ts",
+            );
           return config;
         },
       }
