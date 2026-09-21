@@ -81,7 +81,7 @@ export async function createSession(
 
   if (userRole) {
     cookieStore.set(ROLE_COOKIE_NAME, userRole, {
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
@@ -92,7 +92,7 @@ export async function createSession(
 
   if (userStatus) {
     cookieStore.set(STATUS_COOKIE_NAME, userStatus, {
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
