@@ -61,7 +61,9 @@ export function RequestList({
             )}
             {actions && (
               <>
-                <p>{request.master || "Очаква разпределяне към специалист"}</p>
+                <p>
+                  {request.specialist || "Очаква разпределяне към специалист"}
+                </p>
                 {request.report && <p>Отчет: {request.report}</p>}
                 <RequestActions request={request} role={role} />
                 {request.issue && (

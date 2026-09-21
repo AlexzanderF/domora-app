@@ -6,27 +6,35 @@ import type { ServiceRequest } from "./types";
 const newRequest: ServiceRequest = {
   ...initialRequests[0],
   status: 0,
-  master: undefined,
+  specialist: undefined,
 };
 
 describe("request lifecycle", () => {
   it("requires a work report before client confirmation, then allows exactly one rating", () => {
-    let request = transitionRequest(newRequest, { type: "advance" }, "master");
+    let request = transitionRequest(
+      newRequest,
+      { type: "advance" },
+      "specialist",
+    );
     expect(request.status).toBe(1);
-    request = transitionRequest(request, { type: "advance" }, "master");
-    request = transitionRequest(request, { type: "advance" }, "master");
+    request = transitionRequest(request, { type: "advance" }, "specialist");
+    request = transitionRequest(request, { type: "advance" }, "specialist");
     expect(request.status).toBe(3);
     expect(
-      transitionRequest(request, { type: "advance", report: "  " }, "master"),
+      transitionRequest(
+        request,
+        { type: "advance", report: "  " },
+        "specialist",
+      ),
     ).toBe(request);
     request = transitionRequest(
       request,
       { type: "advance", report: "  Ремонтът е готов.  " },
-      "master",
+      "specialist",
     );
     expect(request.status).toBe(4);
     expect(request.report).toBe("Ремонтът е готов.");
-    expect(transitionRequest(request, { type: "complete" }, "master")).toBe(
+    expect(transitionRequest(request, { type: "complete" }, "specialist")).toBe(
       request,
     );
     request = transitionRequest(request, { type: "complete" }, "client");
@@ -47,7 +55,7 @@ describe("request lifecycle", () => {
     );
     const completed: ServiceRequest = { ...newRequest, status: 5 };
     expect(
-      transitionRequest(completed, { type: "rate", rating: 5 }, "master"),
+      transitionRequest(completed, { type: "rate", rating: 5 }, "specialist"),
     ).toBe(completed);
   });
 
@@ -64,9 +72,9 @@ describe("request lifecycle", () => {
       "client",
     );
     expect(cancelled.cancelled).toBe(true);
-    expect(transitionRequest(cancelled, { type: "advance" }, "master")).toBe(
-      cancelled,
-    );
+    expect(
+      transitionRequest(cancelled, { type: "advance" }, "specialist"),
+    ).toBe(cancelled);
     expect(cancelled.price).toBe(newRequest.price);
   });
 

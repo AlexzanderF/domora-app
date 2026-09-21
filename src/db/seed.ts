@@ -36,7 +36,7 @@ const seedUsers: {
     user: {
       id: "spec-pending-1",
       name: "Димитър Петров",
-      email: "dimitar@vik-master.bg",
+      email: "dimitar@vik-specialist.bg",
       phone: "0888765432",
       passwordHash: defaultPasswordHash,
       role: "SPECIALIST",
