@@ -106,7 +106,7 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/requests");
+      router.push("/client");
     } catch {
       setErrorBanner("Възникна грешка при влизането в профила.");
     } finally {

@@ -20,7 +20,7 @@ export default async function SpecialistPage() {
       redirect("/pending-approval");
     }
     if (user.role === "CLIENT") {
-      redirect("/requests");
+      redirect("/client");
     }
   }
 

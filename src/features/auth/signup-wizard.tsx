@@ -347,7 +347,7 @@ export function SignupWizard() {
       setIsSubmitting(true);
       await registerClient(step1Data);
       router.refresh();
-      router.push("/requests");
+      router.push("/client");
     } catch (err) {
       const message =
         err instanceof Error

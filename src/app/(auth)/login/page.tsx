@@ -21,7 +21,7 @@ export default async function LoginPage() {
           user.status === "PENDING" ? "/pending-approval" : "/specialist",
         );
       }
-      redirect("/requests");
+      redirect("/client");
     }
   }
 

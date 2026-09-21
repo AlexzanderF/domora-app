@@ -89,6 +89,8 @@ export async function createServiceRequestAction(
   });
 
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/specialist");
   revalidatePath("/admin");
 
@@ -155,6 +157,8 @@ export async function assignSpecialistAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -208,6 +212,8 @@ export async function startWorkAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -262,6 +268,8 @@ export async function completeWorkAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -317,6 +325,8 @@ export async function cancelRequestAction(
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
+  revalidatePath("/client/requests");
+  revalidatePath("/client");
   revalidatePath("/admin");
 
   return { success: true, mode: "db" };
@@ -371,6 +381,8 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
 
       revalidatePath("/requests");
+      revalidatePath("/client/requests");
+      revalidatePath("/client");
       revalidatePath("/specialist");
       revalidatePath("/admin");
       return { success: true, mode: "db" };
@@ -393,6 +405,8 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
 
       revalidatePath("/requests");
+      revalidatePath("/client/requests");
+      revalidatePath("/client");
       revalidatePath("/specialist");
       revalidatePath("/admin");
       return { success: true, mode: "db" };

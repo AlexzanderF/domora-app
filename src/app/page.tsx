@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { FinalCta } from "@/features/landing/final-cta";
 import { Hero } from "@/features/landing/hero";
 import { HowItWorks } from "@/features/landing/how-it-works";
@@ -6,6 +7,8 @@ import { LandingFooter } from "@/features/landing/landing-footer";
 import { LandingHeader } from "@/features/landing/landing-header";
 import { ServiceShowcase } from "@/features/landing/service-showcase";
 import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
+import { getServerSession } from "@/features/auth/server/session";
+import { isDbConfigured } from "@/db";
 import styles from "./landing.module.css";
 
 export const metadata: Metadata = {
@@ -14,7 +17,21 @@ export const metadata: Metadata = {
     "Надеждни домашни услуги, проверени специалисти и абонаментна грижа с ясни цени.",
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  if (isDbConfigured) {
+    const user = await getServerSession();
+    if (user) {
+      if (user.role === "ADMIN") {
+        redirect("/admin");
+      }
+      if (user.role === "SPECIALIST") {
+        redirect(
+          user.status === "PENDING" ? "/pending-approval" : "/specialist",
+        );
+      }
+      redirect("/client");
+    }
+  }
   return (
     <>
       <a href="#main" className="skip-link">

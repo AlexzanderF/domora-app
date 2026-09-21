@@ -11,9 +11,9 @@ export function PlansHeader() {
         </Link>
         <div className={styles.navLinks}>
           <Link href="/">Начало</Link>
-          <Link href="/requests">Моите заявки</Link>
+          <Link href="/client/requests">Моите заявки</Link>
         </div>
-        <Link className={styles.dashboardLink} href="/requests">
+        <Link className={styles.dashboardLink} href="/client">
           Към таблото
         </Link>
       </nav>

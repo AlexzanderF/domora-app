@@ -16,7 +16,7 @@ export default async function PendingApprovalPage() {
       redirect("/login");
     }
     if (user.role === "CLIENT") {
-      redirect("/requests");
+      redirect("/client");
     }
     if (user.role === "ADMIN") {
       redirect("/admin");
