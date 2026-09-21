@@ -47,6 +47,7 @@ export function getDbPool(): pg.Pool | null {
     if (!prodPool) {
       prodPool = new Pool({
         connectionString: process.env.DATABASE_URL,
+        password: process.env.POSTGRES_PASSWORD?.trim() || undefined,
       });
     }
     return prodPool;
@@ -55,6 +56,7 @@ export function getDbPool(): pg.Pool | null {
   if (!globalThis.__domora_pg_pool) {
     globalThis.__domora_pg_pool = new Pool({
       connectionString: process.env.DATABASE_URL,
+      password: process.env.POSTGRES_PASSWORD?.trim() || undefined,
     });
   }
 

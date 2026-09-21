@@ -18,6 +18,7 @@ async function runMigrations(): Promise<void> {
 
   const pool = new Pool({
     connectionString: databaseUrl,
+    password: process.env.POSTGRES_PASSWORD?.trim() || undefined,
     max: 1,
   });
 
