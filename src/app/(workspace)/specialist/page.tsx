@@ -1,15 +1,29 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { RequestList } from "@/features/requests/request-list";
 import { WorkspaceStats } from "@/features/workspace/workspace-stats";
 import { getServerSession } from "@/features/auth/server/session";
 import { findSpecialistRequests } from "@/features/requests/server/queries";
+import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = { title: "Специалист" };
 export const dynamic = "force-dynamic";
 
 export default async function SpecialistPage() {
   const user = await getServerSession();
+  if (isDbConfigured) {
+    if (!user) {
+      redirect("/login");
+    }
+    if (user.role === "SPECIALIST" && user.status === "PENDING") {
+      redirect("/pending-approval");
+    }
+    if (user.role === "CLIENT") {
+      redirect("/requests");
+    }
+  }
+
   const initialRequests =
     user?.role === "SPECIALIST" || user?.role === "ADMIN"
       ? await findSpecialistRequests(

@@ -346,7 +346,8 @@ export function SignupWizard() {
     try {
       setIsSubmitting(true);
       await registerClient(step1Data);
-      router.push("/");
+      router.refresh();
+      router.push("/requests");
     } catch (err) {
       const message =
         err instanceof Error
@@ -409,8 +410,13 @@ export function SignupWizard() {
 
     try {
       setIsSubmitting(true);
-      await registerSpecialist(fullSpecialistInput);
-      router.push("/pending-approval");
+      const newUser = await registerSpecialist(fullSpecialistInput);
+      router.refresh();
+      if (newUser.status === "PENDING") {
+        router.push("/pending-approval");
+      } else {
+        router.push("/specialist");
+      }
     } catch (err) {
       const message =
         err instanceof Error

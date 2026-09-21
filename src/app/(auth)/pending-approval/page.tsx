@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PendingApprovalCard } from "@/features/auth/pending-approval-card";
 import { getServerSession } from "@/features/auth/server/session";
+import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = {
   title: "Статус на кандидатурата | DOMORA",
@@ -10,8 +11,20 @@ export const metadata: Metadata = {
 
 export default async function PendingApprovalPage() {
   const user = await getServerSession();
-  if (user && user.role === "SPECIALIST" && user.status === "ACTIVE") {
-    redirect("/specialist");
+  if (isDbConfigured) {
+    if (!user) {
+      redirect("/login");
+    }
+    if (user.role === "CLIENT") {
+      redirect("/requests");
+    }
+    if (user.role === "ADMIN") {
+      redirect("/admin");
+    }
+    if (user.role === "SPECIALIST" && user.status === "ACTIVE") {
+      redirect("/specialist");
+    }
   }
+
   return <PendingApprovalCard />;
 }

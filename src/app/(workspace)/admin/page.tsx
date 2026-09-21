@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { RequestList } from "@/features/requests/request-list";
@@ -8,11 +9,23 @@ import {
   findDatabaseTariffs,
   findOperationalMetrics,
 } from "@/features/admin/server/metrics";
+import { getServerSession } from "@/features/auth/server/session";
+import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = { title: "Администратор" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
+  const user = await getServerSession();
+  if (isDbConfigured) {
+    if (!user) {
+      redirect("/login");
+    }
+    if (user.role !== "ADMIN") {
+      redirect(user.role === "SPECIALIST" ? "/specialist" : "/requests");
+    }
+  }
+
   const [initialStats, initialRequests, initialTariffs] = await Promise.all([
     findOperationalMetrics(),
     findAllRequestsForAdmin(),
