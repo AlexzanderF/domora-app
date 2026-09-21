@@ -18,7 +18,7 @@ export const initialRequests: ServiceRequest[] = [
     price: 45,
     status: 1,
     description: "Подмяна на смесителя в кухнята.",
-    master: "Демо специалист · ВиК",
+    specialist: "Демо специалист · ВиК",
   },
   {
     id: "1002",
@@ -30,7 +30,7 @@ export const initialRequests: ServiceRequest[] = [
     price: 65,
     status: 4,
     description: "Почистване на апартамент до 80 м².",
-    master: "Демо екип · Почистване",
+    specialist: "Демо екип · Почистване",
     report: "Почистени подове, кухня и санитарни помещения.",
   },
 ];

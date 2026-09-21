@@ -23,12 +23,12 @@ export function transitionRequest(
       return {
         ...request,
         status: (request.status + 1) as RequestStatus,
-        master: request.master || "Демо специалист · DOMORA",
+        specialist: request.specialist || "Демо специалист · DOMORA",
         ...(request.status === 3 ? { report: action.report!.trim() } : {}),
       };
     case "decline":
       return role !== "client" && request.status === 0
-        ? { ...request, master: undefined }
+        ? { ...request, specialist: undefined }
         : request;
     case "complete":
       return role === "client" && request.status === 4

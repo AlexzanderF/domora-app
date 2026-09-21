@@ -1,4 +1,4 @@
-export type Role = "client" | "master" | "admin";
+export type Role = "client" | "specialist" | "admin";
 export type Plan = "home" | "entry";
 export type CategoryId = 0 | 1 | 2 | 3 | 4 | 5;
 export type RequestStatus = 0 | 1 | 2 | 3 | 4 | 5;
@@ -16,7 +16,7 @@ export interface ServiceRequest {
   plan?: Plan;
   visitsPerMonth?: number;
   propertySize?: number;
-  master?: string;
+  specialist?: string;
   report?: string;
   cancelled?: boolean;
   issue?: boolean;

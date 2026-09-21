@@ -52,7 +52,11 @@ export default async function SpecialistPage() {
       />
       <WorkspaceStats initialStats={initialStats} />
       <div className="card">
-        <RequestList actions role="master" initialRequests={initialRequests} />
+        <RequestList
+          actions
+          role="specialist"
+          initialRequests={initialRequests}
+        />
       </div>
     </>
   );
