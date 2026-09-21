@@ -410,12 +410,6 @@
   gap: 0.9rem;
 }
 
-.bookingRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0.75rem;
-}
-
 .bookingField {
   display: grid;
   align-content: start;
@@ -440,6 +434,22 @@
 .bookingForm select {
   min-height: 44px;
   margin-top: 0;
+}
+
+.bookingForm .dateInput {
+  min-height: 48px;
+  border-color: #b8cbc1;
+  background: #f8faf8;
+  color: #17372f;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  width: 1.2rem;
+  height: 1.2rem;
+  cursor: pointer;
+  opacity: 0.75;
 }
 
 .bookingForm [aria-invalid="true"] {
@@ -568,9 +578,5 @@
   .stepper {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .bookingRow {
-    grid-template-columns: 1fr;
   }
 }
