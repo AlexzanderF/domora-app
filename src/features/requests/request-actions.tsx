@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "./demo-provider";
+import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import type { RequestAction, Role, ServiceRequest } from "./types";
 
 export function RequestActions({
@@ -13,30 +14,44 @@ export function RequestActions({
 }) {
   const { updateRequest } = useDemo();
   const notify = useToast();
-  const perform = (action: RequestAction, message: string) => {
+
+  const perform = async (action: RequestAction, message: string) => {
     updateRequest(request.id, action, role);
+    try {
+      const res = await transitionRequestServerAction(request.id, action);
+      if (res.mode === "db" && !res.success) {
+        notify(res.error ?? "Грешка при изпълнение на действието.");
+        return;
+      }
+    } catch {
+      // Demo mode or network fallback
+    }
     notify(message);
   };
+
   if (request.cancelled) return null;
+
   function advance() {
     const report =
       request.status === 3
-        ? window.prompt("Опишете извършената работа (демо отчет):")
+        ? window.prompt("Опишете извършената работа:")
         : undefined;
     if (request.status === 3 && !report?.trim()) return;
-    perform(
+    void perform(
       { type: "advance", report: report ?? undefined },
       "Статусът е обновен.",
     );
   }
+
   return (
     <div className="actions">
       {role === "client" && request.status < 4 && (
         <button
           className="secondary"
           onClick={() => {
-            if (window.confirm("Да отменим ли тази демо заявка?"))
-              perform({ type: "cancel" }, "Заявката е отказана.");
+            if (window.confirm("Да отменим ли тази заявка?")) {
+              void perform({ type: "cancel" }, "Заявката е отказана.");
+            }
           }}
         >
           Откажи заявката
@@ -55,7 +70,7 @@ export function RequestActions({
             <button
               className="secondary"
               onClick={() =>
-                perform(
+                void perform(
                   { type: "decline" },
                   "Заявката остава за преразпределяне.",
                 )
@@ -71,7 +86,7 @@ export function RequestActions({
           <button
             className="primary"
             onClick={() =>
-              perform(
+              void perform(
                 { type: "complete" },
                 "Услугата е приключена. Можете да оставите оценка.",
               )
@@ -82,9 +97,9 @@ export function RequestActions({
           <button
             className="secondary"
             onClick={() =>
-              perform(
+              void perform(
                 { type: "issue" },
-                "Демо сигналът е отбелязан за преглед.",
+                "Сигналът е отбелязан за преглед.",
               )
             }
           >
@@ -101,7 +116,10 @@ export function RequestActions({
               className="starbutton"
               aria-label={`${rating} звезди`}
               onClick={() =>
-                perform({ type: "rate", rating }, "Благодарим за оценката!")
+                void perform(
+                  { type: "rate", rating },
+                  "Благодарим за оценката!",
+                )
               }
             >
               {rating}★

@@ -1,6 +1,10 @@
+import { getServerSession } from "@/features/auth/server/session";
 import { Sidebar } from "./sidebar";
+import { HeaderAccount } from "./header-account";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export async function AppShell({ children }: { children: React.ReactNode }) {
+  const serverUser = await getServerSession();
+
   return (
     <>
       <a href="#main" className="skip-link">
@@ -10,9 +14,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="workspace">
         <header>
           <span>Вашият дом. Нашата грижа.</span>
-          <div className="account">
-            <span className="avatar">Д</span> Демо профил
-          </div>
+          <HeaderAccount initialUser={serverUser} />
         </header>
         <main id="main">{children}</main>
         <footer>

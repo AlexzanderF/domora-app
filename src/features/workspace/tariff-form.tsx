@@ -1,30 +1,57 @@
 "use client";
 
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
+import type { Tariffs } from "@/features/requests/types";
 import { categories } from "@/features/services/catalog";
+import { updateTariffsAction } from "@/features/admin/server/actions";
 
-export function TariffForm() {
-  const { tariffs, updateTariffs } = useDemo();
+export interface TariffFormProps {
+  initialTariffs?: Tariffs | null;
+}
+
+export function TariffForm({ initialTariffs }: TariffFormProps = {}) {
+  const { tariffs: demoTariffs, updateTariffs } = useDemo();
+  const tariffs = initialTariffs ?? demoTariffs;
   const notify = useToast();
-  function submit(event: FormEvent<HTMLFormElement>) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
+
     const data = new FormData(event.currentTarget);
-    const next = {
+    const next: Tariffs = {
       categories: { ...tariffs.categories },
       home: Number(data.get("home")),
       entry: Number(data.get("entry")),
     };
-    for (const category of categories)
+    for (const category of categories) {
       next.categories[category.id] = Number(data.get(`rate${category.id}`));
-    updateTariffs(next);
-    notify("Демо тарифите са обновени.");
+    }
+
+    setIsSubmitting(true);
+    try {
+      const result = await updateTariffsAction(next);
+      updateTariffs(next);
+      if (result.mode === "db" && result.success) {
+        notify("Тарифите са обновени успешно.");
+      } else {
+        notify("Демо тарифите са обновени.");
+      }
+    } catch {
+      updateTariffs(next);
+      notify("Демо тарифите са обновени.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
+
   return (
     <>
       <div className="sectionhead">
-        <h2>Демонстрационни тарифи</h2>
+        <h2>Тарифи за услуги</h2>
       </div>
       <div className="card">
         <p className="muted">
@@ -70,8 +97,13 @@ export function TariffForm() {
               />
             </label>
           </div>
-          <button className="primary" type="submit">
-            Запази демо тарифите
+          <button
+            className="primary"
+            type="submit"
+            disabled={isSubmitting}
+            aria-label="Запази демо тарифите"
+          >
+            {isSubmitting ? "Запазване..." : "Запази демо тарифите"}
           </button>
         </form>
       </div>
