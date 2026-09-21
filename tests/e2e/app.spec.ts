@@ -132,7 +132,13 @@ test("configures and books a subscription from the standalone plans page", async
   const dateTrigger = page.getByLabel("Предпочитана начална дата");
   await expect(dateTrigger).toContainText(formattedDate);
   await expect(dateTrigger).not.toContainText("г.");
-  await page.getByLabel("Часови диапазон").selectOption("09:00–12:00");
+  await page
+    .getByRole("button", { name: "Часови диапазон", exact: true })
+    .click();
+  await page
+    .getByRole("listbox", { name: "Часови диапазон" })
+    .getByRole("option", { name: "09:00–12:00" })
+    .click();
   await page.getByRole("button", { name: "Изпрати заявка" }).click();
 
   await expect(page).toHaveURL(/\/requests\/?$/);
