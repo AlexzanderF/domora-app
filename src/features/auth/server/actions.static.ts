@@ -11,29 +11,28 @@ export async function loginAction(
 ): Promise<AuthActionResult> {
   void identifier;
   void password;
-  return { mode: "demo" };
+  return { success: false, error: "Грешка при свързване с базата данни." };
 }
 
 export async function registerClientAction(
   input: ClientRegistrationInput,
 ): Promise<AuthActionResult> {
   void input;
-  return { mode: "demo" };
+  return { success: false, error: "Грешка при свързване с базата данни." };
 }
 
 export async function registerSpecialistAction(
   input: SpecialistRegistrationInput,
 ): Promise<AuthActionResult> {
   void input;
-  return { mode: "demo" };
+  return { success: false, error: "Грешка при свързване с базата данни." };
 }
 
 export async function refreshUserAction(): Promise<{
   success: boolean;
   user: User | null;
-  mode: "demo";
 }> {
-  return { success: true, user: null, mode: "demo" };
+  return { success: true, user: null };
 }
 
 export async function logoutAction(): Promise<{ success: boolean }> {
