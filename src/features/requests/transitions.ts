@@ -17,15 +17,48 @@ export function transitionRequest(
       return role === "client" && request.status < 4
         ? { ...request, cancelled: true }
         : request;
-    case "advance":
+    case "accept":
+      return role === "specialist" && request.status === 0
+        ? {
+            ...request,
+            status: 1,
+            specialist:
+              action.specialist ||
+              request.specialist ||
+              "Демо специалист · DOMORA",
+          }
+        : request;
+    case "dismiss":
+      return request;
+    case "admin-assign":
+      return role === "admin" && request.status === 0
+        ? {
+            ...request,
+            status: 1,
+            specialist: action.specialist,
+          }
+        : request;
+    case "admin-recommend":
+      return role === "admin" && request.status === 0
+        ? {
+            ...request,
+            recommendedSpecialistId: action.specialistId,
+          }
+        : request;
+    case "advance": {
       if (role === "client" || request.status >= 4) return request;
       if (request.status === 3 && !action.report?.trim()) return request;
+      const nextStatus: RequestStatus =
+        request.status === 1 || request.status === 2
+          ? 3
+          : ((request.status + 1) as RequestStatus);
       return {
         ...request,
-        status: (request.status + 1) as RequestStatus,
+        status: nextStatus,
         specialist: request.specialist || "Демо специалист · DOMORA",
         ...(request.status === 3 ? { report: action.report!.trim() } : {}),
       };
+    }
     case "decline":
       return role !== "client" && request.status === 0
         ? { ...request, specialist: undefined }

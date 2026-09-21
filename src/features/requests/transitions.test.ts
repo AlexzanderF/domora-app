@@ -17,7 +17,7 @@ describe("request lifecycle", () => {
       "specialist",
     );
     expect(request.status).toBe(1);
-    request = transitionRequest(request, { type: "advance" }, "specialist");
+    // Specialist advance skips status 2: moves directly from 1 to 3
     request = transitionRequest(request, { type: "advance" }, "specialist");
     expect(request.status).toBe(3);
     expect(
@@ -44,6 +44,78 @@ describe("request lifecycle", () => {
       transitionRequest(request, { type: "rate", rating: 1 }, "client"),
     ).toBe(request);
     expect(newRequest.status).toBe(0);
+  });
+
+  it("handles specialist accept and dismiss actions", () => {
+    expect(transitionRequest(newRequest, { type: "accept" }, "client")).toBe(
+      newRequest,
+    );
+    expect(transitionRequest(newRequest, { type: "accept" }, "admin")).toBe(
+      newRequest,
+    );
+    const accepted = transitionRequest(
+      newRequest,
+      { type: "accept", specialist: "Иван Иванов" },
+      "specialist",
+    );
+    expect(accepted.status).toBe(1);
+    expect(accepted.specialist).toBe("Иван Иванов");
+    expect(transitionRequest(accepted, { type: "accept" }, "specialist")).toBe(
+      accepted,
+    );
+    expect(
+      transitionRequest(newRequest, { type: "dismiss" }, "specialist"),
+    ).toBe(newRequest);
+  });
+
+  it("handles admin dispatch: direct assign and recommend", () => {
+    expect(
+      transitionRequest(
+        newRequest,
+        { type: "admin-assign", specialist: "Георги Димитров" },
+        "specialist",
+      ),
+    ).toBe(newRequest);
+    expect(
+      transitionRequest(
+        newRequest,
+        { type: "admin-assign", specialist: "Георги Димитров" },
+        "client",
+      ),
+    ).toBe(newRequest);
+
+    const assigned = transitionRequest(
+      newRequest,
+      { type: "admin-assign", specialist: "Георги Димитров" },
+      "admin",
+    );
+    expect(assigned.status).toBe(1);
+    expect(assigned.specialist).toBe("Георги Димитров");
+
+    expect(
+      transitionRequest(
+        newRequest,
+        { type: "admin-recommend", specialistId: "spec-123" },
+        "client",
+      ),
+    ).toBe(newRequest);
+
+    const recommended = transitionRequest(
+      newRequest,
+      { type: "admin-recommend", specialistId: "spec-123" },
+      "admin",
+    );
+    expect(recommended.status).toBe(0);
+    expect(recommended.recommendedSpecialistId).toBe("spec-123");
+
+    // Cannot recommend on an active or assigned request
+    expect(
+      transitionRequest(
+        assigned,
+        { type: "admin-recommend", specialistId: "spec-456" },
+        "admin",
+      ),
+    ).toBe(assigned);
   });
 
   it("prevents clients from advancing work and staff from cancelling or rating it", () => {

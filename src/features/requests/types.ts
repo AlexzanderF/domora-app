@@ -17,6 +17,7 @@ export interface ServiceRequest {
   visitsPerMonth?: number;
   propertySize?: number;
   specialist?: string;
+  recommendedSpecialistId?: string;
   report?: string;
   cancelled?: boolean;
   issue?: boolean;
@@ -37,7 +38,11 @@ export interface BookingSelection {
 export type RequestAction =
   | { type: "cancel" }
   | { type: "advance"; report?: string }
+  | { type: "accept"; specialist?: string }
+  | { type: "dismiss" }
   | { type: "decline" }
+  | { type: "admin-assign"; specialist: string }
+  | { type: "admin-recommend"; specialistId: string }
   | { type: "complete" }
   | { type: "issue" }
   | { type: "rate"; rating: number };
