@@ -39,7 +39,7 @@ export function transitionRequest(
           }
         : request;
     case "admin-recommend":
-      return role === "admin"
+      return role === "admin" && request.status === 0
         ? {
             ...request,
             recommendedSpecialistId: action.specialistId,
