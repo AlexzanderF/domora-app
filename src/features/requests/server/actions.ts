@@ -41,10 +41,7 @@ export async function createServiceRequestAction(
 
   const user = await getServerSession();
   if (!user) {
-    return {
-      success: false,
-      error: "Моля, влезте в профила си, за да направите заявка.",
-    };
+    return { success: true, mode: "demo" };
   }
 
   const address = input.address.trim();

@@ -97,8 +97,13 @@ export function TariffForm({ initialTariffs }: TariffFormProps = {}) {
               />
             </label>
           </div>
-          <button className="primary" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Запазване..." : "Запази тарифите"}
+          <button
+            className="primary"
+            type="submit"
+            disabled={isSubmitting}
+            aria-label="Запази демо тарифите"
+          >
+            {isSubmitting ? "Запазване..." : "Запази демо тарифите"}
           </button>
         </form>
       </div>
