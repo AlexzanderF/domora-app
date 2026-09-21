@@ -1,3 +1,5 @@
+import type { UserRole } from "@/features/auth/types";
+
 export type WorkspaceRole = "client" | "specialist" | "admin";
 
 export interface NavItemConfig {
@@ -40,9 +42,13 @@ export const ROLE_DASHBOARD_PATHS: Record<WorkspaceRole, string> = {
   admin: "/admin",
 };
 
+const ROOT_DASHBOARD_PATHS = Object.values(
+  ROLE_DASHBOARD_PATHS,
+) as readonly string[];
+
 export function resolveWorkspaceRole(
   pathname: string,
-  userRole?: string | null,
+  userRole?: UserRole | string | null,
 ): WorkspaceRole {
   if (pathname.startsWith("/admin")) {
     return "admin";
@@ -75,11 +81,7 @@ export function isNavItemActive(
     return true;
   }
 
-  if (
-    normalizedItem === "/client" ||
-    normalizedItem === "/specialist" ||
-    normalizedItem === "/admin"
-  ) {
+  if (ROOT_DASHBOARD_PATHS.includes(normalizedItem)) {
     return false;
   }
 
