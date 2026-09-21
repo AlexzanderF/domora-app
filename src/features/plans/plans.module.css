@@ -476,13 +476,20 @@
   font-size: 0.8rem;
 }
 
+.selectedDateValue {
+  text-decoration: underline;
+  text-decoration-color: #7fa699;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
 .calendarPopover {
   position: absolute;
   z-index: 20;
   top: calc(100% + 0.45rem);
   right: 0;
-  width: min(320px, calc(100vw - 3rem));
-  padding: 0.85rem;
+  width: min(280px, calc(100vw - 3rem));
+  padding: 0.65rem;
   border: 1px solid #ccd9d1;
   border-radius: 7px;
   background: #fff;
@@ -502,8 +509,8 @@
 .calendarPopover :global(.rdp-month_caption) {
   display: flex;
   align-items: center;
-  min-height: 2.5rem;
-  padding: 0 2.75rem;
+  min-height: 2.15rem;
+  padding: 0 2.35rem;
   color: #17372f;
   font-weight: 800;
   text-align: center;
@@ -515,9 +522,9 @@
 
 .calendarPopover :global(.rdp-nav) {
   position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
-  left: 0.85rem;
+  top: 0.65rem;
+  right: 0.65rem;
+  left: 0.65rem;
   display: flex;
   justify-content: space-between;
 }
@@ -525,8 +532,8 @@
 .calendarPopover :global(.rdp-button_previous),
 .calendarPopover :global(.rdp-button_next) {
   display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.9rem;
+  height: 1.9rem;
   padding: 0;
   border: 1px solid #dce5df;
   border-radius: 6px;
@@ -541,20 +548,20 @@
 }
 
 .calendarPopover :global(.rdp-weekday) {
-  height: 2rem;
+  height: 1.7rem;
   color: #71827c;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 750;
 }
 
 .calendarPopover :global(.rdp-day) {
-  padding: 2px;
+  padding: 1px;
   text-align: center;
 }
 
 .calendarPopover :global(.rdp-day_button) {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 1.9rem;
+  height: 1.9rem;
   padding: 0;
   border: 0;
   border-radius: 6px;
@@ -570,6 +577,9 @@
   background: #175246;
   color: #fff;
   font-weight: 800;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .calendarPopover :global(.rdp-today:not(.rdp-selected) .rdp-day_button) {
