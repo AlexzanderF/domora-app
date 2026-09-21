@@ -22,6 +22,7 @@ export interface ServiceRequest {
   cancelled?: boolean;
   issue?: boolean;
   rating?: number;
+  subscriptionId?: string;
 }
 
 export interface Tariffs {

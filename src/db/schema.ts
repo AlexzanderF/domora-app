@@ -20,6 +20,17 @@ export const requestPriorityEnum = pgEnum("request_priority", [
   "EMERGENCY",
 ]);
 
+export const subscriptionPlanEnum = pgEnum("subscription_plan", [
+  "HOME",
+  "ENTRY",
+]);
+
+export const subscriptionStatusEnum = pgEnum("subscription_status", [
+  "ACTIVE",
+  "CANCELLED",
+  "EXPIRED",
+]);
+
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -92,6 +103,26 @@ export const requests = pgTable("requests", {
     .notNull(),
 });
 
+export const subscriptions = pgTable("subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  planType: subscriptionPlanEnum("plan_type").notNull(),
+  propertyAddress: text("property_address").notNull(),
+  propertyArea: integer("property_area").notNull(),
+  status: subscriptionStatusEnum("status").notNull().default("ACTIVE"),
+  visitsRemaining: integer("visits_remaining").notNull(),
+  validUntil: timestamp("valid_until", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 export const tariffs = pgTable("tariffs", {
   id: text("id").primaryKey(),
   category: text("category").notNull().unique(),
@@ -107,8 +138,16 @@ export const tariffs = pgTable("tariffs", {
 export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   specialistProfile: one(specialistProfiles),
+  subscription: one(subscriptions),
   clientRequests: many(requests, { relationName: "clientRequests" }),
   specialistRequests: many(requests, { relationName: "specialistRequests" }),
+}));
+
+export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptions.userId],
+    references: [users.id],
+  }),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -149,5 +188,7 @@ export type SpecialistProfileSelect = typeof specialistProfiles.$inferSelect;
 export type SpecialistProfileInsert = typeof specialistProfiles.$inferInsert;
 export type RequestSelect = typeof requests.$inferSelect;
 export type RequestInsert = typeof requests.$inferInsert;
+export type SubscriptionSelect = typeof subscriptions.$inferSelect;
+export type SubscriptionInsert = typeof subscriptions.$inferInsert;
 export type TariffSelect = typeof tariffs.$inferSelect;
 export type TariffInsert = typeof tariffs.$inferInsert;

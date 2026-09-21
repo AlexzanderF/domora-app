@@ -1,10 +1,24 @@
 import type { ServiceRequest, Tariffs } from "./types";
+import type { Subscription } from "@/features/subscriptions/types";
 import { defaultPlanPrices } from "@/features/plans/pricing";
 import { defaultServicePrices } from "@/features/services/pricing";
 
 export const initialTariffs: Tariffs = {
   categories: { ...defaultServicePrices },
   ...defaultPlanPrices,
+};
+
+export const initialSubscription: Subscription = {
+  id: "sub-1001",
+  userId: "client-demo-1",
+  planType: "HOME",
+  propertyAddress: "София · ул. Примерна 12, ет. 3, ап. 8",
+  propertyArea: 85,
+  status: "ACTIVE",
+  visitsRemaining: 2,
+  validUntil: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
+  createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+  updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
 };
 
 export const initialRequests: ServiceRequest[] = [
@@ -32,5 +46,6 @@ export const initialRequests: ServiceRequest[] = [
     description: "Почистване на апартамент до 80 м².",
     specialist: "Демо екип · Почистване",
     report: "Почистени подове, кухня и санитарни помещения.",
+    subscriptionId: "sub-1001",
   },
 ];
