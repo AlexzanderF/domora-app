@@ -2,25 +2,24 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/features/auth/auth-provider";
+import type { User } from "@/features/auth/types";
+import {
+  getNavigationItems,
+  resolveWorkspaceRole,
+  ROLE_DASHBOARD_PATHS,
+} from "./sidebar-nav";
 
-export function Sidebar() {
-  const pathname = usePathname();
+export function Sidebar({ initialUser }: { initialUser?: User | null }) {
+  const pathname = usePathname() ?? "";
   const router = useRouter();
-  const isAdmin = pathname.startsWith("/admin");
-  const rolePath = isAdmin
-    ? "/admin"
-    : pathname.startsWith("/specialist")
-      ? "/specialist"
-      : "/";
+  const { user } = useAuth();
 
-  const navigation = [
-    { href: isAdmin ? "/admin" : "/", label: "Начало", icon: "⌂" },
-    ...(isAdmin
-      ? [{ href: "/admin/specialists", label: "Специалисти", icon: "👥" }]
-      : []),
-    { href: "/requests", label: "Моите заявки", icon: "▤" },
-    { href: "/plans", label: "Абонаменти", icon: "◈" },
-  ];
+  const activeUser = user ?? initialUser ?? null;
+  const currentRole = resolveWorkspaceRole(pathname, activeUser?.role);
+  const navigation = getNavigationItems(currentRole, pathname);
+  const currentRolePath = ROLE_DASHBOARD_PATHS[currentRole];
+
   return (
     <aside>
       <Link className="brand" href="/">
@@ -33,16 +32,8 @@ export function Sidebar() {
           <Link
             key={item.href}
             href={item.href}
-            className={
-              pathname.replace(/\/$/, "") === item.href.replace(/\/$/, "")
-                ? "selected"
-                : ""
-            }
-            aria-current={
-              pathname.replace(/\/$/, "") === item.href.replace(/\/$/, "")
-                ? "page"
-                : undefined
-            }
+            className={item.active ? "selected" : ""}
+            aria-current={item.active ? "page" : undefined}
           >
             <span aria-hidden="true">{item.icon}</span>
             <span>{item.label}</span>
@@ -55,10 +46,10 @@ export function Sidebar() {
         <select
           id="role"
           aria-label="Разгледай като"
-          value={rolePath}
+          value={currentRolePath}
           onChange={(event) => router.push(event.target.value)}
         >
-          <option value="/">Клиент</option>
+          <option value="/client">Клиент</option>
           <option value="/specialist">Специалист</option>
           <option value="/admin">Администратор</option>
         </select>
