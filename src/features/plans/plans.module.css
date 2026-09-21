@@ -437,12 +437,7 @@
 }
 
 .bookingForm .dateInput {
-  min-height: 48px;
-  border-color: #b8cbc1;
-  background: #f8faf8;
-  color: #17372f;
   cursor: pointer;
-  font-weight: 650;
 }
 
 .dateInput::-webkit-calendar-picker-indicator {
