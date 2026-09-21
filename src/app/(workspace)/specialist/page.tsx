@@ -6,6 +6,7 @@ import { getServerSession } from "@/features/auth/server/session";
 import { findSpecialistRequests } from "@/features/requests/server/queries";
 
 export const metadata: Metadata = { title: "Специалист" };
+export const dynamic = "force-dynamic";
 
 export default async function SpecialistPage() {
   const user = await getServerSession();

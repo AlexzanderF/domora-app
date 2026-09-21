@@ -6,6 +6,7 @@ import { findClientRequests } from "@/features/requests/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
 
 export const metadata: Metadata = { title: "Моите заявки" };
+export const dynamic = "force-dynamic";
 
 export default async function RequestsPage() {
   const user = await getServerSession();

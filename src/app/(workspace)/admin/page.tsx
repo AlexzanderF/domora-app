@@ -10,6 +10,7 @@ import {
 } from "@/features/admin/server/metrics";
 
 export const metadata: Metadata = { title: "Администратор" };
+export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const [initialStats, initialRequests, initialTariffs] = await Promise.all([

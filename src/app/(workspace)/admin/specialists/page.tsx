@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   description:
     "Преглед и одобрение на кандидатстващи специалисти в платформата DOMORA.",
 };
+export const dynamic = "force-dynamic";
 
 export default async function AdminSpecialistsPage() {
   const initialSpecialists = await findSpecialistApplications();
