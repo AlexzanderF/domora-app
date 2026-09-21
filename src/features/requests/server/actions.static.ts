@@ -1,4 +1,4 @@
-import type { CategoryId, Plan, ServiceRequest } from "../types";
+import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
 export interface CreateServiceRequestInput {
   category: CategoryId;
@@ -12,7 +12,7 @@ export interface CreateServiceRequestInput {
   priority?: "STANDARD" | "URGENT" | "EMERGENCY";
 }
 
-export interface CreateServiceRequestResult {
+export interface ServiceRequestActionResult {
   success: boolean;
   error?: string;
   mode?: "db" | "demo";
@@ -21,7 +21,46 @@ export interface CreateServiceRequestResult {
 
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
-): Promise<CreateServiceRequestResult> {
+): Promise<ServiceRequestActionResult> {
   void input;
+  return { success: true, mode: "demo" };
+}
+
+export async function assignSpecialistAction(
+  requestId: string,
+): Promise<ServiceRequestActionResult> {
+  void requestId;
+  return { success: true, mode: "demo" };
+}
+
+export async function startWorkAction(
+  requestId: string,
+): Promise<ServiceRequestActionResult> {
+  void requestId;
+  return { success: true, mode: "demo" };
+}
+
+export async function completeWorkAction(
+  requestId: string,
+  report?: string,
+): Promise<ServiceRequestActionResult> {
+  void requestId;
+  void report;
+  return { success: true, mode: "demo" };
+}
+
+export async function cancelRequestAction(
+  requestId: string,
+): Promise<ServiceRequestActionResult> {
+  void requestId;
+  return { success: true, mode: "demo" };
+}
+
+export async function transitionRequestServerAction(
+  requestId: string,
+  action: RequestAction,
+): Promise<ServiceRequestActionResult> {
+  void requestId;
+  void action;
   return { success: true, mode: "demo" };
 }

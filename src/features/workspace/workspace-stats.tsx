@@ -2,28 +2,36 @@
 
 import { useDemo } from "@/features/requests/demo-provider";
 
-export function WorkspaceStats() {
+export interface WorkspaceStatsProps {
+  initialStats?: {
+    total: number;
+    active: number;
+    completed: number;
+  } | null;
+}
+
+export function WorkspaceStats({ initialStats }: WorkspaceStatsProps = {}) {
   const { requests } = useDemo();
+
+  const total = initialStats?.total ?? requests.length;
+  const active =
+    initialStats?.active ??
+    requests.filter((request) => !request.cancelled && request.status < 5)
+      .length;
+  const completed =
+    initialStats?.completed ??
+    requests.filter((request) => request.status === 5).length;
+
   return (
     <div className="stats">
       <div className="card">
-        Общо заявки<strong>{requests.length}</strong>
+        Общо заявки<strong>{total}</strong>
       </div>
       <div className="card">
-        Активни
-        <strong>
-          {
-            requests.filter(
-              (request) => !request.cancelled && request.status < 5,
-            ).length
-          }
-        </strong>
+        Активни<strong>{active}</strong>
       </div>
       <div className="card">
-        Приключени
-        <strong>
-          {requests.filter((request) => request.status === 5).length}
-        </strong>
+        Приключени<strong>{completed}</strong>
       </div>
     </div>
   );
