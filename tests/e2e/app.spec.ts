@@ -70,30 +70,66 @@ test("creates a request, keeps it across navigation and allows cancellation", as
   await expect(request.getByRole("button")).toHaveCount(0);
 });
 
-test("books both subscription types with their own quantities and prices", async ({
+test("configures and books a subscription from the standalone plans page", async ({
   page,
 }) => {
   await page.goto("/plans");
-  await page.getByRole("button", { name: "Избери „За дома“" }).click();
   await expect(
-    page.getByRole("combobox", { name: "Категория", exact: true }),
-  ).toBeDisabled();
-  await page.getByLabel("Площ на дома (м²)").fill("100");
-  await expect(page.locator(".quote strong")).toContainText("150");
-  await fillBooking(page);
-  await page.getByRole("button", { name: "Изпрати демо заявка" }).click();
+    page.getByRole("navigation", { name: "Основна навигация" }),
+  ).toHaveCount(0);
+  const plansNavigation = page.getByRole("navigation", {
+    name: "Навигация за абонаменти",
+  });
   await expect(
-    page.getByRole("article", { name: "Абонамент За дома", exact: true }),
-  ).toContainText("150");
-  await page.getByRole("link", { name: "Абонаменти", exact: true }).click();
-  await page.getByRole("button", { name: "Избери „За входа“" }).click();
+    plansNavigation.getByRole("link", { name: "Начало", exact: true }),
+  ).toBeVisible();
+  await expect(
+    plansNavigation.getByRole("link", { name: "Моите заявки" }),
+  ).toBeVisible();
+  await expect(
+    plansNavigation.getByRole("link", { name: "Към таблото" }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "За входа" }).click();
   await expect(page.getByLabel("Брой етажи")).toHaveValue("6");
-  await expect(page.locator(".quote strong")).toContainText("108");
-  await fillBooking(page);
-  await page.getByRole("button", { name: "Изпрати демо заявка" }).click();
   await expect(
-    page.getByRole("article", { name: "Абонамент За входа", exact: true }),
-  ).toContainText("108");
+    page.getByRole("complementary", { name: "За входа" }).getByText(/216\s*€/),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "За дома" }).click();
+
+  const summary = page.getByRole("complementary", { name: "За дома" });
+  await page.getByLabel("Площ на дома").fill("100");
+  await expect(summary.getByText(/300\s*€/)).toBeVisible();
+  await page.getByRole("button", { name: "4 посещения" }).click();
+  await expect(summary.getByText(/540\s*€/)).toBeVisible();
+  await expect(page.getByText("10% отстъпка за редовна грижа")).toBeVisible();
+
+  await page.getByRole("button", { name: "Изпрати заявка" }).click();
+  await expect(page.getByText("Въведете адрес на имота.")).toBeVisible();
+  await expect(
+    page.getByText("Изберете предпочитана начална дата."),
+  ).toBeVisible();
+  await expect(page.getByText("Изберете часови диапазон.")).toBeVisible();
+
+  await page.getByLabel("Адрес на имота").fill("София, ул. Тестова 42");
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  const tomorrow = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  await page.getByLabel("Предпочитана начална дата").fill(tomorrow);
+  await page.getByLabel("Часови диапазон").selectOption("09:00–12:00");
+  await page.getByRole("button", { name: "Изпрати заявка" }).click();
+
+  await expect(page).toHaveURL(/\/requests\/?$/);
+  const request = page.getByRole("article", {
+    name: "Абонамент За дома",
+    exact: true,
+  });
+  await expect(request).toBeVisible();
+  await expect(request).toContainText("4 посещения / месец · 100 м²");
+  await expect(request.locator(".amount")).toContainText("540");
+  await expect(page.getByRole("status")).toContainText(
+    "Абонаментната заявка е създадена успешно.",
+  );
 });
 
 test("staff complete work with a report and the client confirms and rates", async ({

@@ -6,12 +6,23 @@ export function calculateQuote(
   serviceIndex: number,
   plan?: Plan,
   quantity = 1,
+  visitsPerMonth = 1,
 ): number {
   if (plan) {
     if (!Number.isFinite(quantity) || quantity < 1 || quantity > 1000) {
       throw new Error("Quantity must be between 1 and 1000.");
     }
-    return Math.round(quantity * tariffs[plan]);
+    if (
+      !Number.isInteger(visitsPerMonth) ||
+      visitsPerMonth < 1 ||
+      visitsPerMonth > 8
+    ) {
+      throw new Error("Monthly visits must be between 1 and 8.");
+    }
+    const volumeMultiplier = visitsPerMonth >= 4 ? 0.9 : 1;
+    return Math.round(
+      quantity * tariffs[plan] * visitsPerMonth * volumeMultiplier,
+    );
   }
   return serviceIndex > 0 ? 25 : tariffs.categories[category];
 }
