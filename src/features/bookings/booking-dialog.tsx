@@ -266,8 +266,13 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           Часът подлежи на потвърждение. Материали и допълнителна работа се
           одобряват отделно.
         </p>
-        <button className="primary full" type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Изпращане..." : "Изпрати заявка →"}
+        <button
+          className="primary full"
+          type="submit"
+          disabled={isSubmitting}
+          aria-label="Изпрати демо заявка"
+        >
+          {isSubmitting ? "Изпращане..." : "Изпрати демо заявка →"}
         </button>
       </form>
     </dialog>
