@@ -1,0 +1,109 @@
+.summaryRow {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.summaryCard {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summaryLabel {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.summaryValue {
+  font-size: 28px;
+}
+
+.summaryLink {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--green);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.summaryLink:hover {
+  text-decoration: underline;
+}
+
+.section {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sectionTitle {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.sectionBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.sectionLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+  text-decoration: none;
+}
+
+.sectionLink:hover {
+  text-decoration: underline;
+}
+
+.recommendedBadge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fdf0d5;
+  color: #8c5a18;
+  padding: 4px 9px;
+  border-radius: 5px;
+}
+
+.disputed {
+  background: #fdf3f2;
+  border-radius: 10px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.disputeNotice {
+  border-left: 3px solid #d9776b;
+  padding: 10px 14px;
+  background: #fbe9e7;
+  font-size: 13px;
+  color: #8c3a2c;
+  margin: 8px 0;
+}

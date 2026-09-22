@@ -1,4 +1,5 @@
 import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import type { CategoryId, RequestStatus, ServiceRequest } from "../types";
@@ -132,17 +133,21 @@ export async function findSpecialistRequests(
   const availableCondition = and(...conditions);
   const whereCondition = or(assignedCondition, availableCondition);
 
+  const clients = alias(users, "clients");
+
   const rows = await db
     .select({
       request: requests,
       specialist: users,
+      client: clients,
     })
     .from(requests)
     .leftJoin(users, eq(requests.specialistId, users.id))
+    .leftJoin(clients, eq(requests.clientId, clients.id))
     .where(whereCondition)
     .orderBy(desc(requests.createdAt));
 
-  return rows.map(({ request, specialist }) => {
+  return rows.map(({ request, specialist, client }) => {
     const rawCategory = Number(request.category);
     const categoryId: CategoryId =
       rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
@@ -163,6 +168,7 @@ export async function findSpecialistRequests(
       }),
       price: request.price,
       status,
+      priority: request.priority,
       description: parsed.cleanDescription,
       cancelled: parsed.cancelled,
       report: parsed.report,
@@ -171,6 +177,8 @@ export async function findSpecialistRequests(
       specialist:
         request.specialistId === specialistId ? "Вие" : specialist?.name,
       specialistPhone: specialist?.phone,
+      clientName: client?.name,
+      clientPhone: request.clientPhone,
     };
   });
 }

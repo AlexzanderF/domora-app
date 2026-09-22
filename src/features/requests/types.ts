@@ -27,6 +27,8 @@ export interface ServiceRequest {
   issue?: boolean;
   rating?: number;
   subscriptionId?: number;
+  clientName?: string;
+  clientPhone?: string;
 }
 
 export interface Tariff {
