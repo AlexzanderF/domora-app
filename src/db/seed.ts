@@ -4,10 +4,12 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { loadEnvFiles } from "./index";
 import {
+  requests,
   specialistProfiles,
   subscriptions,
   tariffs,
   users,
+  type RequestInsert,
   type SpecialistProfileInsert,
   type SubscriptionInsert,
   type TariffInsert,
@@ -84,6 +86,24 @@ const seedUsers: {
       status: "ACTIVE",
     },
   },
+  {
+    user: {
+      id: 5,
+      name: "Петър Георгиев",
+      email: "petar@klima-service.bg",
+      phone: "0888111222",
+      passwordHash: defaultPasswordHash,
+      role: "SPECIALIST",
+      status: "PENDING",
+    },
+    profile: {
+      id: 3,
+      category: "Климатизация",
+      area: "София - Младост",
+      experienceYears: 4,
+      bio: "Монтаж и профилактика на климатични системи за дома и офиса.",
+    },
+  },
 ];
 
 const seedTariffs: TariffInsert[] = [
@@ -147,6 +167,25 @@ const seedSubscriptions: SubscriptionInsert[] = [
     status: "ACTIVE",
     visitsRemaining: 3,
     validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  },
+];
+
+// Test data for the admin triage queues (#52): one disputed request awaiting
+// admin oversight (status 4, flagged with [СИГНАЛ], report from specialist).
+const seedRequests: RequestInsert[] = [
+  {
+    id: 1,
+    clientId: 1,
+    specialistId: 3,
+    title: "Боядисване на детска стая",
+    description:
+      "Боядисване на стени в детска стая, около 18 м².\n[ОТЧЕТ] Стените са боядисани в избрания цвят, работата е приключена.\n[СИГНАЛ] Клиентът съобщава за пропуснати участъци около дограмата",
+    category: "3",
+    address: "София, ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 4,
+    price: 120,
+    clientPhone: "0888123456",
   },
 ];
 
@@ -238,6 +277,29 @@ async function seedDatabase(): Promise<void> {
             status: sub.status,
             visitsRemaining: sub.visitsRemaining,
             validUntil: sub.validUntil,
+            updatedAt: new Date(),
+          },
+        });
+    }
+
+    console.log("Seeding test requests for admin triage queues...");
+    for (const req of seedRequests) {
+      await db
+        .insert(requests)
+        .values(req)
+        .onConflictDoUpdate({
+          target: requests.id,
+          set: {
+            clientId: req.clientId,
+            specialistId: req.specialistId,
+            title: req.title,
+            description: req.description,
+            category: req.category,
+            address: req.address,
+            priority: req.priority,
+            status: req.status,
+            price: req.price,
+            clientPhone: req.clientPhone,
             updatedAt: new Date(),
           },
         });
