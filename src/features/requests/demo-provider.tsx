@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useState } from "react";
 import {
+  generateDemoId,
   initialRequests,
   initialSubscription,
   initialTariffs,
@@ -79,7 +80,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       propertyArea: number = planType === "HOME" ? 85 : 6,
     ) => {
       const newSub: Subscription = {
-        id: Date.now(),
+        id: generateDemoId(),
         userId: 1,
         planType,
         propertyAddress,

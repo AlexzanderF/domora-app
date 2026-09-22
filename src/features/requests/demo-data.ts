@@ -8,6 +8,10 @@ export const initialTariffs: Tariffs = {
   ...defaultPlanPrices,
 };
 
+export function generateDemoId(): number {
+  return Date.now();
+}
+
 export const initialSubscription: Subscription = {
   id: 1001,
   userId: 1,

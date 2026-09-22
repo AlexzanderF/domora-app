@@ -6,12 +6,8 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote, quoteScope } from "@/features/requests/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
+import { generateDemoId } from "@/features/requests/demo-data";
 import type { BookingSelection, CategoryId } from "@/features/requests/types";
-
-function generateDemoId(): number {
-  return Date.now();
-}
-
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";

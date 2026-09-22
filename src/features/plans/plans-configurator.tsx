@@ -7,13 +7,10 @@ import { DatePicker } from "@/features/plans/date-picker";
 import { TimePicker } from "@/features/plans/time-picker";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote } from "@/features/requests/pricing";
+import { generateDemoId } from "@/features/requests/demo-data";
 import type { Plan } from "@/features/requests/types";
 import { localDate, money } from "@/lib/format";
 import styles from "./plans.module.css";
-
-function generateDemoId(): number {
-  return Date.now();
-}
 
 const planOptions: Record<
   Plan,
