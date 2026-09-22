@@ -62,4 +62,5 @@ export type RequestAction =
   | { type: "admin-recommend"; specialistId: number }
   | { type: "complete" }
   | { type: "issue" }
+  | { type: "resolve" }
   | { type: "rate"; rating: number };

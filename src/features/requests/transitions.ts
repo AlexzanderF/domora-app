@@ -71,6 +71,10 @@ export function transitionRequest(
       return role === "client" && request.status === 4
         ? { ...request, issue: true }
         : request;
+    case "resolve":
+      return role === "admin" && request.issue
+        ? { ...request, issue: false }
+        : request;
     case "rate":
       return role === "client" &&
         request.status === 5 &&

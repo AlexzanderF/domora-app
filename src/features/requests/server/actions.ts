@@ -410,6 +410,30 @@ export async function transitionRequestServerAction(
       revalidateWorkspaceRequests();
       return { success: true, mode: "db" };
     }
+    case "resolve": {
+      const db = getDb();
+      if (!db) return { success: false, error: "Няма връзка с базата данни." };
+      const [req] = await db
+        .select()
+        .from(requests)
+        .where(eq(requests.id, requestId));
+      if (!req) return { success: false, error: "Заявката не е намерена." };
+
+      const cleanedDescription = req.description
+        .replace(/\n?\[СИГНАЛ\][^\n]*/g, "")
+        .trim();
+
+      await db
+        .update(requests)
+        .set({
+          description: cleanedDescription,
+          updatedAt: new Date(),
+        })
+        .where(eq(requests.id, requestId));
+
+      revalidateWorkspaceRequests();
+      return { success: true, mode: "db" };
+    }
     default:
       return { success: true, mode: "db" };
   }

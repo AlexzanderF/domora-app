@@ -1,7 +1,14 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, like } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
-import { specialistProfiles, users } from "@/db/schema";
+import { requests, specialistProfiles, users } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
+import { parseDescription } from "@/features/requests/server/queries";
+import type {
+  CategoryId,
+  RequestStatus,
+  ServiceRequest,
+} from "@/features/requests/types";
 
 function mapToDomainProfile(
   profile: typeof specialistProfiles.$inferSelect | null,
@@ -46,4 +53,64 @@ export async function findSpecialistApplications(): Promise<User[] | null> {
     createdAt: row.user.createdAt.toISOString(),
     updatedAt: row.user.updatedAt.toISOString(),
   }));
+}
+
+export async function findDisputedRequestsForAdmin(): Promise<
+  ServiceRequest[] | null
+> {
+  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+    return null;
+  }
+
+  const db = getDb();
+  if (!db) return null;
+
+  const specialists = alias(users, "specialists");
+  const clients = alias(users, "clients");
+
+  const rows = await db
+    .select({
+      request: requests,
+      specialist: specialists,
+      client: clients,
+    })
+    .from(requests)
+    .leftJoin(specialists, eq(requests.specialistId, specialists.id))
+    .leftJoin(clients, eq(requests.clientId, clients.id))
+    .where(like(requests.description, "%[СИГНАЛ]%"))
+    .orderBy(desc(requests.updatedAt));
+
+  return rows.map(({ request, specialist, client }) => {
+    const rawCategory = Number(request.category);
+    const category: CategoryId =
+      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
+    const rawStatus = request.status;
+    const status: RequestStatus =
+      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
+    const parsed = parseDescription(request.description);
+
+    return {
+      id: request.id,
+      category,
+      service: request.title,
+      address: request.address,
+      date: request.createdAt.toISOString().split("T")[0],
+      time: request.createdAt.toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      price: request.price,
+      status,
+      priority: request.priority,
+      description: parsed.cleanDescription,
+      cancelled: parsed.cancelled,
+      report: parsed.report,
+      rating: parsed.rating,
+      issue: parsed.issue,
+      specialist: specialist?.name,
+      specialistPhone: specialist?.phone,
+      clientName: client?.name,
+      clientPhone: request.clientPhone,
+    };
+  });
 }
