@@ -8,9 +8,13 @@ export const initialTariffs: Tariffs = {
   ...defaultPlanPrices,
 };
 
+export function generateDemoId(): number {
+  return Math.floor(Date.now() % 1_000_000_000);
+}
+
 export const initialSubscription: Subscription = {
-  id: "sub-1001",
-  userId: "client-demo-1",
+  id: 1001,
+  userId: 1,
   planType: "HOME",
   propertyAddress: "София · ул. Примерна 12, ет. 3, ап. 8",
   propertyArea: 85,
@@ -23,7 +27,7 @@ export const initialSubscription: Subscription = {
 
 export const initialRequests: ServiceRequest[] = [
   {
-    id: "1001",
+    id: 1001,
     category: 0,
     service: "Смяна на смесител",
     address: "София · ул. Примерна 12",
@@ -35,7 +39,7 @@ export const initialRequests: ServiceRequest[] = [
     specialist: "Демо специалист · ВиК",
   },
   {
-    id: "1002",
+    id: 1002,
     category: 4,
     service: "Почистване на дом",
     address: "София · ул. Примерна 12",
@@ -46,6 +50,6 @@ export const initialRequests: ServiceRequest[] = [
     description: "Почистване на апартамент до 80 м².",
     specialist: "Демо екип · Почистване",
     report: "Почистени подове, кухня и санитарни помещения.",
-    subscriptionId: "sub-1001",
+    subscriptionId: 1001,
   },
 ];

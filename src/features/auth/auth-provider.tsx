@@ -36,7 +36,7 @@ export interface AuthContextValue {
   logout: () => Promise<void>;
   refreshUser: () => Promise<User | null>;
   updateUserStatus: (
-    userId: string,
+    userId: number,
     status: UserStatus,
   ) => Promise<User | null>;
 }
@@ -149,7 +149,7 @@ export function AuthProvider({
   }, []);
 
   const updateUserStatus = useCallback(
-    async (userId: string, newStatus: UserStatus): Promise<User | null> => {
+    async (userId: number, newStatus: UserStatus): Promise<User | null> => {
       if (newStatus === "ACTIVE" || newStatus === "REJECTED") {
         const res = await updateSpecialistStatusAction(userId, newStatus);
         if (!res.success) {

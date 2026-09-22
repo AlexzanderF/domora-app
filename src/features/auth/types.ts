@@ -3,6 +3,8 @@ export type UserRole = "CLIENT" | "SPECIALIST" | "ADMIN";
 export type UserStatus = "ACTIVE" | "PENDING" | "REJECTED";
 
 export interface SpecialistProfile {
+  id?: number;
+  userId?: number;
   category: string;
   area: string;
   experienceYears: number;
@@ -12,7 +14,7 @@ export interface SpecialistProfile {
 }
 
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone: string;

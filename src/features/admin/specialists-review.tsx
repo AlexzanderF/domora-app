@@ -61,14 +61,14 @@ export function SpecialistsReview({
   initialSpecialists,
 }: SpecialistsReviewProps = {}) {
   const [overrideStatuses, setOverrideStatuses] = useState<
-    Record<string, UserStatus>
+    Record<number, UserStatus>
   >({});
   const { updateUserStatus } = useAuth();
   const notify = useToast();
 
   const [activeTab, setActiveTab] = useState<FilterTab>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<number | null>(null);
 
   const specialists = useMemo(() => {
     const baseList = initialSpecialists ?? [];

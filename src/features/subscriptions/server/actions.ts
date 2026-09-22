@@ -46,14 +46,12 @@ export async function createSubscriptionAction(
     return { success: false, error: "Грешка при връзка с базата данни." };
   }
 
-  const subId = crypto.randomUUID();
   const validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const visitsRemaining = input.planType === "HOME" ? 2 : 4;
 
   const [created] = await db
     .insert(subscriptions)
     .values({
-      id: subId,
       userId: user.id,
       planType: input.planType,
       propertyAddress: address,

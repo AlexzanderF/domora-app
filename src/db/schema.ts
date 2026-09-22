@@ -32,7 +32,7 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
 ]);
 
 export const users = pgTable("users", {
-  id: text("id").primaryKey(),
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone").notNull(),
@@ -48,8 +48,8 @@ export const users = pgTable("users", {
 });
 
 export const sessions = pgTable("sessions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   token: text("token").notNull().unique(),
@@ -60,8 +60,8 @@ export const sessions = pgTable("sessions", {
 });
 
 export const specialistProfiles = pgTable("specialist_profiles", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  userId: integer("user_id")
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -80,11 +80,11 @@ export const specialistProfiles = pgTable("specialist_profiles", {
 });
 
 export const requests = pgTable("requests", {
-  id: text("id").primaryKey(),
-  clientId: text("client_id")
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  clientId: integer("client_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  specialistId: text("specialist_id").references(() => users.id, {
+  specialistId: integer("specialist_id").references(() => users.id, {
     onDelete: "set null",
   }),
   title: text("title").notNull(),
@@ -104,8 +104,8 @@ export const requests = pgTable("requests", {
 });
 
 export const subscriptions = pgTable("subscriptions", {
-  id: text("id").primaryKey(),
-  userId: text("user_id")
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+  userId: integer("user_id")
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -124,7 +124,7 @@ export const subscriptions = pgTable("subscriptions", {
 });
 
 export const tariffs = pgTable("tariffs", {
-  id: text("id").primaryKey(),
+  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   category: text("category").notNull().unique(),
   standardRate: integer("standard_rate").notNull(),
   urgentRate: integer("urgent_rate").notNull(),

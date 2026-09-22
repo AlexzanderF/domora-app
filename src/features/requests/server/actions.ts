@@ -79,22 +79,25 @@ export async function createServiceRequestAction(
     };
   }
 
-  const requestId = crypto.randomUUID();
   const now = new Date();
 
-  await db.insert(requests).values({
-    id: requestId,
-    clientId: user.id,
-    specialistId: null,
-    title: service,
-    description,
-    category: String(input.category),
-    address,
-    priority: input.priority ?? "STANDARD",
-    status: 0,
-    price: Math.round(input.price),
-    clientPhone: user.phone || "0888000000",
-  });
+  const [inserted] = await db
+    .insert(requests)
+    .values({
+      clientId: user.id,
+      specialistId: null,
+      title: service,
+      description,
+      category: String(input.category),
+      address,
+      priority: input.priority ?? "STANDARD",
+      status: 0,
+      price: Math.round(input.price),
+      clientPhone: user.phone || "0888000000",
+    })
+    .returning({ id: requests.id });
+
+  const requestId = inserted.id;
 
   revalidateWorkspaceRequests();
 
@@ -121,7 +124,7 @@ export async function createServiceRequestAction(
 }
 
 export async function assignSpecialistAction(
-  requestId: string,
+  requestId: number,
 ): Promise<ServiceRequestActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
     return { success: true, mode: "demo" };
@@ -169,7 +172,7 @@ export async function assignSpecialistAction(
 }
 
 export async function startWorkAction(
-  requestId: string,
+  requestId: number,
 ): Promise<ServiceRequestActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
     return { success: true, mode: "demo" };
@@ -224,7 +227,7 @@ export async function startWorkAction(
 }
 
 export async function completeWorkAction(
-  requestId: string,
+  requestId: number,
   report?: string,
 ): Promise<ServiceRequestActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
@@ -280,7 +283,7 @@ export async function completeWorkAction(
 }
 
 export async function cancelRequestAction(
-  requestId: string,
+  requestId: number,
 ): Promise<ServiceRequestActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
     return { success: true, mode: "demo" };
@@ -337,7 +340,7 @@ export async function cancelRequestAction(
 }
 
 export async function transitionRequestServerAction(
-  requestId: string,
+  requestId: number,
   action: RequestAction,
 ): Promise<ServiceRequestActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {

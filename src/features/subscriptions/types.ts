@@ -2,8 +2,8 @@ export type SubscriptionPlan = "HOME" | "ENTRY";
 export type SubscriptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED";
 
 export interface Subscription {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   planType: SubscriptionPlan;
   propertyAddress: string;
   propertyArea: number;

@@ -6,6 +6,7 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote, quoteScope } from "@/features/requests/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
+import { generateDemoId } from "@/features/requests/demo-data";
 import type { BookingSelection, CategoryId } from "@/features/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
@@ -84,7 +85,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
 
       if (actionResult.mode === "demo") {
         addRequest({
-          id: crypto.randomUUID(),
+          id: generateDemoId(),
           category,
           service: serviceName,
           address,
@@ -119,7 +120,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
     } catch {
       // Fallback to demo in case of network issue
       addRequest({
-        id: crypto.randomUUID(),
+        id: generateDemoId(),
         category,
         service: serviceName,
         address,

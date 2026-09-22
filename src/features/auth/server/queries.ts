@@ -106,7 +106,7 @@ export async function findUserWithPasswordByEmailOrPhone(
   };
 }
 
-export async function findUserById(userId: string): Promise<User | null> {
+export async function findUserById(userId: number): Promise<User | null> {
   const result = await querySingleUserRow(eq(users.id, userId));
   return result ? mapToDomainUser(result.user, result.profile) : null;
 }

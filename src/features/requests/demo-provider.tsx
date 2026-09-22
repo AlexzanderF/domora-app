@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useState } from "react";
 import {
+  generateDemoId,
   initialRequests,
   initialSubscription,
   initialTariffs,
@@ -27,7 +28,7 @@ interface DemoContextValue {
   openBooking: (selection: BookingSelection) => void;
   closeBooking: () => void;
   addRequest: (request: ServiceRequest) => void;
-  updateRequest: (id: string, action: RequestAction, role: Role) => void;
+  updateRequest: (id: number, action: RequestAction, role: Role) => void;
   updateTariffs: (tariffs: Tariffs) => void;
   setSubscription: (subscription: Subscription | null) => void;
   subscribePlan: (
@@ -60,7 +61,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     [],
   );
   const updateRequest = useCallback(
-    (id: string, action: RequestAction, role: Role) => {
+    (id: number, action: RequestAction, role: Role) => {
       setRequests((current) =>
         current.map((request) =>
           request.id === id
@@ -79,8 +80,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       propertyArea: number = planType === "HOME" ? 85 : 6,
     ) => {
       const newSub: Subscription = {
-        id: crypto.randomUUID(),
-        userId: "client-demo-1",
+        id: generateDemoId(),
+        userId: 1,
         planType,
         propertyAddress,
         propertyArea,
