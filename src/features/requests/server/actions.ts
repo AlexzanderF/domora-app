@@ -3,8 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
-import { requests } from "@/db/schema";
+import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
+import {
+  appendDispatchMarker,
+  appendIssue,
+  appendRating,
+  appendRecommendMarker,
+  appendReport,
+  markCancelled,
+  removeIssueMarker,
+} from "../dispatch-markers";
 import type {
   CategoryId,
   Plan,
@@ -258,7 +267,7 @@ export async function completeWorkAction(
   if (existing.status === 3) {
     nextStatus = 4;
     if (report?.trim()) {
-      nextDescription = `${existing.description}\n[ОТЧЕТ] ${report.trim()}`;
+      nextDescription = appendReport(existing.description, report);
     }
   } else if (existing.status === 4) {
     nextStatus = 5;
@@ -317,14 +326,10 @@ export async function cancelRequestAction(
       })
       .where(eq(requests.id, requestId));
   } else {
-    const updatedDesc = existing.description.startsWith("[ОТКАЗАНА]")
-      ? existing.description
-      : `[ОТКАЗАНА] ${existing.description}`;
-
     await db
       .update(requests)
       .set({
-        description: updatedDesc,
+        description: markCancelled(existing.description),
         updatedAt: new Date(),
       })
       .where(eq(requests.id, requestId));
@@ -379,10 +384,23 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
+      let ratedDescription: string;
+      try {
+        ratedDescription = appendRating(req.description, action.rating);
+      } catch (error) {
+        return {
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Невалидна оценка. Изберете стойност от 1 до 5.",
+        };
+      }
+
       await db
         .update(requests)
         .set({
-          description: `${req.description}\n[ОЦЕНКА: ${action.rating}/5]`,
+          description: ratedDescription,
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -402,7 +420,7 @@ export async function transitionRequestServerAction(
       await db
         .update(requests)
         .set({
-          description: `${req.description}\n[СИГНАЛ] Подаден сигнал от клиент`,
+          description: appendIssue(req.description),
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -419,14 +437,10 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
-      const cleanedDescription = req.description
-        .replace(/\n?\[СИГНАЛ\][^\n]*/g, "")
-        .trim();
-
       await db
         .update(requests)
         .set({
-          description: cleanedDescription,
+          description: removeIssueMarker(req.description),
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -437,4 +451,120 @@ export async function transitionRequestServerAction(
     default:
       return { success: true, mode: "db" };
   }
+}
+
+async function validateDispatchTarget(
+  requestId: number,
+  specialistId: number,
+): Promise<{ ok: true; description: string } | { ok: false; error: string }> {
+  const currentUser = await getServerSession();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    return {
+      ok: false,
+      error: "Неоторизиран достъп. Изискват се администраторски права.",
+    };
+  }
+
+  const db = getDb();
+  if (!db) {
+    return { ok: false, error: "Няма връзка с базата данни." };
+  }
+
+  const [req] = await db
+    .select()
+    .from(requests)
+    .where(eq(requests.id, requestId));
+  if (!req) {
+    return { ok: false, error: "Заявката не е намерена." };
+  }
+  if (req.status !== 0 || req.specialistId !== null) {
+    return { ok: false, error: "Заявката вече е разпределена." };
+  }
+
+  const [specialist] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, specialistId));
+  if (
+    !specialist ||
+    specialist.role !== "SPECIALIST" ||
+    specialist.status !== "ACTIVE"
+  ) {
+    return {
+      ok: false,
+      error: "Избраният специалист не е активен.",
+    };
+  }
+
+  return { ok: true, description: req.description };
+}
+
+export async function adminAssignSpecialistAction(
+  requestId: number,
+  specialistId: number,
+): Promise<ServiceRequestActionResult> {
+  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+    return {
+      success: false,
+      error: "Административният панел изисква база данни.",
+    };
+  }
+
+  const candidate = await validateDispatchTarget(requestId, specialistId);
+  if (!candidate.ok) {
+    return { success: false, error: candidate.error };
+  }
+
+  const db = getDb();
+  if (!db) {
+    return { success: false, error: "Няма връзка с базата данни." };
+  }
+
+  await db
+    .update(requests)
+    .set({
+      specialistId,
+      status: 1,
+      description: appendDispatchMarker(candidate.description),
+      updatedAt: new Date(),
+    })
+    .where(eq(requests.id, requestId));
+
+  revalidateWorkspaceRequests();
+  revalidatePath("/specialist/opportunities");
+  return { success: true, mode: "db" };
+}
+
+export async function adminRecommendSpecialistAction(
+  requestId: number,
+  specialistId: number,
+): Promise<ServiceRequestActionResult> {
+  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+    return {
+      success: false,
+      error: "Административният панел изисква база данни.",
+    };
+  }
+
+  const candidate = await validateDispatchTarget(requestId, specialistId);
+  if (!candidate.ok) {
+    return { success: false, error: candidate.error };
+  }
+
+  const db = getDb();
+  if (!db) {
+    return { success: false, error: "Няма връзка с базата данни." };
+  }
+
+  await db
+    .update(requests)
+    .set({
+      description: appendRecommendMarker(candidate.description, specialistId),
+      updatedAt: new Date(),
+    })
+    .where(eq(requests.id, requestId));
+
+  revalidateWorkspaceRequests();
+  revalidatePath("/specialist/opportunities");
+  return { success: true, mode: "db" };
 }

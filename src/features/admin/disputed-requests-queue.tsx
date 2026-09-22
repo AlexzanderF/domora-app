@@ -125,7 +125,9 @@ export function DisputedRequestsQueue({
               <span className={styles.issueLabel}>
                 Описание на проблема (от клиента)
               </span>
-              <p className={styles.issueText}>{request.description}</p>
+              <p className={styles.issueText}>
+                {request.issueNote ?? request.description}
+              </p>
             </div>
 
             {request.report && (

@@ -4,10 +4,12 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { loadEnvFiles } from "./index";
 import {
+  requests,
   specialistProfiles,
   subscriptions,
   tariffs,
   users,
+  type RequestInsert,
   type SpecialistProfileInsert,
   type SubscriptionInsert,
   type TariffInsert,
@@ -84,6 +86,24 @@ const seedUsers: {
       status: "ACTIVE",
     },
   },
+  {
+    user: {
+      id: 5,
+      name: "Петър Георгиев",
+      email: "petar@klima-service.bg",
+      phone: "0888111222",
+      passwordHash: defaultPasswordHash,
+      role: "SPECIALIST",
+      status: "PENDING",
+    },
+    profile: {
+      id: 3,
+      category: "Климатизация",
+      area: "София - Младост",
+      experienceYears: 4,
+      bio: "Монтаж и профилактика на климатични системи за дома и офиса.",
+    },
+  },
 ];
 
 const seedTariffs: TariffInsert[] = [
@@ -147,6 +167,121 @@ const seedSubscriptions: SubscriptionInsert[] = [
     status: "ACTIVE",
     visitsRemaining: 3,
     validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  },
+];
+
+// Test data for the admin triage queues (#52): one disputed request awaiting
+// admin oversight (status 4, flagged with [СИГНАЛ], report from specialist),
+// plus waiting requests (status 0, unassigned) so the specialist dashboard
+// opportunities feed is not empty. Addresses intentionally contain the full
+// specialist area string, which findSpecialistRequests matches with ILIKE.
+const seedRequests: RequestInsert[] = [
+  {
+    id: 1,
+    clientId: 1,
+    specialistId: 3,
+    title: "Боядисване на детска стая",
+    description:
+      "Боядисване на стени в детска стая, около 18 м².\n[ОТЧЕТ] Стените са боядисани в избрания цвят, работата е приключена.\n[СИГНАЛ] Клиентът съобщава за пропуснати участъци около дограмата",
+    category: "3",
+    address: "София, ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 4,
+    price: 120,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 2,
+    clientId: 1,
+    specialistId: null,
+    title: "Смяна на контакт",
+    description: "Смяна на повреден контакт в хола и проверка на връзките.",
+    category: "1",
+    address: "София и област · ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 0,
+    price: 45,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 3,
+    clientId: 1,
+    specialistId: null,
+    title: "Почистване на климатик",
+    description: "Профилактика и почистване на филтрите на климатика.",
+    category: "2",
+    address: "София - Младост · ж.к. Младост 1, бл. 102",
+    priority: "STANDARD",
+    status: 0,
+    price: 55,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 4,
+    clientId: 1,
+    specialistId: null,
+    title: "Спукана тръба — теч",
+    description: "Силен теч под мивката в банята, нужна е спешна намеса.",
+    category: "0",
+    address: "София, ул. Примерна 12, ап. 5",
+    priority: "URGENT",
+    status: 0,
+    price: 68,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 5,
+    clientId: 1,
+    specialistId: 3,
+    title: "Смяна на контакти",
+    description:
+      "Смяна на три контакта в дневната.\n[ОТЧЕТ] Контактите са сменени и тествани, всичко работи.\n[ОЦЕНКА: 5/5]",
+    category: "1",
+    address: "София и област · ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 5,
+    price: 70,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 6,
+    clientId: 1,
+    specialistId: 3,
+    title: "Диагностика на ел. табло",
+    description:
+      "Проверка на предпазителите след спиране на тока.\n[ОТЧЕТ] Открит е дефектирал предпазител, подменен е с нов.",
+    category: "1",
+    address: "София и област · ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 5,
+    price: 60,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 7,
+    clientId: 1,
+    specialistId: null,
+    title: "Боядисване — оглед",
+    description: "[ОТКАЗАНА] Оглед за боядисване на коридор.",
+    category: "3",
+    address: "София, ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 0,
+    price: 25,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 8,
+    clientId: 1,
+    specialistId: 3,
+    title: "Ремонт на осветление",
+    description: "Не работи осветлението в коридора, вероятно прекъснат кабел.",
+    category: "1",
+    address: "София и област · ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 1,
+    price: 50,
+    clientPhone: "0888123456",
   },
 ];
 
@@ -238,6 +373,29 @@ async function seedDatabase(): Promise<void> {
             status: sub.status,
             visitsRemaining: sub.visitsRemaining,
             validUntil: sub.validUntil,
+            updatedAt: new Date(),
+          },
+        });
+    }
+
+    console.log("Seeding test requests for admin triage queues...");
+    for (const req of seedRequests) {
+      await db
+        .insert(requests)
+        .values(req)
+        .onConflictDoUpdate({
+          target: requests.id,
+          set: {
+            clientId: req.clientId,
+            specialistId: req.specialistId,
+            title: req.title,
+            description: req.description,
+            category: req.category,
+            address: req.address,
+            priority: req.priority,
+            status: req.status,
+            price: req.price,
+            clientPhone: req.clientPhone,
             updatedAt: new Date(),
           },
         });

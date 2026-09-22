@@ -43,7 +43,10 @@ export default async function SpecialistOpportunitiesPage() {
         title="Нови заявки във вашия район"
         description="Преглеждайте и приемайте налични заявки, съответстващи на вашия профил."
       />
-      <OpportunityFeed initialOpportunities={initialOpportunities} />
+      <OpportunityFeed
+        initialOpportunities={initialOpportunities}
+        specialistId={user?.role === "SPECIALIST" ? user.id : undefined}
+      />
     </>
   );
 }

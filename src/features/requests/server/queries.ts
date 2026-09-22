@@ -2,6 +2,16 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
+import {
+  hasDispatchMarker,
+  hasIssueMarker,
+  isCancelledDescription,
+  parseIssueNote,
+  parseRating,
+  parseRecommendMarker,
+  parseReport,
+  stripAllMarkers,
+} from "../dispatch-markers";
 import type { CategoryId, RequestStatus, ServiceRequest } from "../types";
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -25,33 +35,22 @@ export function parseDescription(description: string): {
   report?: string;
   rating?: number;
   issue?: boolean;
+  issueNote?: string;
+  recommendedSpecialistId?: number;
+  dispatchedByAdmin?: boolean;
 } {
-  let clean = description;
-  let cancelled = false;
-  let report: string | undefined;
-  let rating: number | undefined;
-  let issue: boolean | undefined;
+  const cancelled = isCancelledDescription(description);
 
-  if (clean.startsWith("[ОТКАЗАНА] ")) {
-    cancelled = true;
-    clean = clean.replace("[ОТКАЗАНА] ", "");
-  }
-
-  const reportMatch = clean.match(/\[ОТЧЕТ\]\s*([^\n]+)/);
-  if (reportMatch) {
-    report = reportMatch[1].trim();
-  }
-
-  const ratingMatch = clean.match(/\[ОЦЕНКА:\s*(\d)\/5\]/);
-  if (ratingMatch) {
-    rating = Number(ratingMatch[1]);
-  }
-
-  if (clean.includes("[СИГНАЛ]")) {
-    issue = true;
-  }
-
-  return { cleanDescription: clean, cancelled, report, rating, issue };
+  return {
+    cleanDescription: stripAllMarkers(description),
+    cancelled,
+    report: parseReport(description),
+    rating: parseRating(description),
+    issue: hasIssueMarker(description) || undefined,
+    issueNote: parseIssueNote(description),
+    recommendedSpecialistId: parseRecommendMarker(description),
+    dispatchedByAdmin: hasDispatchMarker(description) || undefined,
+  };
 }
 
 export async function findClientRequests(
@@ -100,6 +99,7 @@ export async function findClientRequests(
       report: parsed.report,
       rating: parsed.rating,
       issue: parsed.issue,
+      issueNote: parsed.issueNote,
       specialist: specialist?.name,
       specialistPhone: specialist?.phone,
     };
@@ -147,38 +147,48 @@ export async function findSpecialistRequests(
     .where(whereCondition)
     .orderBy(desc(requests.createdAt));
 
-  return rows.map(({ request, specialist, client }) => {
-    const rawCategory = Number(request.category);
-    const categoryId: CategoryId =
-      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-    const rawStatus = request.status;
-    const status: RequestStatus =
-      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-    const parsed = parseDescription(request.description);
+  return rows
+    .map(({ request, specialist, client }) => {
+      const rawCategory = Number(request.category);
+      const categoryId: CategoryId =
+        rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
+      const rawStatus = request.status;
+      const status: RequestStatus =
+        rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
+      const parsed = parseDescription(request.description);
 
-    return {
-      id: request.id,
-      category: categoryId,
-      service: request.title,
-      address: request.address,
-      date: request.createdAt.toISOString().split("T")[0],
-      time: request.createdAt.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      price: request.price,
-      status,
-      priority: request.priority,
-      description: parsed.cleanDescription,
-      cancelled: parsed.cancelled,
-      report: parsed.report,
-      rating: parsed.rating,
-      issue: parsed.issue,
-      specialist:
-        request.specialistId === specialistId ? "Вие" : specialist?.name,
-      specialistPhone: specialist?.phone,
-      clientName: client?.name,
-      clientPhone: request.clientPhone,
-    };
-  });
+      return {
+        id: request.id,
+        category: categoryId,
+        service: request.title,
+        address: request.address,
+        date: request.createdAt.toISOString().split("T")[0],
+        time: request.createdAt.toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        price: request.price,
+        status,
+        priority: request.priority,
+        description: parsed.cleanDescription,
+        cancelled: parsed.cancelled,
+        report: parsed.report,
+        rating: parsed.rating,
+        issue: parsed.issue,
+        issueNote: parsed.issueNote,
+        recommendedSpecialistId: parsed.recommendedSpecialistId,
+        dispatchedByAdmin: parsed.dispatchedByAdmin,
+        specialist:
+          request.specialistId === specialistId ? "Вие" : specialist?.name,
+        specialistPhone: specialist?.phone,
+        clientName: client?.name,
+        clientPhone: request.clientPhone,
+      };
+    })
+    .sort((a, b) => {
+      // Requests recommended to the viewing specialist float to the top.
+      const aRecommended = a.recommendedSpecialistId === specialistId ? 0 : 1;
+      const bRecommended = b.recommendedSpecialistId === specialistId ? 0 : 1;
+      return aRecommended - bRecommended;
+    });
 }
