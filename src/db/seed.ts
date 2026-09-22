@@ -171,7 +171,10 @@ const seedSubscriptions: SubscriptionInsert[] = [
 ];
 
 // Test data for the admin triage queues (#52): one disputed request awaiting
-// admin oversight (status 4, flagged with [СИГНАЛ], report from specialist).
+// admin oversight (status 4, flagged with [СИГНАЛ], report from specialist),
+// plus waiting requests (status 0, unassigned) so the specialist dashboard
+// opportunities feed is not empty. Addresses intentionally contain the full
+// specialist area string, which findSpecialistRequests matches with ILIKE.
 const seedRequests: RequestInsert[] = [
   {
     id: 1,
@@ -185,6 +188,32 @@ const seedRequests: RequestInsert[] = [
     priority: "STANDARD",
     status: 4,
     price: 120,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 2,
+    clientId: 1,
+    specialistId: null,
+    title: "Смяна на контакт",
+    description: "Смяна на повреден контакт в хола и проверка на връзките.",
+    category: "1",
+    address: "София и област · ул. Примерна 12, ап. 5",
+    priority: "STANDARD",
+    status: 0,
+    price: 45,
+    clientPhone: "0888123456",
+  },
+  {
+    id: 3,
+    clientId: 1,
+    specialistId: null,
+    title: "Почистване на климатик",
+    description: "Профилактика и почистване на филтрите на климатика.",
+    category: "2",
+    address: "София - Младост · ж.к. Младост 1, бл. 102",
+    priority: "STANDARD",
+    status: 0,
+    price: 55,
     clientPhone: "0888123456",
   },
 ];
