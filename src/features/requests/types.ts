@@ -25,6 +25,16 @@ export interface ServiceRequest {
   subscriptionId?: number;
 }
 
+export interface Tariff {
+  id: number;
+  category: string;
+  standardRate: number;
+  urgentRate: number;
+  holidayRate: number;
+  emergencyRate: number;
+  updatedAt?: string;
+}
+
 export interface Tariffs {
   categories: Record<CategoryId, number>;
   home: number;

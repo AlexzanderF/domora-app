@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { loadEnvFiles } from "./index";
@@ -241,6 +242,16 @@ async function seedDatabase(): Promise<void> {
           },
         });
     }
+
+    console.log("Synchronizing sequence counters...");
+    await db.execute(sql`
+      SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE((SELECT MAX(id) FROM users), 0) + 1, false);
+      SELECT setval(pg_get_serial_sequence('specialist_profiles', 'id'), COALESCE((SELECT MAX(id) FROM specialist_profiles), 0) + 1, false);
+      SELECT setval(pg_get_serial_sequence('tariffs', 'id'), COALESCE((SELECT MAX(id) FROM tariffs), 0) + 1, false);
+      SELECT setval(pg_get_serial_sequence('subscriptions', 'id'), COALESCE((SELECT MAX(id) FROM subscriptions), 0) + 1, false);
+      SELECT setval(pg_get_serial_sequence('requests', 'id'), COALESCE((SELECT MAX(id) FROM requests), 0) + 1, false);
+      SELECT setval(pg_get_serial_sequence('sessions', 'id'), COALESCE((SELECT MAX(id) FROM sessions), 0) + 1, false);
+    `);
 
     console.log("Database seeded successfully.");
   } catch (error) {

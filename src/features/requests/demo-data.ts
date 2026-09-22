@@ -9,7 +9,7 @@ export const initialTariffs: Tariffs = {
 };
 
 export function generateDemoId(): number {
-  return Date.now();
+  return Math.floor(Date.now() % 1_000_000_000);
 }
 
 export const initialSubscription: Subscription = {
