@@ -197,14 +197,14 @@ export async function startWorkAction(
   }
 
   const currentStatus = existing.status;
+  // 2-step execution: skip the intermediate status 2 and go straight to
+  // "В процес" (3) once the specialist starts work.
   const nextStatus =
     currentStatus === 0
       ? 1
-      : currentStatus === 1
-        ? 2
-        : currentStatus === 2
-          ? 3
-          : currentStatus;
+      : currentStatus === 1 || currentStatus === 2
+        ? 3
+        : currentStatus;
 
   await db
     .update(requests)

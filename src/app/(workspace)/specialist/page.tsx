@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
-import { RequestList } from "@/features/requests/request-list";
-import { WorkspaceStats } from "@/features/workspace/workspace-stats";
+import { DashboardSummary } from "@/features/specialist/dashboard-summary";
+import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
+import { DailyAgenda } from "@/features/specialist/daily-agenda";
 import { getServerSession } from "@/features/auth/server/session";
 import { findSpecialistRequests } from "@/features/requests/server/queries";
 import { isDbConfigured } from "@/db";
@@ -24,7 +25,7 @@ export default async function SpecialistPage() {
     }
   }
 
-  const initialRequests =
+  const allRequests =
     user?.role === "SPECIALIST" || user?.role === "ADMIN"
       ? await findSpecialistRequests(
           user.id,
@@ -33,14 +34,13 @@ export default async function SpecialistPage() {
         )
       : null;
 
-  const initialStats = initialRequests
-    ? {
-        total: initialRequests.length,
-        active: initialRequests.filter(
-          (req) => !req.cancelled && req.status < 5,
-        ).length,
-        completed: initialRequests.filter((req) => req.status === 5).length,
-      }
+  const initialOpportunities = allRequests
+    ? allRequests.filter((req) => req.status === 0 && !req.cancelled)
+    : null;
+  const initialAgenda = allRequests
+    ? allRequests.filter(
+        (req) => !req.cancelled && req.status >= 1 && req.status <= 4,
+      )
     : null;
 
   return (
@@ -48,16 +48,15 @@ export default async function SpecialistPage() {
       <PageHeading
         eyebrow="РАБОТНО ПРОСТРАНСТВО"
         title="Задачите ви, подредени."
-        description="Приемайте задачи и отчитайте извършената работа."
+        description="Приемайте нови възможности и отчитайте извършената работа по текущите задачи."
       />
-      <WorkspaceStats initialStats={initialStats} />
-      <div className="card">
-        <RequestList
-          actions
-          role="specialist"
-          initialRequests={initialRequests}
-        />
-      </div>
+      <DashboardSummary initialRequests={allRequests} />
+      <OpportunityFeed
+        initialOpportunities={initialOpportunities}
+        limit={5}
+        viewAllHref="/specialist/opportunities"
+      />
+      <DailyAgenda initialAgenda={initialAgenda} />
     </>
   );
 }
