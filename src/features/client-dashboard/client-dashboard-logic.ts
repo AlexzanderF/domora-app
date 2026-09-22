@@ -7,15 +7,15 @@ export const trackerStages = [
   "Очаква потвърждение",
 ] as const;
 
-const TRACKER_INDEX: Record<Exclude<RequestStatus, "COMPLETED">, number> = {
+const TRACKER_INDEX: Record<RequestStatus, number> = {
   CREATED: 0,
   ACCEPTED: 1,
   IN_PROGRESS: 2,
   AWAITING_CONFIRMATION: 3,
+  COMPLETED: 3,
 };
 
 export function getTrackerStageIndex(status: ServiceRequest["status"]) {
-  if (status === "COMPLETED") return 3;
   return TRACKER_INDEX[status];
 }
 
