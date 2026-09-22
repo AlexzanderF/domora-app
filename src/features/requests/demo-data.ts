@@ -38,6 +38,7 @@ export const initialRequests: ServiceRequest[] = [
     priority: "STANDARD",
     description: "Подмяна на смесителя в кухнята.",
     specialist: "Демо специалист · ВиК",
+    specialistPhone: "+359 88 123 4567",
   },
   {
     id: 1002,
@@ -51,6 +52,7 @@ export const initialRequests: ServiceRequest[] = [
     priority: "STANDARD",
     description: "Почистване на апартамент до 80 м².",
     specialist: "Демо екип · Почистване",
+    specialistPhone: "+359 88 987 6543",
     report: "Почистени подове, кухня и санитарни помещения.",
     subscriptionId: 1001,
   },

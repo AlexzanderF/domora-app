@@ -20,6 +20,7 @@ export interface ServiceRequest {
   visitsPerMonth?: number;
   propertySize?: number;
   specialist?: string;
+  specialistPhone?: string;
   recommendedSpecialistId?: number;
   report?: string;
   cancelled?: boolean;

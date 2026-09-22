@@ -100,6 +100,7 @@ export async function findClientRequests(
       rating: parsed.rating,
       issue: parsed.issue,
       specialist: specialist?.name,
+      specialistPhone: specialist?.phone,
     };
   });
 }
@@ -169,6 +170,7 @@ export async function findSpecialistRequests(
       issue: parsed.issue,
       specialist:
         request.specialistId === specialistId ? "Вие" : specialist?.name,
+      specialistPhone: specialist?.phone,
     };
   });
 }
