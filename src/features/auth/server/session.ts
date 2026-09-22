@@ -35,7 +35,7 @@ export async function getServerSession(): Promise<User | null> {
 }
 
 export async function createSession(
-  userId: string,
+  userId: number,
   role?: string,
   status?: string,
 ): Promise<string | null> {
@@ -44,7 +44,6 @@ export async function createSession(
   if (!db) return null;
 
   const token = crypto.randomUUID();
-  const sessionId = crypto.randomUUID();
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000);
 
   let userRole = role;
@@ -63,7 +62,6 @@ export async function createSession(
   }
 
   await db.insert(sessions).values({
-    id: sessionId,
     userId,
     token,
     expiresAt,

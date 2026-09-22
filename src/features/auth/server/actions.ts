@@ -125,18 +125,21 @@ export async function registerClientAction(
     };
   }
 
-  const userId = crypto.randomUUID();
   const passwordHash = await bcrypt.hash(input.password, 10);
 
-  await db.insert(users).values({
-    id: userId,
-    name: input.name.trim(),
-    email: input.email.trim().toLowerCase(),
-    phone: input.phone.trim(),
-    passwordHash,
-    role: "CLIENT",
-    status: "ACTIVE",
-  });
+  const [createdUser] = await db
+    .insert(users)
+    .values({
+      name: input.name.trim(),
+      email: input.email.trim().toLowerCase(),
+      phone: input.phone.trim(),
+      passwordHash,
+      role: "CLIENT",
+      status: "ACTIVE",
+    })
+    .returning({ id: users.id });
+
+  const userId = createdUser.id;
 
   await createSession(userId);
 
@@ -196,22 +199,23 @@ export async function registerSpecialistAction(
     };
   }
 
-  const userId = crypto.randomUUID();
-  const profileId = crypto.randomUUID();
   const passwordHash = await bcrypt.hash(input.password, 10);
 
-  await db.insert(users).values({
-    id: userId,
-    name: input.name.trim(),
-    email: input.email.trim().toLowerCase(),
-    phone: input.phone.trim(),
-    passwordHash,
-    role: "SPECIALIST",
-    status: "PENDING",
-  });
+  const [createdUser] = await db
+    .insert(users)
+    .values({
+      name: input.name.trim(),
+      email: input.email.trim().toLowerCase(),
+      phone: input.phone.trim(),
+      passwordHash,
+      role: "SPECIALIST",
+      status: "PENDING",
+    })
+    .returning({ id: users.id });
+
+  const userId = createdUser.id;
 
   await db.insert(specialistProfiles).values({
-    id: profileId,
     userId,
     category: input.category,
     area: input.area,

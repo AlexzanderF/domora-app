@@ -54,7 +54,7 @@ export function parseDescription(description: string): {
 }
 
 export async function findClientRequests(
-  clientId: string,
+  clientId: number,
 ): Promise<ServiceRequest[] | null> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
     return null;
@@ -105,7 +105,7 @@ export async function findClientRequests(
 }
 
 export async function findSpecialistRequests(
-  specialistId: string,
+  specialistId: number,
   category?: string,
   area?: string,
 ): Promise<ServiceRequest[] | null> {

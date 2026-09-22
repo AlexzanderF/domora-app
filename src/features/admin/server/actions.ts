@@ -20,7 +20,7 @@ export interface UpdateTariffsResult {
 }
 
 export async function updateSpecialistStatusAction(
-  userId: string,
+  userId: number,
   status: "ACTIVE" | "REJECTED",
 ): Promise<UpdateSpecialistStatusResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
@@ -96,7 +96,6 @@ export async function updateTariffsAction(
     await db
       .insert(tariffs)
       .values({
-        id: `tariff-${i}`,
         category: String(i),
         standardRate: rate,
         urgentRate: Math.round(rate * 1.5),
@@ -121,7 +120,6 @@ export async function updateTariffsAction(
   await db
     .insert(tariffs)
     .values({
-      id: "tariff-home",
       category: "home",
       standardRate: homeRate,
       urgentRate: Math.round(homeRate * 1.5),
@@ -145,7 +143,6 @@ export async function updateTariffsAction(
   await db
     .insert(tariffs)
     .values({
-      id: "tariff-entry",
       category: "entry",
       standardRate: entryRate,
       urgentRate: Math.round(entryRate * 1.5),

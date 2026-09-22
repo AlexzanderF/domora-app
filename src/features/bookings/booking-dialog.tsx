@@ -7,6 +7,11 @@ import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote, quoteScope } from "@/features/requests/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
 import type { BookingSelection, CategoryId } from "@/features/requests/types";
+
+function generateDemoId(): number {
+  return Date.now();
+}
+
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";
@@ -84,7 +89,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
 
       if (actionResult.mode === "demo") {
         addRequest({
-          id: crypto.randomUUID(),
+          id: generateDemoId(),
           category,
           service: serviceName,
           address,
@@ -119,7 +124,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
     } catch {
       // Fallback to demo in case of network issue
       addRequest({
-        id: crypto.randomUUID(),
+        id: generateDemoId(),
         category,
         service: serviceName,
         address,

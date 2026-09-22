@@ -4,7 +4,7 @@ export type CategoryId = 0 | 1 | 2 | 3 | 4 | 5;
 export type RequestStatus = 0 | 1 | 2 | 3 | 4 | 5;
 
 export interface ServiceRequest {
-  id: string;
+  id: number;
   category: CategoryId;
   service: string;
   address: string;
@@ -17,12 +17,12 @@ export interface ServiceRequest {
   visitsPerMonth?: number;
   propertySize?: number;
   specialist?: string;
-  recommendedSpecialistId?: string;
+  recommendedSpecialistId?: number;
   report?: string;
   cancelled?: boolean;
   issue?: boolean;
   rating?: number;
-  subscriptionId?: string;
+  subscriptionId?: number;
 }
 
 export interface Tariffs {
@@ -43,7 +43,7 @@ export type RequestAction =
   | { type: "dismiss" }
   | { type: "decline" }
   | { type: "admin-assign"; specialist: string }
-  | { type: "admin-recommend"; specialistId: string }
+  | { type: "admin-recommend"; specialistId: number }
   | { type: "complete" }
   | { type: "issue" }
   | { type: "rate"; rating: number };

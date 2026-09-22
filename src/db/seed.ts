@@ -25,7 +25,7 @@ const seedUsers: {
 }[] = [
   {
     user: {
-      id: "client-demo-1",
+      id: 1,
       name: "Иван Иванов",
       email: "client@domora.bg",
       phone: "0888123456",
@@ -36,7 +36,7 @@ const seedUsers: {
   },
   {
     user: {
-      id: "spec-pending-1",
+      id: 2,
       name: "Димитър Петров",
       email: "dimitar@vik-specialist.bg",
       phone: "0888765432",
@@ -45,7 +45,7 @@ const seedUsers: {
       status: "PENDING",
     },
     profile: {
-      id: "profile-spec-pending-1",
+      id: 1,
       category: "ВиК",
       area: "София",
       experienceYears: 7,
@@ -56,7 +56,7 @@ const seedUsers: {
   },
   {
     user: {
-      id: "spec-active-1",
+      id: 3,
       name: "Георги Тодоров",
       email: "georgi@el-service.bg",
       phone: "0878123456",
@@ -65,7 +65,7 @@ const seedUsers: {
       status: "ACTIVE",
     },
     profile: {
-      id: "profile-spec-active-1",
+      id: 2,
       category: "Електро",
       area: "София и област",
       experienceYears: 10,
@@ -74,7 +74,7 @@ const seedUsers: {
   },
   {
     user: {
-      id: "admin-1",
+      id: 4,
       name: "Администратор",
       email: "admin@domora.bg",
       phone: "0899000111",
@@ -87,7 +87,7 @@ const seedUsers: {
 
 const seedTariffs: TariffInsert[] = [
   {
-    id: "tariff-0",
+    id: 1,
     category: "0",
     standardRate: 45,
     urgentRate: 68,
@@ -95,7 +95,7 @@ const seedTariffs: TariffInsert[] = [
     emergencyRate: 90,
   },
   {
-    id: "tariff-1",
+    id: 2,
     category: "1",
     standardRate: 35,
     urgentRate: 53,
@@ -103,7 +103,7 @@ const seedTariffs: TariffInsert[] = [
     emergencyRate: 70,
   },
   {
-    id: "tariff-2",
+    id: 3,
     category: "2",
     standardRate: 55,
     urgentRate: 83,
@@ -111,7 +111,7 @@ const seedTariffs: TariffInsert[] = [
     emergencyRate: 110,
   },
   {
-    id: "tariff-3",
+    id: 4,
     category: "3",
     standardRate: 25,
     urgentRate: 38,
@@ -119,7 +119,7 @@ const seedTariffs: TariffInsert[] = [
     emergencyRate: 50,
   },
   {
-    id: "tariff-4",
+    id: 5,
     category: "4",
     standardRate: 65,
     urgentRate: 98,
@@ -127,7 +127,7 @@ const seedTariffs: TariffInsert[] = [
     emergencyRate: 130,
   },
   {
-    id: "tariff-5",
+    id: 6,
     category: "5",
     standardRate: 25,
     urgentRate: 38,
@@ -138,8 +138,8 @@ const seedTariffs: TariffInsert[] = [
 
 const seedSubscriptions: SubscriptionInsert[] = [
   {
-    id: "sub-demo-1",
-    userId: "client-demo-1",
+    id: 1,
+    userId: 1,
     planType: "HOME",
     propertyAddress: "София, ул. Примерна 12, ап. 5",
     propertyArea: 85,
@@ -189,7 +189,7 @@ async function seedDatabase(): Promise<void> {
           .insert(specialistProfiles)
           .values({
             ...item.profile,
-            userId: item.user.id,
+            userId: item.user.id!,
           })
           .onConflictDoUpdate({
             target: specialistProfiles.userId,

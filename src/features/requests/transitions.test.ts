@@ -95,24 +95,24 @@ describe("request lifecycle", () => {
     expect(
       transitionRequest(
         newRequest,
-        { type: "admin-recommend", specialistId: "spec-123" },
+        { type: "admin-recommend", specialistId: 123 },
         "client",
       ),
     ).toBe(newRequest);
 
     const recommended = transitionRequest(
       newRequest,
-      { type: "admin-recommend", specialistId: "spec-123" },
+      { type: "admin-recommend", specialistId: 123 },
       "admin",
     );
     expect(recommended.status).toBe(0);
-    expect(recommended.recommendedSpecialistId).toBe("spec-123");
+    expect(recommended.recommendedSpecialistId).toBe(123);
 
     // Cannot recommend on an active or assigned request
     expect(
       transitionRequest(
         assigned,
-        { type: "admin-recommend", specialistId: "spec-456" },
+        { type: "admin-recommend", specialistId: 456 },
         "admin",
       ),
     ).toBe(assigned);

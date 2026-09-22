@@ -11,6 +11,10 @@ import type { Plan } from "@/features/requests/types";
 import { localDate, money } from "@/lib/format";
 import styles from "./plans.module.css";
 
+function generateDemoId(): number {
+  return Date.now();
+}
+
 const planOptions: Record<
   Plan,
   {
@@ -97,7 +101,7 @@ export function PlansConfigurator() {
     if (Object.keys(nextErrors).length || price === null) return;
 
     addRequest({
-      id: crypto.randomUUID(),
+      id: generateDemoId(),
       category: 4,
       service: option.service,
       address,

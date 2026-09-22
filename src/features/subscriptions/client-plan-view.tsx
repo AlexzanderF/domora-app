@@ -124,8 +124,8 @@ export function ClientPlanView({
         notify("Превключено към неабониран профил (демо изглед).");
       } else {
         setDbSubscription({
-          id: "demo-sub-local",
-          userId: "client-demo-1",
+          id: 9999,
+          userId: 1,
           planType: "HOME",
           propertyAddress: "София · ул. Примерна 12, ап. 5",
           propertyArea: 85,
