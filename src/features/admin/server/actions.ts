@@ -59,6 +59,7 @@ export async function updateSpecialistStatusAction(
     .where(eq(users.id, userId));
 
   revalidatePath("/admin/specialists");
+  revalidatePath("/admin");
   revalidatePath("/pending-approval");
   revalidatePath("/specialist");
 

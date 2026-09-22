@@ -3,7 +3,13 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { AdminKpiCards } from "@/features/admin/admin-kpi-cards";
+import { PendingSpecialistsQueue } from "@/features/admin/pending-specialists-queue";
+import { DisputedRequestsQueue } from "@/features/admin/disputed-requests-queue";
 import { findAdminKpiMetrics } from "@/features/admin/server/metrics";
+import {
+  findDisputedRequestsForAdmin,
+  findSpecialistApplications,
+} from "@/features/admin/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 import styles from "@/features/admin/admin-command-center.module.css";
@@ -26,7 +32,12 @@ export default async function AdminPage() {
     }
   }
 
-  const initialMetrics = await findAdminKpiMetrics();
+  const [initialMetrics, initialSpecialists, initialDisputedRequests] =
+    await Promise.all([
+      findAdminKpiMetrics(),
+      findSpecialistApplications(),
+      findDisputedRequestsForAdmin(),
+    ]);
 
   return (
     <>
@@ -78,18 +89,7 @@ export default async function AdminPage() {
               Към специалисти →
             </Link>
           </div>
-          <div className={styles.queuePlaceholder}>
-            <span className={styles.placeholderIcon} aria-hidden="true">
-              👥
-            </span>
-            <p className={styles.placeholderHeading}>
-              Преглед и одобрение на кандидатстващи специалисти
-            </p>
-            <p className={styles.placeholderDescription}>
-              Слот за преглед на подадени заявления от нови специалисти с данни
-              за квалификация, опит и регистрация (предстои имплементация).
-            </p>
-          </div>
+          <PendingSpecialistsQueue initialSpecialists={initialSpecialists} />
         </section>
 
         {/* Queue 3: Сигнали за проблеми */}
@@ -101,19 +101,9 @@ export default async function AdminPage() {
             </div>
             <span className={styles.queueBadge}>Оспорвания</span>
           </div>
-          <div className={styles.queuePlaceholder}>
-            <span className={styles.placeholderIcon} aria-hidden="true">
-              ⚠️
-            </span>
-            <p className={styles.placeholderHeading}>
-              Оспорвани заявки и клиентски рекламации
-            </p>
-            <p className={styles.placeholderDescription}>
-              Слот за наблюдение в реално време на възникнали клиентски спорове,
-              сигнали за качество и административна намеса (предстои
-              имплементация).
-            </p>
-          </div>
+          <DisputedRequestsQueue
+            initialDisputedRequests={initialDisputedRequests}
+          />
         </section>
       </div>
     </>
