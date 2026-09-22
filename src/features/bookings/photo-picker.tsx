@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast-provider";
+import styles from "./photo-picker.module.css";
 
 export function PhotoPicker() {
   const [previews, setPreviews] = useState<string[]>([]);
@@ -13,9 +14,11 @@ export function PhotoPicker() {
   );
   return (
     <>
-      <label>
-        Снимки <span className="muted">· по желание, само локален преглед</span>
+      <label className={styles.field}>
+        Снимки{" "}
+        <span className={styles.hint}>· по желание, само локален преглед</span>
         <input
+          className={styles.input}
           type="file"
           accept="image/*"
           multiple
@@ -35,9 +38,10 @@ export function PhotoPicker() {
           }}
         />
       </label>
-      <div id="previews">
+      <div className={styles.previews}>
         {previews.map((url, index) => (
           <Image
+            className={styles.preview}
             key={url}
             src={url}
             width={70}
