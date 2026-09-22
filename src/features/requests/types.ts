@@ -26,6 +26,7 @@ export interface ServiceRequest {
   cancelled?: boolean;
   issue?: boolean;
   rating?: number;
+  dispatchedByAdmin?: boolean;
   subscriptionId?: number;
   clientName?: string;
   clientPhone?: string;

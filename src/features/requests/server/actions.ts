@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
-import { requests } from "@/db/schema";
+import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
 import type {
   CategoryId,
@@ -437,4 +437,124 @@ export async function transitionRequestServerAction(
     default:
       return { success: true, mode: "db" };
   }
+}
+
+function stripRecommendMarkers(description: string): string {
+  return description.replace(/\n?\[ПРЕПОРЪЧАНА:\s*\d+\]/g, "").trim();
+}
+
+async function findDispatchCandidate(
+  requestId: number,
+  specialistId: number,
+): Promise<{ ok: true; description: string } | { ok: false; error: string }> {
+  const currentUser = await getServerSession();
+  if (!currentUser || currentUser.role !== "ADMIN") {
+    return {
+      ok: false,
+      error: "Неоторизиран достъп. Изискват се администраторски права.",
+    };
+  }
+
+  const db = getDb();
+  if (!db) {
+    return { ok: false, error: "Няма връзка с базата данни." };
+  }
+
+  const [req] = await db
+    .select()
+    .from(requests)
+    .where(eq(requests.id, requestId));
+  if (!req) {
+    return { ok: false, error: "Заявката не е намерена." };
+  }
+  if (req.status !== 0 || req.specialistId !== null) {
+    return { ok: false, error: "Заявката вече е разпределена." };
+  }
+
+  const [specialist] = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, specialistId));
+  if (
+    !specialist ||
+    specialist.role !== "SPECIALIST" ||
+    specialist.status !== "ACTIVE"
+  ) {
+    return {
+      ok: false,
+      error: "Избраният специалист не е активен.",
+    };
+  }
+
+  return { ok: true, description: req.description };
+}
+
+export async function adminAssignSpecialistAction(
+  requestId: number,
+  specialistId: number,
+): Promise<ServiceRequestActionResult> {
+  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+    return {
+      success: false,
+      error: "Административният панел изисква база данни.",
+    };
+  }
+
+  const candidate = await findDispatchCandidate(requestId, specialistId);
+  if (!candidate.ok) {
+    return { success: false, error: candidate.error };
+  }
+
+  const db = getDb();
+  if (!db) {
+    return { success: false, error: "Няма връзка с базата данни." };
+  }
+
+  await db
+    .update(requests)
+    .set({
+      specialistId,
+      status: 1,
+      description: `${stripRecommendMarkers(candidate.description)}\n[ДИСПЕЧЕР] Разпределена от администратор`,
+      updatedAt: new Date(),
+    })
+    .where(eq(requests.id, requestId));
+
+  revalidateWorkspaceRequests();
+  revalidatePath("/specialist/opportunities");
+  return { success: true, mode: "db" };
+}
+
+export async function adminRecommendSpecialistAction(
+  requestId: number,
+  specialistId: number,
+): Promise<ServiceRequestActionResult> {
+  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+    return {
+      success: false,
+      error: "Административният панел изисква база данни.",
+    };
+  }
+
+  const candidate = await findDispatchCandidate(requestId, specialistId);
+  if (!candidate.ok) {
+    return { success: false, error: candidate.error };
+  }
+
+  const db = getDb();
+  if (!db) {
+    return { success: false, error: "Няма връзка с базата данни." };
+  }
+
+  await db
+    .update(requests)
+    .set({
+      description: `${stripRecommendMarkers(candidate.description)}\n[ПРЕПОРЪЧАНА: ${specialistId}]`,
+      updatedAt: new Date(),
+    })
+    .where(eq(requests.id, requestId));
+
+  revalidateWorkspaceRequests();
+  revalidatePath("/specialist/opportunities");
+  return { success: true, mode: "db" };
 }

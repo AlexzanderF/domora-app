@@ -5,10 +5,12 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { AdminKpiCards } from "@/features/admin/admin-kpi-cards";
 import { PendingSpecialistsQueue } from "@/features/admin/pending-specialists-queue";
 import { DisputedRequestsQueue } from "@/features/admin/disputed-requests-queue";
+import { UnassignedRequestsQueue } from "@/features/admin/unassigned-requests-queue";
 import { findAdminKpiMetrics } from "@/features/admin/server/metrics";
 import {
   findDisputedRequestsForAdmin,
   findSpecialistApplications,
+  findUnassignedRequestsForAdmin,
 } from "@/features/admin/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
@@ -32,12 +34,17 @@ export default async function AdminPage() {
     }
   }
 
-  const [initialMetrics, initialSpecialists, initialDisputedRequests] =
-    await Promise.all([
-      findAdminKpiMetrics(),
-      findSpecialistApplications(),
-      findDisputedRequestsForAdmin(),
-    ]);
+  const [
+    initialMetrics,
+    initialSpecialists,
+    initialDisputedRequests,
+    initialUnassignedRequests,
+  ] = await Promise.all([
+    findAdminKpiMetrics(),
+    findSpecialistApplications(),
+    findDisputedRequestsForAdmin(),
+    findUnassignedRequestsForAdmin(),
+  ]);
 
   return (
     <>
@@ -63,19 +70,10 @@ export default async function AdminPage() {
               Към всички заявки →
             </Link>
           </div>
-          <div className={styles.queuePlaceholder}>
-            <span className={styles.placeholderIcon} aria-hidden="true">
-              ⚡
-            </span>
-            <p className={styles.placeholderHeading}>
-              Диспечерски триаж на спешни и непоети заявки
-            </p>
-            <p className={styles.placeholderDescription}>
-              Слот за входящи неразпределени заявки с възможност за директно
-              назначаване или препоръчване към активни специалисти (предстои
-              имплементация).
-            </p>
-          </div>
+          <UnassignedRequestsQueue
+            initialRequests={initialUnassignedRequests}
+            initialSpecialists={initialSpecialists}
+          />
         </section>
 
         {/* Queue 2: Чакащи одобрение */}

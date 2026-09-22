@@ -25,12 +25,16 @@ export function parseDescription(description: string): {
   report?: string;
   rating?: number;
   issue?: boolean;
+  recommendedSpecialistId?: number;
+  dispatchedByAdmin?: boolean;
 } {
   let clean = description;
   let cancelled = false;
   let report: string | undefined;
   let rating: number | undefined;
   let issue: boolean | undefined;
+  let recommendedSpecialistId: number | undefined;
+  let dispatchedByAdmin: boolean | undefined;
 
   if (clean.startsWith("[ОТКАЗАНА] ")) {
     cancelled = true;
@@ -51,7 +55,24 @@ export function parseDescription(description: string): {
     issue = true;
   }
 
-  return { cleanDescription: clean, cancelled, report, rating, issue };
+  const recommendMatch = clean.match(/\[ПРЕПОРЪЧАНА:\s*(\d+)\]/);
+  if (recommendMatch) {
+    recommendedSpecialistId = Number(recommendMatch[1]);
+  }
+
+  if (clean.includes("[ДИСПЕЧЕР]")) {
+    dispatchedByAdmin = true;
+  }
+
+  return {
+    cleanDescription: clean,
+    cancelled,
+    report,
+    rating,
+    issue,
+    recommendedSpecialistId,
+    dispatchedByAdmin,
+  };
 }
 
 export async function findClientRequests(
@@ -174,6 +195,8 @@ export async function findSpecialistRequests(
       report: parsed.report,
       rating: parsed.rating,
       issue: parsed.issue,
+      recommendedSpecialistId: parsed.recommendedSpecialistId,
+      dispatchedByAdmin: parsed.dispatchedByAdmin,
       specialist:
         request.specialistId === specialistId ? "Вие" : specialist?.name,
       specialistPhone: specialist?.phone,
