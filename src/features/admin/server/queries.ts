@@ -1,10 +1,14 @@
-import { and, desc, eq, like, not } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, specialistProfiles, users } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
 import { parseDescription } from "@/features/requests/server/queries";
 import { isUrgentPriority } from "@/features/requests/priority";
+import {
+  issueFlagCondition,
+  notCancelledCondition,
+} from "@/features/requests/dispatch-markers";
 import type {
   CategoryId,
   RequestStatus,
@@ -48,6 +52,7 @@ function mapAdminRequestRow({
     report: parsed.report,
     rating: parsed.rating,
     issue: parsed.issue,
+    issueNote: parsed.issueNote,
     recommendedSpecialistId: parsed.recommendedSpecialistId,
     dispatchedByAdmin: parsed.dispatchedByAdmin,
     specialist: specialist?.name,
@@ -124,7 +129,7 @@ export async function findDisputedRequestsForAdmin(): Promise<
     .from(requests)
     .leftJoin(specialists, eq(requests.specialistId, specialists.id))
     .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(like(requests.description, "%[СИГНАЛ]%"))
+    .where(issueFlagCondition())
     .orderBy(desc(requests.updatedAt));
 
   return rows.map((row) => mapAdminRequestRow(row));
@@ -149,12 +154,7 @@ export async function findUnassignedRequestsForAdmin(): Promise<
     })
     .from(requests)
     .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(
-      and(
-        eq(requests.status, 0),
-        not(like(requests.description, "[ОТКАЗАНА]%")),
-      ),
-    )
+    .where(and(eq(requests.status, 0), notCancelledCondition()))
     .orderBy(desc(requests.createdAt));
 
   const mapped = rows.map((row) => mapAdminRequestRow(row));

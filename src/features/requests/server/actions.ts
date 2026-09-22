@@ -7,7 +7,12 @@ import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
 import {
   appendDispatchMarker,
+  appendIssue,
+  appendRating,
   appendRecommendMarker,
+  appendReport,
+  markCancelled,
+  removeIssueMarker,
 } from "../dispatch-markers";
 import type {
   CategoryId,
@@ -262,7 +267,7 @@ export async function completeWorkAction(
   if (existing.status === 3) {
     nextStatus = 4;
     if (report?.trim()) {
-      nextDescription = `${existing.description}\n[ОТЧЕТ] ${report.trim()}`;
+      nextDescription = appendReport(existing.description, report);
     }
   } else if (existing.status === 4) {
     nextStatus = 5;
@@ -321,14 +326,10 @@ export async function cancelRequestAction(
       })
       .where(eq(requests.id, requestId));
   } else {
-    const updatedDesc = existing.description.startsWith("[ОТКАЗАНА]")
-      ? existing.description
-      : `[ОТКАЗАНА] ${existing.description}`;
-
     await db
       .update(requests)
       .set({
-        description: updatedDesc,
+        description: markCancelled(existing.description),
         updatedAt: new Date(),
       })
       .where(eq(requests.id, requestId));
@@ -383,10 +384,23 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
+      let ratedDescription: string;
+      try {
+        ratedDescription = appendRating(req.description, action.rating);
+      } catch (error) {
+        return {
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Невалидна оценка. Изберете стойност от 1 до 5.",
+        };
+      }
+
       await db
         .update(requests)
         .set({
-          description: `${req.description}\n[ОЦЕНКА: ${action.rating}/5]`,
+          description: ratedDescription,
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -406,7 +420,7 @@ export async function transitionRequestServerAction(
       await db
         .update(requests)
         .set({
-          description: `${req.description}\n[СИГНАЛ] Подаден сигнал от клиент`,
+          description: appendIssue(req.description),
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -423,14 +437,10 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
-      const cleanedDescription = req.description
-        .replace(/\n?\[СИГНАЛ\][^\n]*/g, "")
-        .trim();
-
       await db
         .update(requests)
         .set({
-          description: cleanedDescription,
+          description: removeIssueMarker(req.description),
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));

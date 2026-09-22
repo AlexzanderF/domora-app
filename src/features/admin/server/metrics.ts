@@ -176,6 +176,7 @@ export async function findAllRequestsForAdmin(): Promise<
       report: parsed.report,
       rating: parsed.rating,
       issue: parsed.issue,
+      issueNote: parsed.issueNote,
       specialist: specialist?.name,
     };
   });

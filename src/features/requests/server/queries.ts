@@ -4,8 +4,13 @@ import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import {
   hasDispatchMarker,
+  hasIssueMarker,
+  isCancelledDescription,
+  parseIssueNote,
+  parseRating,
   parseRecommendMarker,
-  stripDispatchMarkers,
+  parseReport,
+  stripAllMarkers,
 } from "../dispatch-markers";
 import type { CategoryId, RequestStatus, ServiceRequest } from "../types";
 
@@ -30,50 +35,21 @@ export function parseDescription(description: string): {
   report?: string;
   rating?: number;
   issue?: boolean;
+  issueNote?: string;
   recommendedSpecialistId?: number;
   dispatchedByAdmin?: boolean;
 } {
-  let clean = description;
-  let cancelled = false;
-  let report: string | undefined;
-  let rating: number | undefined;
-  let issue: boolean | undefined;
-  let dispatchedByAdmin: boolean | undefined;
-
-  if (clean.startsWith("[ОТКАЗАНА] ")) {
-    cancelled = true;
-    clean = clean.replace("[ОТКАЗАНА] ", "");
-  }
-
-  const reportMatch = clean.match(/\[ОТЧЕТ\]\s*([^\n]+)/);
-  if (reportMatch) {
-    report = reportMatch[1].trim();
-  }
-
-  const ratingMatch = clean.match(/\[ОЦЕНКА:\s*(\d)\/5\]/);
-  if (ratingMatch) {
-    rating = Number(ratingMatch[1]);
-  }
-
-  if (clean.includes("[СИГНАЛ]")) {
-    issue = true;
-  }
-
-  const recommendedSpecialistId = parseRecommendMarker(clean);
-  if (hasDispatchMarker(clean)) {
-    dispatchedByAdmin = true;
-  }
-
-  clean = stripDispatchMarkers(clean);
+  const cancelled = isCancelledDescription(description);
 
   return {
-    cleanDescription: clean,
+    cleanDescription: stripAllMarkers(description),
     cancelled,
-    report,
-    rating,
-    issue,
-    recommendedSpecialistId,
-    dispatchedByAdmin,
+    report: parseReport(description),
+    rating: parseRating(description),
+    issue: hasIssueMarker(description) || undefined,
+    issueNote: parseIssueNote(description),
+    recommendedSpecialistId: parseRecommendMarker(description),
+    dispatchedByAdmin: hasDispatchMarker(description) || undefined,
   };
 }
 
@@ -123,6 +99,7 @@ export async function findClientRequests(
       report: parsed.report,
       rating: parsed.rating,
       issue: parsed.issue,
+      issueNote: parsed.issueNote,
       specialist: specialist?.name,
       specialistPhone: specialist?.phone,
     };
@@ -198,6 +175,7 @@ export async function findSpecialistRequests(
         report: parsed.report,
         rating: parsed.rating,
         issue: parsed.issue,
+        issueNote: parsed.issueNote,
         recommendedSpecialistId: parsed.recommendedSpecialistId,
         dispatchedByAdmin: parsed.dispatchedByAdmin,
         specialist:
