@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-import { useDemo } from "@/features/requests/demo-provider";
 import {
   cancelSubscriptionAction,
   createSubscriptionAction,
@@ -12,7 +11,8 @@ import styles from "./client-plan.module.css";
 
 interface ClientPlanViewProps {
   initialSubscription?: Subscription | null;
-  isDbMode?: boolean;
+  canManageSubscriptions: boolean;
+  loadError?: string;
 }
 
 const PLAN_NAMES: Record<SubscriptionPlan, string> = {
@@ -49,44 +49,53 @@ function formatDateBulgarian(dateString: string): string {
 
 export function ClientPlanView({
   initialSubscription,
-  isDbMode = false,
+  canManageSubscriptions,
+  loadError,
 }: ClientPlanViewProps) {
   const notify = useToast();
-  const demo = useDemo();
-  const [dbSubscription, setDbSubscription] = useState<Subscription | null>(
+  const [subscription, setSubscription] = useState<Subscription | null>(
     initialSubscription ?? null,
   );
+  const [propertyAddress, setPropertyAddress] = useState("");
+  const [homeArea, setHomeArea] = useState("");
+  const [entryFloors, setEntryFloors] = useState("");
+  const [formError, setFormError] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // In DB mode, use DB subscription; in demo mode, use demo provider subscription
-  const currentSubscription = isDbMode ? dbSubscription : demo.subscription;
   const isSubscribed = Boolean(
-    currentSubscription && currentSubscription.status === "ACTIVE",
+    subscription && subscription.status === "ACTIVE",
   );
 
   async function handleSubscribe(planType: SubscriptionPlan) {
-    if (isProcessing) return;
+    if (isProcessing || !canManageSubscriptions) return;
+    const address = propertyAddress.trim();
+    const areaValue = planType === "HOME" ? homeArea : entryFloors;
+    const area = Number(areaValue);
+    const nextError = !address
+      ? "Въведете адрес на имота."
+      : !Number.isInteger(area) || area < 1 || area > 1000
+        ? `Въведете ${planType === "HOME" ? "площ" : "брой етажи"} между 1 и 1000.`
+        : "";
+
+    setFormError(nextError);
+    if (nextError) return;
+
     setIsProcessing(true);
 
     try {
-      if (isDbMode) {
-        const address = "София · ул. Примерна 12, ет. 3, ап. 8";
-        const area = planType === "HOME" ? 85 : 6;
-        const result = await createSubscriptionAction({
-          planType,
-          propertyAddress: address,
-          propertyArea: area,
-        });
+      const result = await createSubscriptionAction({
+        planType,
+        propertyAddress: address,
+        propertyArea: area,
+      });
 
-        if (result.success && result.subscription) {
-          setDbSubscription(result.subscription);
-          notify(`Успешно се абонирахте за план "${PLAN_NAMES[planType]}"!`);
-        } else if (result.error) {
-          notify(result.error);
-        }
-      } else {
-        demo.subscribePlan(planType);
+      if (result.success && result.subscription) {
+        setSubscription(result.subscription);
+        setFormError("");
         notify(`Успешно се абонирахте за план "${PLAN_NAMES[planType]}"!`);
+      } else if (result.error) {
+        setFormError(result.error);
+        notify(result.error);
       }
     } finally {
       setIsProcessing(false);
@@ -94,105 +103,60 @@ export function ClientPlanView({
   }
 
   async function handleCancelSubscription() {
-    if (isProcessing) return;
+    if (isProcessing || !canManageSubscriptions) return;
     setIsProcessing(true);
 
     try {
-      if (isDbMode) {
-        const result = await cancelSubscriptionAction();
-        if (result.success) {
-          setDbSubscription((prev) =>
-            prev ? { ...prev, status: "CANCELLED" } : null,
-          );
-          notify("Абонаментът беше прекратен успешно.");
-        } else if (result.error) {
-          notify(result.error);
-        }
-      } else {
-        demo.cancelSubscription();
+      const result = await cancelSubscriptionAction();
+      if (result.success) {
+        setSubscription((prev) =>
+          prev ? { ...prev, status: "CANCELLED" } : null,
+        );
         notify("Абонаментът беше прекратен успешно.");
+      } else if (result.error) {
+        notify(result.error);
       }
     } finally {
       setIsProcessing(false);
     }
   }
 
-  function handleDemoToggle() {
-    if (isDbMode) {
-      if (dbSubscription?.status === "ACTIVE") {
-        setDbSubscription(null);
-        notify("Превключено към неабониран профил (демо изглед).");
-      } else {
-        setDbSubscription({
-          id: 9999,
-          userId: 1,
-          planType: "HOME",
-          propertyAddress: "София · ул. Примерна 12, ап. 5",
-          propertyArea: 85,
-          status: "ACTIVE",
-          visitsRemaining: 3,
-          validUntil: new Date(
-            Date.now() + 30 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-        notify("Превключено към абониран профил (демо изглед).");
-      }
-    } else {
-      if (demo.subscription?.status === "ACTIVE") {
-        demo.setSubscription(null);
-        notify("Превключено към неабониран профил (демо изглед).");
-      } else {
-        demo.subscribePlan("HOME");
-        notify("Превключено към абониран профил (демо изглед).");
-      }
-    }
+  if (!canManageSubscriptions || loadError) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.unavailableState} role="status">
+          <h2>Абонаментите са временно недостъпни</h2>
+          <p>
+            {loadError ??
+              "Не успяхме да заредим данните за вашия абонамент. Опитайте отново по-късно или се свържете с екипа на DOMORA."}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
-      {/* Demo helper banner */}
-      <div className={styles.demoBanner}>
-        <div className={styles.demoBannerText}>
-          <span className={styles.demoBadge}>Демо режим</span>
-          <span>
-            {isSubscribed
-              ? "Разглеждате профила като абониран клиент."
-              : "Разглеждате профила като клиент без активен абонамент."}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={handleDemoToggle}
-          className={styles.demoButton}
-        >
-          {isSubscribed
-            ? "Превключи към неабониран изглед"
-            : "Превключи към абониран изглед"}
-        </button>
-      </div>
-
-      {isSubscribed && currentSubscription ? (
+      {isSubscribed && subscription ? (
         /* Subscribed Client View */
         <div className={styles.planCard}>
           <div className={styles.planCardHeader}>
             <div className={styles.tierInfo}>
               <span className={styles.planEyebrow}>АКТИВЕН АБОНАМЕНТ</span>
               <h2 className={styles.planName}>
-                План &bdquo;{PLAN_NAMES[currentSubscription.planType]}&ldquo;
+                План &bdquo;{PLAN_NAMES[subscription.planType]}&ldquo;
               </h2>
               <p className={styles.planDescription}>
-                {PLAN_DESCRIPTIONS[currentSubscription.planType]}
+                {PLAN_DESCRIPTIONS[subscription.planType]}
               </p>
             </div>
             <div
               className={`${styles.statusBadge} ${
-                STATUS_LABELS[currentSubscription.status].className
+                STATUS_LABELS[subscription.status].className
               }`}
             >
               <span className={styles.statusDot} />
-              <span>{STATUS_LABELS[currentSubscription.status].label}</span>
+              <span>{STATUS_LABELS[subscription.status].label}</span>
             </div>
           </div>
 
@@ -202,7 +166,7 @@ export function ClientPlanView({
               <span className={styles.metricIcon}>📍</span>
               <span className={styles.metricLabel}>Адрес на имота</span>
               <span className={styles.metricValue}>
-                {currentSubscription.propertyAddress}
+                {subscription.propertyAddress}
               </span>
               <span className={styles.metricSubtext}>Основен обект</span>
             </div>
@@ -210,13 +174,13 @@ export function ClientPlanView({
             <div className={styles.metricCard}>
               <span className={styles.metricIcon}>📐</span>
               <span className={styles.metricLabel}>
-                {currentSubscription.planType === "HOME"
+                {subscription.planType === "HOME"
                   ? "Площ на имота"
                   : "Брой етажи"}
               </span>
               <span className={styles.metricValue}>
-                {currentSubscription.propertyArea}{" "}
-                {currentSubscription.planType === "HOME" ? "м²" : "етажа"}
+                {subscription.propertyArea}{" "}
+                {subscription.planType === "HOME" ? "м²" : "етажа"}
               </span>
               <span className={styles.metricSubtext}>
                 Покрит обем по договор
@@ -227,7 +191,7 @@ export function ClientPlanView({
               <span className={styles.metricIcon}>🗓️</span>
               <span className={styles.metricLabel}>Оставащи посещения</span>
               <span className={styles.metricValue}>
-                {currentSubscription.visitsRemaining} посещения
+                {subscription.visitsRemaining} посещения
               </span>
               <span className={styles.metricSubtext}>за текущия период</span>
             </div>
@@ -236,7 +200,7 @@ export function ClientPlanView({
               <span className={styles.metricIcon}>⏳</span>
               <span className={styles.metricLabel}>Валиден до</span>
               <span className={styles.metricValue}>
-                {formatDateBulgarian(currentSubscription.validUntil)}
+                {formatDateBulgarian(subscription.validUntil)}
               </span>
               <span className={styles.metricSubtext}>
                 Автоматично подновяване
@@ -253,7 +217,7 @@ export function ClientPlanView({
               <li className={styles.coverageItem}>
                 <span className={styles.checkIcon}>✓</span>
                 <span>
-                  {currentSubscription.planType === "HOME"
+                  {subscription.planType === "HOME"
                     ? "Периодично почистване на подове и повърхности"
                     : "Редовно хигиенизиране на стълбища и вход"}
                 </span>
@@ -261,7 +225,7 @@ export function ClientPlanView({
               <li className={styles.coverageItem}>
                 <span className={styles.checkIcon}>✓</span>
                 <span>
-                  {currentSubscription.planType === "HOME"
+                  {subscription.planType === "HOME"
                     ? "Профилактика на ВиК и електроинсталации"
                     : "Инспекция на осветление, автомати и входна врата"}
                 </span>
@@ -279,21 +243,6 @@ export function ClientPlanView({
 
           {/* Plan Actions */}
           <div className={styles.planActions}>
-            <button
-              type="button"
-              className={styles.primaryButton}
-              onClick={() => {
-                demo.openBooking({
-                  category: 4,
-                  plan:
-                    currentSubscription.planType === "HOME" ? "home" : "entry",
-                });
-              }}
-            >
-              <span>📅</span>
-              <span>Заяви посещение по абонамент</span>
-            </button>
-
             <button
               type="button"
               className={styles.dangerOutlineButton}
@@ -315,6 +264,64 @@ export function ClientPlanView({
               преференциални цени без скрити такси.
             </p>
           </div>
+          <section
+            className={styles.subscribeForm}
+            aria-labelledby="subscription-property-title"
+          >
+            <div>
+              <span className={styles.formEyebrow}>ДАННИ ЗА ИМОТА</span>
+              <h3 id="subscription-property-title">
+                Попълнете адрес и размер преди избор на план
+              </h3>
+            </div>
+            <label className={styles.formField}>
+              Адрес на имота
+              <input
+                value={propertyAddress}
+                onChange={(event) => {
+                  setPropertyAddress(event.target.value);
+                  if (formError) setFormError("");
+                }}
+                placeholder="Град, улица, номер, вход"
+                disabled={isProcessing}
+              />
+            </label>
+            <div className={styles.formGrid}>
+              <label className={styles.formField}>
+                Площ на дома (м²)
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  step="1"
+                  value={homeArea}
+                  onChange={(event) => {
+                    setHomeArea(event.target.value);
+                    if (formError) setFormError("");
+                  }}
+                  placeholder="напр. 85"
+                  disabled={isProcessing}
+                />
+              </label>
+              <label className={styles.formField}>
+                Брой етажи във входа
+                <input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  step="1"
+                  value={entryFloors}
+                  onChange={(event) => {
+                    setEntryFloors(event.target.value);
+                    if (formError) setFormError("");
+                  }}
+                  placeholder="напр. 6"
+                  disabled={isProcessing}
+                />
+              </label>
+            </div>
+            {formError && <p className={styles.formError}>{formError}</p>}
+          </section>
 
           <div className={styles.plansGrid}>
             {/* Plan Tier 1: Home */}

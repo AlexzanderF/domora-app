@@ -5,55 +5,23 @@
   width: 100%;
 }
 
-.demoBanner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1.25rem;
-  background: #f0f7f4;
-  border: 1px dashed #84b998;
+.unavailableState {
+  padding: 1.25rem 1.5rem;
+  border: 1px solid #f0d6a7;
   border-radius: 12px;
-  font-size: 0.875rem;
-  color: var(--ink);
+  background: #fff8ea;
+  color: #634716;
 }
 
-.demoBannerText {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
+.unavailableState h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
 }
 
-.demoBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.55rem;
-  border-radius: 6px;
-  background: var(--green);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.demoButton {
-  padding: 0.45rem 0.9rem;
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: var(--green);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-}
-
-.demoButton:hover {
-  background: #e8f3ed;
-  border-color: #84b998;
+.unavailableState p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 /* Subscribed View Styles */
@@ -238,27 +206,6 @@
   border-top: 1px solid var(--line);
 }
 
-.primaryButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.4rem;
-  background: var(--green);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: none;
-  transition: opacity 0.15s ease;
-}
-
-.primaryButton:hover {
-  opacity: 0.92;
-}
-
 .dangerOutlineButton {
   padding: 0.65rem 1.1rem;
   background: transparent;
@@ -300,6 +247,63 @@
   color: #29453e;
   line-height: 1.5;
   max-width: 720px;
+}
+
+.subscribeForm {
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+}
+
+.subscribeForm h3 {
+  margin: 0.2rem 0 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+}
+
+.formEyebrow {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.formField {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  color: #40564f;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.formField input {
+  min-height: 44px;
+  margin: 0;
+  border-color: #ccd9d1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.formField input:disabled {
+  background: #f4f6f5;
+  color: #84918d;
+}
+
+.formError {
+  margin: 0;
+  color: #b14545;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .plansGrid {
@@ -432,6 +436,13 @@
   opacity: 0.92;
 }
 
+.subscribeCta:disabled,
+.subscribeCtaOutline:disabled,
+.dangerOutlineButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .subscribeCtaOutline {
   width: 100%;
   padding: 0.85rem 1.25rem;
@@ -449,4 +460,10 @@
 .subscribeCtaOutline:hover {
   background: var(--green);
   color: white;
+}
+
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
 }

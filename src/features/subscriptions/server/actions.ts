@@ -17,27 +17,32 @@ export interface SubscriptionActionResult {
   success: boolean;
   error?: string;
   subscription?: Subscription;
-  mode?: "db" | "demo";
 }
 
 export async function createSubscriptionAction(
   input: SubscribeInput,
 ): Promise<SubscriptionActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
-    return { success: true, mode: "demo" };
+    return {
+      success: false,
+      error: "Абонаментите са временно недостъпни. Опитайте отново по-късно.",
+    };
   }
 
   const user = await getServerSession();
   if (!user) {
-    return { success: true, mode: "demo" };
+    return {
+      success: false,
+      error: "Влезте в профила си, за да управлявате абонамент.",
+    };
   }
 
   const address = input.propertyAddress.trim();
   const area = Number(input.propertyArea);
-  if (!address || isNaN(area) || area < 1) {
+  if (!address || !Number.isInteger(area) || area < 1 || area > 1000) {
     return {
       success: false,
-      error: "Моля, въведете валиден адрес и площ на имота.",
+      error: "Моля, въведете валиден адрес и размер на имота.",
     };
   }
 
@@ -79,7 +84,6 @@ export async function createSubscriptionAction(
 
   return {
     success: true,
-    mode: "db",
     subscription: {
       id: created.id,
       userId: created.userId,
@@ -97,12 +101,18 @@ export async function createSubscriptionAction(
 
 export async function cancelSubscriptionAction(): Promise<SubscriptionActionResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
-    return { success: true, mode: "demo" };
+    return {
+      success: false,
+      error: "Абонаментите са временно недостъпни. Опитайте отново по-късно.",
+    };
   }
 
   const user = await getServerSession();
   if (!user) {
-    return { success: true, mode: "demo" };
+    return {
+      success: false,
+      error: "Влезте в профила си, за да управлявате абонамент.",
+    };
   }
 
   const db = getDb();
@@ -121,5 +131,5 @@ export async function cancelSubscriptionAction(): Promise<SubscriptionActionResu
   revalidatePath("/client/plan");
   revalidatePath("/client");
 
-  return { success: true, mode: "db" };
+  return { success: true };
 }
