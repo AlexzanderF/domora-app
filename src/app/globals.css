@@ -59,7 +59,7 @@ aside {
 }
 .collapse-edge-toggle {
   position: absolute;
-  top: 37px;
+  top: 78px;
   right: -12px;
   width: 24px;
   height: 24px;
@@ -96,6 +96,7 @@ aside {
   font-weight: 800;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   min-width: 0;
 }
@@ -118,7 +119,8 @@ aside {
 .tagline {
   font-size: 10px;
   letter-spacing: 1.3px;
-  margin: 12px 0 52px;
+  margin: 8px 0 16px;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -134,7 +136,7 @@ aside {
   text-overflow: ellipsis;
 }
 nav {
-  margin-top: 18px;
+  margin-top: 0;
   display: grid;
   gap: 8px;
 }
@@ -207,7 +209,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 56px;
+  height: 64px;
   padding: 0 44px;
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -237,7 +239,7 @@ main {
   margin: auto;
   padding: 38px 44px;
   min-height: calc(100vh - 120px);
-  scroll-margin-top: 56px;
+  scroll-margin-top: 64px;
 }
 h1 {
   font-size: 34px;

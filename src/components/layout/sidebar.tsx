@@ -59,7 +59,6 @@ export function Sidebar({
         <span className="brand-text">DOMORA</span>
       </Link>
       <p className="tagline">WE TAKE CARE OF YOUR HOME</p>
-      <div className="navlabel">МОЕТО ПРОСТРАНСТВО</div>
       <nav aria-label="Основна навигация">
         {navigation.map((item) => (
           <Link
