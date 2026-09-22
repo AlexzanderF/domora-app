@@ -31,6 +31,7 @@ export function RequestList({
     <>
       {items.map((request) => (
         <article
+          id={`request-${request.id}`}
           className="request"
           key={request.id}
           aria-label={request.service}

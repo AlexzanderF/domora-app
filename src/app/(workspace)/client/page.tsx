@@ -1,10 +1,25 @@
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { BookingButton } from "@/features/bookings/booking-button";
+import { ClientDashboard } from "@/features/client-dashboard/client-dashboard";
+import { findClientRequests } from "@/features/requests/server/queries";
+import { findUserSubscription } from "@/features/subscriptions/server/queries";
+import { getServerSession } from "@/features/auth/server/session";
+import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = { title: "Табло на клиента" };
 
-export default function ClientDashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ClientDashboardPage() {
+  const user = await getServerSession();
+  const [initialRequests, initialSubscription] = user
+    ? await Promise.all([
+        findClientRequests(user.id),
+        findUserSubscription(user.id),
+      ])
+    : [null, null];
+
   return (
     <>
       <PageHeading
@@ -14,9 +29,11 @@ export default function ClientDashboardPage() {
       >
         <BookingButton />
       </PageHeading>
-      <div className="card">
-        <p>Добре дошли във вашия клиентски панел на DOMORA.</p>
-      </div>
+      <ClientDashboard
+        initialRequests={initialRequests}
+        initialSubscription={initialSubscription}
+        isDbMode={isDbConfigured && Boolean(user)}
+      />
     </>
   );
 }
