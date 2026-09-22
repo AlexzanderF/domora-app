@@ -63,7 +63,6 @@ export function WorkspaceShell({
       />
       <div className="workspace">
         <header>
-          <span>Вашият дом. Нашата грижа.</span>
           <HeaderAccount initialUser={initialUser} />
         </header>
         <main id="main">{children}</main>

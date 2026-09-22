@@ -57,34 +57,36 @@ aside {
     width 0.2s ease,
     padding 0.2s ease;
 }
-.aside-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 38px;
-}
-.collapse-toggle {
-  background: transparent;
+.collapse-edge-toggle {
+  position: absolute;
+  top: 37px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  background: #ffffff;
   border: 1px solid var(--line);
-  color: var(--muted);
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: inline-flex;
+  border-radius: 6px;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  color: var(--muted);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  z-index: 40;
   transition:
     background-color 0.15s ease,
     color 0.15s ease,
-    border-color 0.15s ease;
-  flex-shrink: 0;
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
-.collapse-toggle:hover {
-  background: var(--paper);
-  color: var(--ink);
-  border-color: #ccd7d0;
+.collapse-edge-toggle:hover {
+  background: #ffffff;
+  color: var(--green);
+  border-color: #b7cbbf;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: scale(1.08);
 }
 .brand {
   text-decoration: none;
@@ -176,13 +178,8 @@ nav a span:not([aria-hidden]) {
   --sidebar-width: var(--sidebar-collapsed-width);
 }
 [data-sidebar-collapsed="true"] aside {
-  padding: 24px 8px;
+  padding: 30px 10px;
   align-items: center;
-}
-[data-sidebar-collapsed="true"] .aside-header {
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
 }
 [data-sidebar-collapsed="true"] .brand-text,
 [data-sidebar-collapsed="true"] .tagline,
@@ -192,6 +189,7 @@ nav a span:not([aria-hidden]) {
 }
 [data-sidebar-collapsed="true"] .brand {
   justify-content: center;
+  width: 100%;
 }
 [data-sidebar-collapsed="true"] nav {
   width: 100%;
@@ -209,12 +207,12 @@ header {
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 89px;
+  height: 56px;
   padding: 0 44px;
   border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   background: #fff;
   font-size: 14px;
   color: var(--muted);
@@ -238,7 +236,8 @@ main {
   max-width: 1320px;
   margin: auto;
   padding: 38px 44px;
-  min-height: calc(100vh - 150px);
+  min-height: calc(100vh - 120px);
+  scroll-margin-top: 56px;
 }
 h1 {
   font-size: 34px;
@@ -687,7 +686,7 @@ textarea {
     border: 0;
     align-items: stretch;
   }
-  .collapse-toggle {
+  .collapse-edge-toggle {
     display: none;
   }
   .brand-text,
@@ -696,10 +695,6 @@ textarea {
   }
   [data-sidebar-collapsed="true"] nav a span:not([aria-hidden]) {
     display: inline;
-  }
-  [data-sidebar-collapsed="true"] .aside-header {
-    flex-direction: row;
-    gap: 8px;
   }
   .brand {
     font-size: 23px;

@@ -24,61 +24,40 @@ export function Sidebar({
 
   return (
     <aside aria-label="Странично меню">
-      <div className="aside-header">
-        <Link className="brand" href="/" title="DOMORA Начало">
-          <span className="mark" aria-hidden="true">
-            ⌂
-          </span>
-          <span className="brand-text">DOMORA</span>
-        </Link>
-        {onToggleCollapse && (
-          <button
-            type="button"
-            className="collapse-toggle"
-            onClick={onToggleCollapse}
-            aria-label={
-              collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
-            }
-            title={
-              collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
-            }
+      {onToggleCollapse && (
+        <button
+          type="button"
+          className="collapse-edge-toggle"
+          onClick={onToggleCollapse}
+          aria-label={
+            collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
+          }
+          title={
+            collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
+          }
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
           >
-            {collapsed ? (
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M9 3v18" />
-                <path d="m14 9 3 3-3 3" />
-              </svg>
-            ) : (
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" />
-                <path d="M9 3v18" />
-                <path d="m16 15-3-3 3-3" />
-              </svg>
-            )}
-          </button>
-        )}
-      </div>
+            <polyline points="7 16 3 12 7 8" />
+            <polyline points="17 8 21 12 17 16" />
+          </svg>
+        </button>
+      )}
+      <Link className="brand" href="/" title="DOMORA Начало">
+        <span className="mark" aria-hidden="true">
+          ⌂
+        </span>
+        <span className="brand-text">DOMORA</span>
+      </Link>
       <p className="tagline">WE TAKE CARE OF YOUR HOME</p>
       <div className="navlabel">МОЕТО ПРОСТРАНСТВО</div>
       <nav aria-label="Основна навигация">
