@@ -2,16 +2,6 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
-import {
-  hasDispatchMarker,
-  hasIssueMarker,
-  isCancelledDescription,
-  parseIssueNote,
-  parseRating,
-  parseRecommendMarker,
-  parseReport,
-  stripAllMarkers,
-} from "../dispatch-markers";
 import type { CategoryId, RequestStatus, ServiceRequest } from "../types";
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -28,30 +18,6 @@ const CATEGORY_NAMES: Record<string, string> = {
   "5": "5",
   Други: "5",
 };
-
-export function parseDescription(description: string): {
-  cleanDescription: string;
-  cancelled: boolean;
-  report?: string;
-  rating?: number;
-  issue?: boolean;
-  issueNote?: string;
-  recommendedSpecialistId?: number;
-  dispatchedByAdmin?: boolean;
-} {
-  const cancelled = isCancelledDescription(description);
-
-  return {
-    cleanDescription: stripAllMarkers(description),
-    cancelled,
-    report: parseReport(description),
-    rating: parseRating(description),
-    issue: hasIssueMarker(description) || undefined,
-    issueNote: parseIssueNote(description),
-    recommendedSpecialistId: parseRecommendMarker(description),
-    dispatchedByAdmin: hasDispatchMarker(description) || undefined,
-  };
-}
 
 export async function findClientRequests(
   clientId: number,
@@ -80,7 +46,6 @@ export async function findClientRequests(
     const rawStatus = request.status;
     const status: RequestStatus =
       rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-    const parsed = parseDescription(request.description);
 
     return {
       id: request.id,
@@ -94,12 +59,12 @@ export async function findClientRequests(
       }),
       price: request.price,
       status,
-      description: parsed.cleanDescription,
-      cancelled: parsed.cancelled,
-      report: parsed.report,
-      rating: parsed.rating,
-      issue: parsed.issue,
-      issueNote: parsed.issueNote,
+      description: request.description,
+      cancelled: request.cancelled,
+      report: request.report ?? undefined,
+      rating: request.rating ?? undefined,
+      issue: request.issue || undefined,
+      issueNote: request.issueNote ?? undefined,
       specialist: specialist?.name,
       specialistPhone: specialist?.phone,
     };
@@ -155,7 +120,6 @@ export async function findSpecialistRequests(
       const rawStatus = request.status;
       const status: RequestStatus =
         rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-      const parsed = parseDescription(request.description);
 
       return {
         id: request.id,
@@ -170,14 +134,14 @@ export async function findSpecialistRequests(
         price: request.price,
         status,
         priority: request.priority,
-        description: parsed.cleanDescription,
-        cancelled: parsed.cancelled,
-        report: parsed.report,
-        rating: parsed.rating,
-        issue: parsed.issue,
-        issueNote: parsed.issueNote,
-        recommendedSpecialistId: parsed.recommendedSpecialistId,
-        dispatchedByAdmin: parsed.dispatchedByAdmin,
+        description: request.description,
+        cancelled: request.cancelled,
+        report: request.report ?? undefined,
+        rating: request.rating ?? undefined,
+        issue: request.issue || undefined,
+        issueNote: request.issueNote ?? undefined,
+        recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
+        dispatchedByAdmin: request.dispatchedByAdmin || undefined,
         specialist:
           request.specialistId === specialistId ? "Вие" : specialist?.name,
         specialistPhone: specialist?.phone,

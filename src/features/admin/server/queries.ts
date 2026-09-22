@@ -3,12 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, specialistProfiles, users } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
-import { parseDescription } from "@/features/requests/server/queries";
 import { isUrgentPriority } from "@/features/requests/priority";
-import {
-  issueFlagCondition,
-  notCancelledCondition,
-} from "@/features/requests/dispatch-markers";
 import type {
   CategoryId,
   RequestStatus,
@@ -32,7 +27,6 @@ function mapAdminRequestRow({
   const rawStatus = request.status;
   const status: RequestStatus =
     rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-  const parsed = parseDescription(request.description);
 
   return {
     id: request.id,
@@ -47,14 +41,14 @@ function mapAdminRequestRow({
     price: request.price,
     status,
     priority: request.priority,
-    description: parsed.cleanDescription,
-    cancelled: parsed.cancelled,
-    report: parsed.report,
-    rating: parsed.rating,
-    issue: parsed.issue,
-    issueNote: parsed.issueNote,
-    recommendedSpecialistId: parsed.recommendedSpecialistId,
-    dispatchedByAdmin: parsed.dispatchedByAdmin,
+    description: request.description,
+    cancelled: request.cancelled,
+    report: request.report ?? undefined,
+    rating: request.rating ?? undefined,
+    issue: request.issue || undefined,
+    issueNote: request.issueNote ?? undefined,
+    recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
+    dispatchedByAdmin: request.dispatchedByAdmin || undefined,
     specialist: specialist?.name,
     specialistPhone: specialist?.phone,
     clientName: client?.name,
@@ -129,7 +123,7 @@ export async function findDisputedRequestsForAdmin(): Promise<
     .from(requests)
     .leftJoin(specialists, eq(requests.specialistId, specialists.id))
     .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(issueFlagCondition())
+    .where(eq(requests.issue, true))
     .orderBy(desc(requests.updatedAt));
 
   return rows.map((row) => mapAdminRequestRow(row));
@@ -154,7 +148,7 @@ export async function findUnassignedRequestsForAdmin(): Promise<
     })
     .from(requests)
     .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(and(eq(requests.status, 0), notCancelledCondition()))
+    .where(and(eq(requests.status, 0), eq(requests.cancelled, false)))
     .orderBy(desc(requests.createdAt));
 
   const mapped = rows.map((row) => mapAdminRequestRow(row));

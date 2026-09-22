@@ -12,7 +12,6 @@ import {
 } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, tariffs, users } from "@/db/schema";
-import { parseDescription } from "@/features/requests/server/queries";
 import type {
   CategoryId,
   RequestStatus,
@@ -156,7 +155,6 @@ export async function findAllRequestsForAdmin(): Promise<
     const rawStatus = request.status;
     const status: RequestStatus =
       rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-    const parsed = parseDescription(request.description);
 
     return {
       id: request.id,
@@ -171,12 +169,12 @@ export async function findAllRequestsForAdmin(): Promise<
       price: request.price,
       status,
       priority: request.priority,
-      description: parsed.cleanDescription,
-      cancelled: parsed.cancelled,
-      report: parsed.report,
-      rating: parsed.rating,
-      issue: parsed.issue,
-      issueNote: parsed.issueNote,
+      description: request.description,
+      cancelled: request.cancelled,
+      report: request.report ?? undefined,
+      rating: request.rating ?? undefined,
+      issue: request.issue || undefined,
+      issueNote: request.issueNote ?? undefined,
       specialist: specialist?.name,
     };
   });

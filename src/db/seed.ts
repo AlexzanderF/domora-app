@@ -170,25 +170,27 @@ const seedSubscriptions: SubscriptionInsert[] = [
   },
 ];
 
-// Test data for the admin triage queues (#52): one disputed request awaiting
-// admin oversight (status 4, flagged with [СИГНАЛ], report from specialist),
-// plus waiting requests (status 0, unassigned) so the specialist dashboard
-// opportunities feed is not empty. Addresses intentionally contain the full
-// specialist area string, which findSpecialistRequests matches with ILIKE.
+// Test data for the admin triage queues: flags live in dedicated columns
+// (cancelled, report, rating, issue, recommendedSpecialistId,
+// dispatchedByAdmin) while descriptions stay pure client text. Addresses
+// intentionally contain the full specialist area string, which
+// findSpecialistRequests matches with ILIKE.
 const seedRequests: RequestInsert[] = [
   {
     id: 1,
     clientId: 1,
     specialistId: 3,
     title: "Боядисване на детска стая",
-    description:
-      "Боядисване на стени в детска стая, около 18 м².\n[ОТЧЕТ] Стените са боядисани в избрания цвят, работата е приключена.\n[СИГНАЛ] Клиентът съобщава за пропуснати участъци около дограмата",
+    description: "Боядисване на стени в детска стая, около 18 м².",
     category: "3",
     address: "София, ул. Примерна 12, ап. 5",
     priority: "STANDARD",
     status: 4,
     price: 120,
     clientPhone: "0888123456",
+    report: "Стените са боядисани в избрания цвят, работата е приключена.",
+    issue: true,
+    issueNote: "Клиентът съобщава за пропуснати участъци около дограмата",
   },
   {
     id: 2,
@@ -234,41 +236,43 @@ const seedRequests: RequestInsert[] = [
     clientId: 1,
     specialistId: 3,
     title: "Смяна на контакти",
-    description:
-      "Смяна на три контакта в дневната.\n[ОТЧЕТ] Контактите са сменени и тествани, всичко работи.\n[ОЦЕНКА: 5/5]",
+    description: "Смяна на три контакта в дневната.",
     category: "1",
     address: "София и област · ул. Примерна 12, ап. 5",
     priority: "STANDARD",
     status: 5,
     price: 70,
     clientPhone: "0888123456",
+    report: "Контактите са сменени и тествани, всичко работи.",
+    rating: 5,
   },
   {
     id: 6,
     clientId: 1,
     specialistId: 3,
     title: "Диагностика на ел. табло",
-    description:
-      "Проверка на предпазителите след спиране на тока.\n[ОТЧЕТ] Открит е дефектирал предпазител, подменен е с нов.",
+    description: "Проверка на предпазителите след спиране на тока.",
     category: "1",
     address: "София и област · ул. Примерна 12, ап. 5",
     priority: "STANDARD",
     status: 5,
     price: 60,
     clientPhone: "0888123456",
+    report: "Открит е дефектирал предпазител, подменен е с нов.",
   },
   {
     id: 7,
     clientId: 1,
     specialistId: null,
     title: "Боядисване — оглед",
-    description: "[ОТКАЗАНА] Оглед за боядисване на коридор.",
+    description: "Оглед за боядисване на коридор.",
     category: "3",
     address: "София, ул. Примерна 12, ап. 5",
     priority: "STANDARD",
     status: 0,
     price: 25,
     clientPhone: "0888123456",
+    cancelled: true,
   },
   {
     id: 8,
@@ -396,6 +400,13 @@ async function seedDatabase(): Promise<void> {
             status: req.status,
             price: req.price,
             clientPhone: req.clientPhone,
+            cancelled: req.cancelled ?? false,
+            report: req.report ?? null,
+            rating: req.rating ?? null,
+            issue: req.issue ?? false,
+            issueNote: req.issueNote ?? null,
+            recommendedSpecialistId: req.recommendedSpecialistId ?? null,
+            dispatchedByAdmin: req.dispatchedByAdmin ?? false,
             updatedAt: new Date(),
           },
         });
