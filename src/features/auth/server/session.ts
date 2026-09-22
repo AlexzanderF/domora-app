@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { sessions } from "@/db/schema";
@@ -17,6 +17,29 @@ export {
   STATUS_COOKIE_NAME,
   SESSION_MAX_AGE,
 };
+
+async function isSecureCookie(): Promise<boolean> {
+  if (process.env.COOKIE_SECURE === "false") {
+    return false;
+  }
+  if (process.env.COOKIE_SECURE === "true") {
+    return true;
+  }
+  try {
+    const headerList = await headers();
+    const proto = headerList.get("x-forwarded-proto");
+    if (proto) {
+      return proto.toLowerCase() === "https";
+    }
+    const origin = headerList.get("origin") || headerList.get("referer");
+    if (origin) {
+      return origin.startsWith("https://");
+    }
+  } catch {
+    // Fallback when headers are unavailable
+  }
+  return process.env.NODE_ENV === "production";
+}
 
 export async function getServerSession(): Promise<User | null> {
   if (process.env.NEXT_STATIC_EXPORT === "1" || !isDbConfigured) {
@@ -67,11 +90,13 @@ export async function createSession(
     expiresAt,
   });
 
+  const isSecure = await isSecureCookie();
+
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isSecure,
     path: "/",
     maxAge: SESSION_MAX_AGE,
     expires: expiresAt,
@@ -81,7 +106,7 @@ export async function createSession(
     cookieStore.set(ROLE_COOKIE_NAME, userRole, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       path: "/",
       maxAge: SESSION_MAX_AGE,
       expires: expiresAt,
@@ -92,7 +117,7 @@ export async function createSession(
     cookieStore.set(STATUS_COOKIE_NAME, userStatus, {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       path: "/",
       maxAge: SESSION_MAX_AGE,
       expires: expiresAt,
