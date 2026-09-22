@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { PageHeading } from "@/components/ui/page-heading";
 import { isDbConfigured } from "@/db";
 import { getServerSession } from "@/features/auth/server/session";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import { ClientProfileForm } from "@/features/client-profile/client-profile-form";
 import styles from "@/features/client-profile/client-profile.module.css";
 import { findClientRequests } from "@/features/requests/server/queries";
@@ -12,22 +13,22 @@ import { findUserSubscription } from "@/features/subscriptions/server/queries";
 export const metadata: Metadata = { title: "Моят профил" };
 export const dynamic = "force-dynamic";
 
-function getRoleLabel(role: string) {
-  if (role === "ADMIN") return "Администратор";
-  if (role === "SPECIALIST") return "Специалист";
+function getRoleLabel(role: UserRole) {
+  if (role === UserRole.Admin) return "Администратор";
+  if (role === UserRole.Specialist) return "Специалист";
   return "Клиент";
 }
 
-function getStatusLabel(status: string) {
-  if (status === "PENDING") return "Очаква одобрение";
-  if (status === "REJECTED") return "Отказан";
+function getStatusLabel(status: UserStatus) {
+  if (status === UserStatus.Pending) return "Очаква одобрение";
+  if (status === UserStatus.Rejected) return "Отказан";
   return "Активен";
 }
 
 export default async function ClientProfilePage() {
   const user = await getServerSession();
   if (isDbConfigured && !user) {
-    redirect("/login");
+    redirect("/api/auth/logout?next=/login");
   }
 
   const [subscription, requests] = user

@@ -14,6 +14,7 @@ import {
   findUserByPhone,
 } from "@/features/auth/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
+import { UserRole } from "@/features/auth/types";
 import type { User } from "@/features/auth/types";
 
 export interface ClientProfileInput {
@@ -47,7 +48,7 @@ export async function updateClientProfileAction(
   }
 
   const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== "CLIENT") {
+  if (!currentUser || currentUser.role !== UserRole.Client) {
     return {
       success: false,
       error: "Влезте с клиентски профил, за да редактирате данните.",
