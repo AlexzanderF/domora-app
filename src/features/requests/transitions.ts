@@ -4,8 +4,21 @@ import type {
   Role,
   ServiceRequest,
 } from "./types";
+import {
+  canAdvance,
+  canCancelAsClient,
+  canClaim,
+  canConfirmCompletion,
+  canFlagIssue,
+  canRate,
+  canResolveIssue,
+  nextExecutionStep,
+  requiresCompletionReport,
+} from "./request-rules";
 
 // These guards keep the demo consistent. They are not server-side authorization.
+// Lifecycle rules themselves live in request-rules.ts, shared with the
+// database-backed server actions.
 export function transitionRequest(
   request: ServiceRequest,
   action: RequestAction,
@@ -14,11 +27,11 @@ export function transitionRequest(
   if (request.cancelled) return request;
   switch (action.type) {
     case "cancel":
-      return role === "client" && request.status < 4
+      return role === "client" && canCancelAsClient(request)
         ? { ...request, cancelled: true }
         : request;
     case "accept":
-      return role === "specialist" && request.status === 0
+      return role === "specialist" && canClaim(request)
         ? {
             ...request,
             status: 1,
@@ -31,7 +44,7 @@ export function transitionRequest(
     case "dismiss":
       return request;
     case "admin-assign":
-      return role === "admin" && request.status === 0
+      return role === "admin" && canClaim(request)
         ? {
             ...request,
             status: 1,
@@ -39,24 +52,25 @@ export function transitionRequest(
           }
         : request;
     case "admin-recommend":
-      return role === "admin" && request.status === 0
+      return role === "admin" && canClaim(request)
         ? {
             ...request,
             recommendedSpecialistId: action.specialistId,
           }
         : request;
     case "advance": {
-      if (role === "client" || request.status >= 4) return request;
-      if (request.status === 3 && !action.report?.trim()) return request;
-      const nextStatus: RequestStatus =
-        request.status === 1 || request.status === 2
-          ? 3
-          : ((request.status + 1) as RequestStatus);
+      if (role === "client" || !canAdvance(request)) return request;
+      if (requiresCompletionReport(request.status) && !action.report?.trim())
+        return request;
+      const nextStatus: RequestStatus = nextExecutionStep(request.status);
+      if (nextStatus === request.status) return request;
       return {
         ...request,
         status: nextStatus,
         specialist: request.specialist || "Демо специалист · DOMORA",
-        ...(request.status === 3 ? { report: action.report!.trim() } : {}),
+        ...(requiresCompletionReport(request.status)
+          ? { report: action.report!.trim() }
+          : {}),
       };
     }
     case "decline":
@@ -64,24 +78,19 @@ export function transitionRequest(
         ? { ...request, specialist: undefined }
         : request;
     case "complete":
-      return role === "client" && request.status === 4
+      return role === "client" && canConfirmCompletion(request)
         ? { ...request, status: 5 }
         : request;
     case "issue":
-      return role === "client" && request.status === 4
+      return role === "client" && canFlagIssue(request)
         ? { ...request, issue: true }
         : request;
     case "resolve":
-      return role === "admin" && request.issue
+      return role === "admin" && canResolveIssue(request)
         ? { ...request, issue: false }
         : request;
     case "rate":
-      return role === "client" &&
-        request.status === 5 &&
-        !request.rating &&
-        Number.isInteger(action.rating) &&
-        action.rating >= 1 &&
-        action.rating <= 5
+      return role === "client" && canRate(request, action.rating)
         ? { ...request, rating: action.rating }
         : request;
   }

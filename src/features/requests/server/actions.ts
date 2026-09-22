@@ -6,14 +6,15 @@ import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
 import {
-  appendDispatchMarker,
-  appendIssue,
-  appendRating,
-  appendRecommendMarker,
-  appendReport,
-  markCancelled,
-  removeIssueMarker,
-} from "../dispatch-markers";
+  canClaim,
+  canConfirmCompletion,
+  canFlagIssue,
+  canRate,
+  canResolveIssue,
+  isValidRating,
+  nextExecutionStep,
+  requiresCompletionReport,
+} from "../request-rules";
 import type {
   CategoryId,
   Plan,
@@ -162,6 +163,21 @@ export async function assignSpecialistAction(
     };
   }
 
+  const [existing] = await db
+    .select()
+    .from(requests)
+    .where(eq(requests.id, requestId));
+  if (
+    !existing ||
+    !canClaim({
+      status: existing.status as RequestStatus,
+      cancelled: existing.cancelled,
+      specialistId: existing.specialistId,
+    })
+  ) {
+    return { success: false, error: "Заявката вече е разпределена." };
+  }
+
   await db
     .update(requests)
     .set({
@@ -204,16 +220,17 @@ export async function startWorkAction(
   if (!existing) {
     return { success: false, error: "Заявката не е намерена." };
   }
+  if (existing.cancelled) {
+    return { success: false, error: "Заявката е отказана." };
+  }
 
   const currentStatus = existing.status;
-  // 2-step execution: skip the intermediate status 2 and go straight to
-  // "В процес" (3) once the specialist starts work.
+  // 2-step execution: unassigned work is claimed, then the intermediate
+  // status 2 is skipped straight to "В процес" (3) once work starts.
   const nextStatus =
-    currentStatus === 0
-      ? 1
-      : currentStatus === 1 || currentStatus === 2
-        ? 3
-        : currentStatus;
+    currentStatus === 0 || currentStatus === 1 || currentStatus === 2
+      ? nextExecutionStep(currentStatus as RequestStatus)
+      : currentStatus;
 
   await db
     .update(requests)
@@ -260,24 +277,37 @@ export async function completeWorkAction(
   if (!existing) {
     return { success: false, error: "Заявката не е намерена." };
   }
+  if (existing.cancelled) {
+    return { success: false, error: "Заявката е отказана." };
+  }
 
+  const status = existing.status as RequestStatus;
   let nextStatus = existing.status;
-  let nextDescription = existing.description;
+  let nextReport: string | undefined;
 
-  if (existing.status === 3) {
-    nextStatus = 4;
-    if (report?.trim()) {
-      nextDescription = appendReport(existing.description, report);
+  if (requiresCompletionReport(status)) {
+    if (!report?.trim()) {
+      return {
+        success: false,
+        error: "Отчетът е задължителен, за да завършите задачата.",
+      };
     }
-  } else if (existing.status === 4) {
+    nextStatus = 4;
+    nextReport = report.trim();
+  } else if (canConfirmCompletion({ status, cancelled: existing.cancelled })) {
     nextStatus = 5;
+  } else {
+    return {
+      success: false,
+      error: "Задачата не е в етап, който може да бъде завършен.",
+    };
   }
 
   await db
     .update(requests)
     .set({
       status: nextStatus,
-      description: nextDescription,
+      ...(nextReport !== undefined ? { report: nextReport } : {}),
       updatedAt: new Date(),
     })
     .where(eq(requests.id, requestId));
@@ -329,7 +359,7 @@ export async function cancelRequestAction(
     await db
       .update(requests)
       .set({
-        description: markCancelled(existing.description),
+        cancelled: true,
         updatedAt: new Date(),
       })
       .where(eq(requests.id, requestId));
@@ -383,24 +413,32 @@ export async function transitionRequestServerAction(
         .from(requests)
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
-
-      let ratedDescription: string;
-      try {
-        ratedDescription = appendRating(req.description, action.rating);
-      } catch (error) {
+      if (!isValidRating(action.rating)) {
         return {
           success: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Невалидна оценка. Изберете стойност от 1 до 5.",
+          error: "Оценката трябва да е цяло число от 1 до 5.",
+        };
+      }
+      if (
+        !canRate(
+          {
+            status: req.status as RequestStatus,
+            cancelled: req.cancelled,
+            rating: req.rating,
+          },
+          action.rating,
+        )
+      ) {
+        return {
+          success: false,
+          error: "Тази заявка не може да бъде оценена.",
         };
       }
 
       await db
         .update(requests)
         .set({
-          description: ratedDescription,
+          rating: action.rating,
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -416,11 +454,28 @@ export async function transitionRequestServerAction(
         .from(requests)
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
+      if (req.issue) {
+        revalidateWorkspaceRequests();
+        return { success: true, mode: "db" };
+      }
+      if (
+        !canFlagIssue({
+          status: req.status as RequestStatus,
+          cancelled: req.cancelled,
+          issue: req.issue,
+        })
+      ) {
+        return {
+          success: false,
+          error:
+            "Сигнал за проблем може да се подаде след приключване на работата.",
+        };
+      }
 
       await db
         .update(requests)
         .set({
-          description: appendIssue(req.description),
+          issue: true,
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -436,11 +491,20 @@ export async function transitionRequestServerAction(
         .from(requests)
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
+      if (
+        !canResolveIssue({
+          status: req.status as RequestStatus,
+          issue: req.issue,
+        })
+      ) {
+        return { success: false, error: "Няма активен сигнал по тази заявка." };
+      }
 
       await db
         .update(requests)
         .set({
-          description: removeIssueMarker(req.description),
+          issue: false,
+          issueNote: null,
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
@@ -456,7 +520,7 @@ export async function transitionRequestServerAction(
 async function validateDispatchTarget(
   requestId: number,
   specialistId: number,
-): Promise<{ ok: true; description: string } | { ok: false; error: string }> {
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const currentUser = await getServerSession();
   if (!currentUser || currentUser.role !== "ADMIN") {
     return {
@@ -477,7 +541,13 @@ async function validateDispatchTarget(
   if (!req) {
     return { ok: false, error: "Заявката не е намерена." };
   }
-  if (req.status !== 0 || req.specialistId !== null) {
+  if (
+    !canClaim({
+      status: req.status as RequestStatus,
+      cancelled: req.cancelled,
+      specialistId: req.specialistId,
+    })
+  ) {
     return { ok: false, error: "Заявката вече е разпределена." };
   }
 
@@ -496,7 +566,7 @@ async function validateDispatchTarget(
     };
   }
 
-  return { ok: true, description: req.description };
+  return { ok: true };
 }
 
 export async function adminAssignSpecialistAction(
@@ -525,7 +595,8 @@ export async function adminAssignSpecialistAction(
     .set({
       specialistId,
       status: 1,
-      description: appendDispatchMarker(candidate.description),
+      recommendedSpecialistId: null,
+      dispatchedByAdmin: true,
       updatedAt: new Date(),
     })
     .where(eq(requests.id, requestId));
@@ -559,7 +630,7 @@ export async function adminRecommendSpecialistAction(
   await db
     .update(requests)
     .set({
-      description: appendRecommendMarker(candidate.description, specialistId),
+      recommendedSpecialistId: specialistId,
       updatedAt: new Date(),
     })
     .where(eq(requests.id, requestId));

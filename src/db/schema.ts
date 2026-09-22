@@ -1,5 +1,13 @@
-import { relations } from "drizzle-orm";
-import { integer, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import {
+  boolean,
+  check,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", [
   "CLIENT",
@@ -79,29 +87,48 @@ export const specialistProfiles = pgTable("specialist_profiles", {
     .notNull(),
 });
 
-export const requests = pgTable("requests", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  clientId: integer("client_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  specialistId: integer("specialist_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  category: text("category").notNull(),
-  address: text("address").notNull(),
-  priority: requestPriorityEnum("priority").notNull().default("STANDARD"),
-  status: integer("status").notNull().default(0),
-  price: integer("price").notNull(),
-  clientPhone: text("client_phone").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
+export const requests = pgTable(
+  "requests",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    clientId: integer("client_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    specialistId: integer("specialist_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    category: text("category").notNull(),
+    address: text("address").notNull(),
+    priority: requestPriorityEnum("priority").notNull().default("STANDARD"),
+    status: integer("status").notNull().default(0),
+    price: integer("price").notNull(),
+    clientPhone: text("client_phone").notNull(),
+    cancelled: boolean("cancelled").notNull().default(false),
+    report: text("report"),
+    rating: integer("rating"),
+    issue: boolean("issue").notNull().default(false),
+    issueNote: text("issue_note"),
+    recommendedSpecialistId: integer("recommended_specialist_id").references(
+      () => users.id,
+      { onDelete: "set null" },
+    ),
+    dispatchedByAdmin: boolean("dispatched_by_admin").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    check(
+      "requests_rating_range",
+      sql`${table.rating} IS NULL OR (${table.rating} >= 1 AND ${table.rating} <= 5)`,
+    ),
+  ],
+);
 
 export const subscriptions = pgTable("subscriptions", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
