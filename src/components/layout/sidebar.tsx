@@ -1,60 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
 import type { User } from "@/features/auth/types";
-import {
-  getNavigationItems,
-  resolveWorkspaceRole,
-  ROLE_DASHBOARD_PATHS,
-} from "./sidebar-nav";
+import { getNavigationItems, resolveWorkspaceRole } from "./sidebar-nav";
 
-export function Sidebar({ initialUser }: { initialUser?: User | null }) {
+export function Sidebar({
+  initialUser,
+  collapsed = false,
+  onToggleCollapse,
+}: {
+  initialUser?: User | null;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}) {
   const pathname = usePathname() ?? "";
-  const router = useRouter();
   const { user } = useAuth();
 
   const activeUser = user ?? initialUser ?? null;
   const currentRole = resolveWorkspaceRole(pathname, activeUser?.role);
   const navigation = getNavigationItems(currentRole, pathname);
-  const currentRolePath = ROLE_DASHBOARD_PATHS[currentRole];
 
   return (
-    <aside>
-      <Link className="brand" href="/">
-        <span className="mark">⌂</span> DOMORA
-      </Link>
-      <p className="tagline">WE TAKE CARE OF YOUR HOME</p>
-      <div className="navlabel">МОЕТО ПРОСТРАНСТВО</div>
-      <nav aria-label="Основна навигация">
+    <aside aria-label="Странично меню">
+      {onToggleCollapse && (
+        <button
+          type="button"
+          className="collapse-edge-toggle"
+          style={{ top: "92px" }}
+          onClick={onToggleCollapse}
+          aria-label={
+            collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
+          }
+          title={
+            collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
+          }
+        >
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="7 16 3 12 7 8" />
+            <polyline points="17 8 21 12 17 16" />
+          </svg>
+        </button>
+      )}
+      <div className="sidebar-brand-block" style={{ marginBottom: "6px" }}>
+        <Link className="brand" href="/" title="DOMORA Начало">
+          <span className="mark" aria-hidden="true">
+            ⌂
+          </span>
+          <span className="brand-text">DOMORA</span>
+        </Link>
+        <p className="tagline" style={{ margin: "4px 0 0 0" }}>
+          WE TAKE CARE OF YOUR HOME
+        </p>
+      </div>
+      <nav aria-label="Основна навигация" style={{ marginTop: "0" }}>
         {navigation.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={item.active ? "selected" : ""}
             aria-current={item.active ? "page" : undefined}
+            title={item.label}
           >
             <span aria-hidden="true">{item.icon}</span>
             <span>{item.label}</span>
           </Link>
         ))}
       </nav>
-      <div className="asidebottom">
-        <div className="demo">ДЕМО ПРОТОТИП</div>
-        <label htmlFor="role">Разгледай като</label>
-        <select
-          id="role"
-          aria-label="Разгледай като"
-          value={currentRolePath}
-          onChange={(event) => router.push(event.target.value)}
-        >
-          <option value="/client">Клиент</option>
-          <option value="/specialist">Специалист</option>
-          <option value="/admin">Администратор</option>
-        </select>
-        <p>Примерни данни. Без реални плащания или изпращане на заявки.</p>
-      </div>
     </aside>
   );
 }
