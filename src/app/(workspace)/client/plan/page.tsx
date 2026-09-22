@@ -4,14 +4,25 @@ import { ClientPlanView } from "@/features/subscriptions/client-plan-view";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
+import type { Subscription } from "@/features/subscriptions/types";
 
 export const metadata: Metadata = { title: "Моят абонамент" };
 export const dynamic = "force-dynamic";
 
 export default async function ClientPlanPage() {
   const user = await getServerSession();
-  const initialSubscription =
-    isDbConfigured && user ? await findUserSubscription(user.id) : null;
+  const canManageSubscriptions = isDbConfigured && Boolean(user);
+  let initialSubscription: Subscription | null = null;
+  let loadError: string | undefined;
+
+  if (canManageSubscriptions && user) {
+    try {
+      initialSubscription = await findUserSubscription(user.id);
+    } catch {
+      loadError =
+        "Не успяхме да заредим данните за вашия абонамент. Опитайте отново по-късно.";
+    }
+  }
 
   return (
     <>
@@ -22,7 +33,8 @@ export default async function ClientPlanPage() {
       />
       <ClientPlanView
         initialSubscription={initialSubscription}
-        isDbMode={isDbConfigured && Boolean(user)}
+        canManageSubscriptions={canManageSubscriptions}
+        loadError={loadError}
       />
     </>
   );
