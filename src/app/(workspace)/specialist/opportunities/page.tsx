@@ -15,7 +15,7 @@ export default async function SpecialistOpportunitiesPage() {
   const user = await getServerSession();
   if (isDbConfigured) {
     if (!user) {
-      redirect("/login");
+      redirect("/api/auth/logout?next=/login");
     }
     if (
       user.role === UserRole.Specialist &&

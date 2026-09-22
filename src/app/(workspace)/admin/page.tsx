@@ -28,7 +28,7 @@ export default async function AdminPage() {
   const user = await getServerSession();
   if (isDbConfigured) {
     if (!user) {
-      redirect("/login");
+      redirect("/api/auth/logout?next=/login");
     }
     if (user.role !== UserRole.Admin) {
       redirect(user.role === UserRole.Specialist ? "/specialist" : "/client");
