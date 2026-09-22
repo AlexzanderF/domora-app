@@ -49,7 +49,7 @@ aside {
   border-right: 1px solid var(--line);
   position: fixed;
   inset: 0 auto 0 0;
-  padding: 30px 18px;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
   z-index: 30;
@@ -59,7 +59,7 @@ aside {
 }
 .collapse-edge-toggle {
   position: absolute;
-  top: 100px;
+  top: 92px;
   right: -12px;
   width: 24px;
   height: 24px;
@@ -95,7 +95,7 @@ aside {
   justify-content: center;
   text-align: center;
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
 }
 .brand {
   text-decoration: none;
@@ -128,7 +128,7 @@ aside {
 .tagline {
   font-size: 10px;
   letter-spacing: 1.3px;
-  margin: 6px 0 0 0;
+  margin: 4px 0 0 0;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
