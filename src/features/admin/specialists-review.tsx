@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useAuth } from "@/features/auth/auth-provider";
-import type { User, UserStatus } from "@/features/auth/types";
+import { UserStatus } from "@/features/auth/types";
+import type { User } from "@/features/auth/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { formatCompany, formatExperience } from "./specialist-format";
 import styles from "./specialists-review.module.css";
 
-type FilterTab = "ALL" | "PENDING" | "ACTIVE" | "REJECTED";
+type FilterTab = "ALL" | UserStatus;
 
 interface TabDefinition {
   key: FilterTab;
@@ -16,18 +17,18 @@ interface TabDefinition {
 
 const TABS: TabDefinition[] = [
   { key: "ALL", label: "Всички" },
-  { key: "PENDING", label: "Чакащи одобрение" },
-  { key: "ACTIVE", label: "Одобрени" },
-  { key: "REJECTED", label: "Отказани" },
+  { key: UserStatus.Pending, label: "Чакащи одобрение" },
+  { key: UserStatus.Active, label: "Одобрени" },
+  { key: UserStatus.Rejected, label: "Отказани" },
 ];
 
 function getStatusBadge(status: UserStatus) {
   switch (status) {
-    case "PENDING":
+    case UserStatus.Pending:
       return <span className={styles.badgePending}>Чака преглед</span>;
-    case "ACTIVE":
+    case UserStatus.Active:
       return <span className={styles.badgeActive}>Одобрен</span>;
-    case "REJECTED":
+    case UserStatus.Rejected:
       return <span className={styles.badgeRejected}>Отказан</span>;
     default:
       return null;
@@ -62,9 +63,11 @@ export function SpecialistsReview({
   const counts = useMemo(() => {
     return {
       ALL: specialists.length,
-      PENDING: specialists.filter((s) => s.status === "PENDING").length,
-      ACTIVE: specialists.filter((s) => s.status === "ACTIVE").length,
-      REJECTED: specialists.filter((s) => s.status === "REJECTED").length,
+      PENDING: specialists.filter((s) => s.status === UserStatus.Pending)
+        .length,
+      ACTIVE: specialists.filter((s) => s.status === UserStatus.Active).length,
+      REJECTED: specialists.filter((s) => s.status === UserStatus.Rejected)
+        .length,
     };
   }, [specialists]);
 
@@ -100,8 +103,11 @@ export function SpecialistsReview({
   const handleApprove = async (spec: User) => {
     try {
       setProcessingId(spec.id);
-      await updateUserStatus(spec.id, "ACTIVE");
-      setOverrideStatuses((prev) => ({ ...prev, [spec.id]: "ACTIVE" }));
+      await updateUserStatus(spec.id, UserStatus.Active);
+      setOverrideStatuses((prev) => ({
+        ...prev,
+        [spec.id]: UserStatus.Active,
+      }));
       notify(`Кандидатурата на ${spec.name} е одобрена успешно.`);
     } catch {
       notify("Възникна грешка при одобряване на кандидатурата.");
@@ -113,8 +119,11 @@ export function SpecialistsReview({
   const handleReject = async (spec: User) => {
     try {
       setProcessingId(spec.id);
-      await updateUserStatus(spec.id, "REJECTED");
-      setOverrideStatuses((prev) => ({ ...prev, [spec.id]: "REJECTED" }));
+      await updateUserStatus(spec.id, UserStatus.Rejected);
+      setOverrideStatuses((prev) => ({
+        ...prev,
+        [spec.id]: UserStatus.Rejected,
+      }));
       notify(`Кандидатурата на ${spec.name} е отказана.`);
     } catch {
       notify("Възникна грешка при отказване на кандидатурата.");
@@ -199,11 +208,11 @@ export function SpecialistsReview({
             <p>
               {searchQuery
                 ? "Няма резултати, отговарящи на въведените критерии за търсене."
-                : activeTab === "PENDING"
+                : activeTab === UserStatus.Pending
                   ? "В момента няма чакащи одобрение кандидатури."
-                  : activeTab === "ACTIVE"
+                  : activeTab === UserStatus.Active
                     ? "Все още няма одобрени специалисти."
-                    : activeTab === "REJECTED"
+                    : activeTab === UserStatus.Rejected
                       ? "Няма отказани кандидатури."
                       : "Все още няма регистрирани специалисти."}
             </p>
@@ -242,18 +251,26 @@ export function SpecialistsReview({
                     <button
                       type="button"
                       onClick={() => handleApprove(spec)}
-                      disabled={isProcessing || spec.status === "ACTIVE"}
+                      disabled={
+                        isProcessing || spec.status === UserStatus.Active
+                      }
                       className={styles.approveButton}
                     >
-                      {spec.status === "ACTIVE" ? "Одобрен ✓" : "Одобри"}
+                      {spec.status === UserStatus.Active
+                        ? "Одобрен ✓"
+                        : "Одобри"}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleReject(spec)}
-                      disabled={isProcessing || spec.status === "REJECTED"}
+                      disabled={
+                        isProcessing || spec.status === UserStatus.Rejected
+                      }
                       className={styles.rejectButton}
                     >
-                      {spec.status === "REJECTED" ? "Отказан ✕" : "Откажи"}
+                      {spec.status === UserStatus.Rejected
+                        ? "Отказан ✕"
+                        : "Откажи"}
                     </button>
                   </div>
                 </div>

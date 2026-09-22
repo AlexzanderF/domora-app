@@ -11,6 +11,7 @@ import {
   startWorkAction,
 } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
+import { RequestStatus, Role } from "@/features/requests/types";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
@@ -33,7 +34,7 @@ export function DailyAgenda({
 
   async function startWork(request: ServiceRequest) {
     setBusyId(request.id);
-    updateRequest(request.id, { type: "advance" }, "specialist");
+    updateRequest(request.id, { type: "advance" }, Role.Specialist);
     try {
       const result = await startWorkAction(request.id);
       if (!result.success) {
@@ -69,7 +70,11 @@ export function DailyAgenda({
     }
 
     setBusyId(reportTarget.id);
-    updateRequest(reportTarget.id, { type: "advance", report }, "specialist");
+    updateRequest(
+      reportTarget.id,
+      { type: "advance", report },
+      Role.Specialist,
+    );
     try {
       const result = await completeWorkAction(reportTarget.id, report);
       if (!result.success) {
@@ -136,7 +141,7 @@ export function DailyAgenda({
                 </p>
               )}
               <div className="actions">
-                {request.status === "ACCEPTED" && (
+                {request.status === RequestStatus.Accepted && (
                   <button
                     className="primary"
                     disabled={busyId === request.id}
@@ -145,7 +150,7 @@ export function DailyAgenda({
                     {busyId === request.id ? "Стартиране…" : "Започни работа"}
                   </button>
                 )}
-                {request.status === "IN_PROGRESS" && (
+                {request.status === RequestStatus.InProgress && (
                   <button
                     className="primary"
                     disabled={busyId === request.id}

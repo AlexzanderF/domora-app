@@ -6,9 +6,11 @@ import {
   adminAssignSpecialistAction,
   adminRecommendSpecialistAction,
 } from "@/features/requests/server/actions";
+import { UserStatus } from "@/features/auth/types";
 import type { User } from "@/features/auth/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { categories } from "@/features/services/catalog";
+import { RequestPriority } from "@/features/requests/types";
 import { isUrgentPriority } from "@/features/requests/priority";
 import { money } from "@/lib/format";
 import type { ServiceRequest } from "@/features/requests/types";
@@ -21,11 +23,11 @@ export interface UnassignedRequestsQueueProps {
 
 function priorityLabel(priority?: ServiceRequest["priority"]): string {
   switch (priority) {
-    case "EMERGENCY":
+    case RequestPriority.Emergency:
       return "Аварийна";
-    case "URGENT":
+    case RequestPriority.Urgent:
       return "Спешна";
-    case "HOLIDAY":
+    case RequestPriority.Holiday:
       return "Празнична";
     default:
       return "Стандартна";
@@ -54,7 +56,9 @@ export function UnassignedRequestsQueue({
   const [processingId, setProcessingId] = useState<number | null>(null);
 
   const activeSpecialists = useMemo(() => {
-    return (initialSpecialists ?? []).filter((s) => s.status === "ACTIVE");
+    return (initialSpecialists ?? []).filter(
+      (s) => s.status === UserStatus.Active,
+    );
   }, [initialSpecialists]);
 
   const specialistNames = useMemo(() => {

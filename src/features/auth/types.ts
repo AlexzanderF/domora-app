@@ -1,6 +1,16 @@
-export type UserRole = "CLIENT" | "SPECIALIST" | "ADMIN";
+export const UserRole = {
+  Client: "CLIENT",
+  Specialist: "SPECIALIST",
+  Admin: "ADMIN",
+} as const;
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
-export type UserStatus = "ACTIVE" | "PENDING" | "REJECTED";
+export const UserStatus = {
+  Active: "ACTIVE",
+  Pending: "PENDING",
+  Rejected: "REJECTED",
+} as const;
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 
 export interface SpecialistProfile {
   id?: number;

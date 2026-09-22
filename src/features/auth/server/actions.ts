@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { getDb, isDbConfigured } from "@/db";
 import { specialistProfiles, users } from "@/db/schema";
+import { UserRole, UserStatus } from "../types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
@@ -63,8 +64,8 @@ export async function loginAction(
   }
 
   if (
-    userWithPassword.role === "SPECIALIST" &&
-    userWithPassword.status === "REJECTED"
+    userWithPassword.role === UserRole.Specialist &&
+    userWithPassword.status === UserStatus.Rejected
   ) {
     return {
       success: false,
@@ -134,8 +135,8 @@ export async function registerClientAction(
       email: input.email.trim().toLowerCase(),
       phone: input.phone.trim(),
       passwordHash,
-      role: "CLIENT",
-      status: "ACTIVE",
+      role: UserRole.Client,
+      status: UserStatus.Active,
     })
     .returning({ id: users.id });
 
@@ -208,8 +209,8 @@ export async function registerSpecialistAction(
       email: input.email.trim().toLowerCase(),
       phone: input.phone.trim(),
       passwordHash,
-      role: "SPECIALIST",
-      status: "PENDING",
+      role: UserRole.Specialist,
+      status: UserStatus.Pending,
     })
     .returning({ id: users.id });
 

@@ -12,6 +12,7 @@ import {
   findSpecialistApplications,
   findUnassignedRequestsForAdmin,
 } from "@/features/admin/server/queries";
+import { UserRole } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 import styles from "@/features/admin/admin-command-center.module.css";
@@ -29,8 +30,8 @@ export default async function AdminPage() {
     if (!user) {
       redirect("/login");
     }
-    if (user.role !== "ADMIN") {
-      redirect(user.role === "SPECIALIST" ? "/specialist" : "/client");
+    if (user.role !== UserRole.Admin) {
+      redirect(user.role === UserRole.Specialist ? "/specialist" : "/client");
     }
   }
 

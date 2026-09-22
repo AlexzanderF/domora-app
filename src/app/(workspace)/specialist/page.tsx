@@ -5,7 +5,9 @@ import { DashboardSummary } from "@/features/specialist/dashboard-summary";
 import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
 import { DailyAgenda } from "@/features/specialist/daily-agenda";
 import { isActiveStage } from "@/features/requests/request-rules";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
+import { RequestStatus } from "@/features/requests/types";
 import { findSpecialistRequests } from "@/features/requests/server/queries";
 import { isDbConfigured } from "@/db";
 
@@ -18,16 +20,19 @@ export default async function SpecialistPage() {
     if (!user) {
       redirect("/login");
     }
-    if (user.role === "SPECIALIST" && user.status === "PENDING") {
+    if (
+      user.role === UserRole.Specialist &&
+      user.status === UserStatus.Pending
+    ) {
       redirect("/pending-approval");
     }
-    if (user.role === "CLIENT") {
+    if (user.role === UserRole.Client) {
       redirect("/client");
     }
   }
 
   const allRequests =
-    user?.role === "SPECIALIST" || user?.role === "ADMIN"
+    user?.role === UserRole.Specialist || user?.role === UserRole.Admin
       ? await findSpecialistRequests(
           user.id,
           user.specialistProfile?.category,
@@ -36,7 +41,9 @@ export default async function SpecialistPage() {
       : null;
 
   const initialOpportunities = allRequests
-    ? allRequests.filter((req) => req.status === "CREATED" && !req.cancelled)
+    ? allRequests.filter(
+        (req) => req.status === RequestStatus.Created && !req.cancelled,
+      )
     : null;
   const initialAgenda = allRequests
     ? allRequests.filter((req) => !req.cancelled && isActiveStage(req.status))
@@ -54,7 +61,7 @@ export default async function SpecialistPage() {
         initialOpportunities={initialOpportunities}
         limit={5}
         viewAllHref="/specialist/opportunities"
-        specialistId={user?.role === "SPECIALIST" ? user.id : undefined}
+        specialistId={user?.role === UserRole.Specialist ? user.id : undefined}
       />
       <DailyAgenda initialAgenda={initialAgenda} />
     </>

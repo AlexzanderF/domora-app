@@ -3,6 +3,7 @@
 import { useDemo } from "@/features/requests/demo-provider";
 import { isActiveStage } from "@/features/requests/request-rules";
 import { isUrgentPriority } from "@/features/requests/priority";
+import { RequestStatus } from "@/features/requests/types";
 import { money } from "@/lib/format";
 import type { AdminKpiMetrics } from "./server/metrics";
 import styles from "./admin-command-center.module.css";
@@ -19,7 +20,9 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps = {}) {
     initialMetrics?.unassignedUrgentCount ??
     requests.filter(
       (r) =>
-        !r.cancelled && r.status === "CREATED" && isUrgentPriority(r.priority),
+        !r.cancelled &&
+        r.status === RequestStatus.Created &&
+        isUrgentPriority(r.priority),
     ).length;
 
   const pendingSpecialistsCount = initialMetrics?.pendingSpecialistsCount ?? 1;
@@ -31,7 +34,7 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps = {}) {
   const monthlyRevenue =
     initialMetrics?.monthlyRevenue ??
     requests
-      .filter((r) => r.status === "COMPLETED")
+      .filter((r) => r.status === RequestStatus.Completed)
       .reduce((sum, r) => sum + (r.price || 0), 0);
 
   return (

@@ -15,6 +15,7 @@ import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote, quoteScope } from "@/features/requests/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
 import { generateDemoId } from "@/features/requests/demo-data";
+import { Plan, RequestStatus } from "@/features/requests/types";
 import type { BookingSelection, CategoryId } from "@/features/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
@@ -39,7 +40,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
   const [category, setCategory] = useState<CategoryId>(selection.category);
   const [serviceIndex, setServiceIndex] = useState(0);
   const [quantity, setQuantity] = useState(
-    selection.plan === "entry" ? "6" : "80",
+    selection.plan === Plan.Entry ? "6" : "80",
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const plan = selection.plan;
@@ -82,14 +83,14 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
       nextErrors.date = "Датата не може да бъде в миналото.";
     if (!timeStr) nextErrors.time = "Изберете часови диапазон.";
     if (!validQuantity) {
-      nextErrors.quantity = `Въведете ${plan === "entry" ? "брой етажи" : "площ"} между 1 и 1000.`;
+      nextErrors.quantity = `Въведете ${plan === Plan.Entry ? "брой етажи" : "площ"} между 1 и 1000.`;
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     if (price === null) return;
 
     const serviceName = plan
-      ? `Абонамент ${plan === "home" ? "За дома" : "За входа"}`
+      ? `Абонамент ${plan === Plan.Home ? "За дома" : "За входа"}`
       : categories[category].services[serviceIndex];
 
     setIsSubmitting(true);
@@ -115,7 +116,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           date: dateStr,
           time: timeStr,
           price,
-          status: "CREATED",
+          status: RequestStatus.Created,
           plan,
         });
         closeBooking();
@@ -150,7 +151,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         date: dateStr,
         time: timeStr,
         price,
-        status: "CREATED",
+        status: RequestStatus.Created,
         plan,
       });
       closeBooking();
@@ -176,7 +177,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           <span className={styles.eyebrow}>DOMORA / НОВА ЗАЯВКА</span>
           <h2 id="booking-title">
             {plan
-              ? `Абонамент ${plan === "home" ? "за дома" : "за входа"}`
+              ? `Абонамент ${plan === Plan.Home ? "за дома" : "за входа"}`
               : "Разкажете ни от какво се нуждаете"}
           </h2>
         </div>
@@ -220,7 +221,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
             >
               {plan ? (
                 <option value={0}>
-                  {plan === "home"
+                  {plan === Plan.Home
                     ? "Абонаментно почистване на дома"
                     : "Абонаментно почистване на общите части"}
                 </option>
@@ -286,7 +287,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         </div>
         {plan && (
           <Field
-            label={plan === "entry" ? "Брой етажи" : "Площ на дома (м²)"}
+            label={plan === Plan.Entry ? "Брой етажи" : "Площ на дома (м²)"}
             error={errors.quantity}
             id="quantity-error"
           >

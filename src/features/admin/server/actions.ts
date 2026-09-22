@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { tariffs, users } from "@/db/schema";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
 import type { CategoryId, Tariffs } from "@/features/requests/types";
 
@@ -21,21 +22,21 @@ export interface UpdateTariffsResult {
 
 export async function updateSpecialistStatusAction(
   userId: number,
-  status: "ACTIVE" | "REJECTED",
+  status: UserStatus,
 ): Promise<UpdateSpecialistStatusResult> {
   if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
     return { success: true, mode: "demo" };
   }
 
   const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== "ADMIN") {
+  if (!currentUser || currentUser.role !== UserRole.Admin) {
     return {
       success: false,
       error: "Неоторизиран достъп. Изискват се администраторски права.",
     };
   }
 
-  if (status !== "ACTIVE" && status !== "REJECTED") {
+  if (status !== UserStatus.Active && status !== UserStatus.Rejected) {
     return {
       success: false,
       error: "Невалиден статус на специалист.",
@@ -74,7 +75,7 @@ export async function updateTariffsAction(
   }
 
   const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== "ADMIN") {
+  if (!currentUser || currentUser.role !== UserRole.Admin) {
     return { success: true, mode: "demo" };
   }
 

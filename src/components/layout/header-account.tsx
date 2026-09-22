@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import type { User } from "@/features/auth/types";
 
 export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
@@ -13,8 +14,9 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
   const activeUser = user ?? initialUser ?? null;
 
   const isPendingOrRejectedSpecialist =
-    activeUser?.role === "SPECIALIST" &&
-    (activeUser?.status === "PENDING" || activeUser?.status === "REJECTED");
+    activeUser?.role === UserRole.Specialist &&
+    (activeUser?.status === UserStatus.Pending ||
+      activeUser?.status === UserStatus.Rejected);
 
   useEffect(() => {
     if (isPendingOrRejectedSpecialist && status === "authenticated") {
@@ -27,9 +29,9 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
   }
 
   const roleLabel =
-    activeUser?.role === "SPECIALIST"
+    activeUser?.role === UserRole.Specialist
       ? "Специалист"
-      : activeUser?.role === "ADMIN"
+      : activeUser?.role === UserRole.Admin
         ? "Администратор"
         : "Клиент";
 

@@ -8,7 +8,7 @@ import { TimePicker } from "@/features/plans/time-picker";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote } from "@/features/requests/pricing";
 import { generateDemoId } from "@/features/requests/demo-data";
-import type { Plan } from "@/features/requests/types";
+import { Plan, RequestStatus } from "@/features/requests/types";
 import { localDate, money } from "@/lib/format";
 import styles from "./plans.module.css";
 
@@ -58,7 +58,7 @@ export function PlansConfigurator() {
   const router = useRouter();
   const notify = useToast();
   const { tariffs, addRequest } = useDemo();
-  const [plan, setPlan] = useState<Plan>("home");
+  const [plan, setPlan] = useState<Plan>(Plan.Home);
   const [visits, setVisits] = useState(2);
   const [quantity, setQuantity] = useState(80);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -92,7 +92,7 @@ export function PlansConfigurator() {
       nextErrors.date = "Датата не може да бъде в миналото.";
     if (!time) nextErrors.time = "Изберете часови диапазон.";
     if (!validQuantity) {
-      nextErrors.quantity = `Въведете ${plan === "home" ? "площ" : "брой етажи"} между 1 и 1000.`;
+      nextErrors.quantity = `Въведете ${plan === Plan.Home ? "площ" : "брой етажи"} между 1 и 1000.`;
     }
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length || price === null) return;
@@ -107,7 +107,7 @@ export function PlansConfigurator() {
       date,
       time,
       price,
-      status: "CREATED",
+      status: RequestStatus.Created,
       plan,
       visitsPerMonth: visits,
       propertySize: quantity,

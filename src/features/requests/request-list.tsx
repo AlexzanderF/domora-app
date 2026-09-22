@@ -5,12 +5,13 @@ import { requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
 import { useDemo } from "./demo-provider";
 import { RequestActions } from "./request-actions";
-import type { Role, ServiceRequest } from "./types";
+import { Plan, RequestStatus, Role } from "./types";
+import type { ServiceRequest } from "./types";
 
 export function RequestList({
   limit,
   actions = false,
-  role = "client",
+  role = Role.Client,
   initialRequests,
 }: {
   limit?: number;
@@ -47,15 +48,15 @@ export function RequestList({
               {request.address}
             </p>
             <span
-              className={`badge ${request.status === "CREATED" && !request.cancelled ? "wait" : ""}`}
+              className={`badge ${request.status === RequestStatus.Created && !request.cancelled ? "wait" : ""}`}
             >
               {request.cancelled ? "Отказана" : requestStages[request.status]}
             </span>{" "}
             {request.plan && (
               <span className="badge">
                 {request.visitsPerMonth && request.propertySize
-                  ? `${request.visitsPerMonth} ${request.visitsPerMonth === 1 ? "посещение" : "посещения"} / месец · ${request.propertySize} ${request.plan === "home" ? "м²" : "етажа"}`
-                  : request.plan === "home"
+                  ? `${request.visitsPerMonth} ${request.visitsPerMonth === 1 ? "посещение" : "посещения"} / месец · ${request.propertySize} ${request.plan === Plan.Home ? "м²" : "етажа"}`
+                  : request.plan === Plan.Home
                     ? "За дома"
                     : "За входа"}
               </span>

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { SignupWizard } from "@/features/auth/signup-wizard";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 
@@ -15,12 +16,14 @@ export default async function SignUpPage() {
   if (isDbConfigured) {
     const user = await getServerSession();
     if (user) {
-      if (user.role === "ADMIN") {
+      if (user.role === UserRole.Admin) {
         redirect("/admin");
       }
-      if (user.role === "SPECIALIST") {
+      if (user.role === UserRole.Specialist) {
         redirect(
-          user.status === "PENDING" ? "/pending-approval" : "/specialist",
+          user.status === UserStatus.Pending
+            ? "/pending-approval"
+            : "/specialist",
         );
       }
       redirect("/client");

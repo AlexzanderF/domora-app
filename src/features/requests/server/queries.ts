@@ -2,6 +2,7 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
+import { RequestStatus } from "../types";
 import type { CategoryId, ServiceRequest } from "../types";
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -83,7 +84,7 @@ export async function findSpecialistRequests(
   const assignedCondition = eq(requests.specialistId, specialistId);
   const conditions = [
     isNull(requests.specialistId),
-    eq(requests.status, "CREATED"),
+    eq(requests.status, RequestStatus.Created),
   ];
 
   if (category) {

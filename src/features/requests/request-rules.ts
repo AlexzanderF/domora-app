@@ -1,4 +1,4 @@
-import type { RequestStatus } from "./types";
+import { RequestStatus } from "./types";
 
 // Minimal structural input shared by the in-memory transition seam and the
 // database-backed server actions, so both enforce identical lifecycle rules.
@@ -12,25 +12,25 @@ export interface RuleCheckRequest {
 
 // Ordered execution pipeline: every stage knows its successor.
 const NEXT_STEP: Record<RequestStatus, RequestStatus> = {
-  CREATED: "ACCEPTED",
-  ACCEPTED: "IN_PROGRESS",
-  IN_PROGRESS: "AWAITING_CONFIRMATION",
-  AWAITING_CONFIRMATION: "COMPLETED",
-  COMPLETED: "COMPLETED",
+  [RequestStatus.Created]: RequestStatus.Accepted,
+  [RequestStatus.Accepted]: RequestStatus.InProgress,
+  [RequestStatus.InProgress]: RequestStatus.AwaitingConfirmation,
+  [RequestStatus.AwaitingConfirmation]: RequestStatus.Completed,
+  [RequestStatus.Completed]: RequestStatus.Completed,
 };
 
 // Stages still in flight (visible in agendas and active counters).
 const ACTIVE_STAGES: readonly RequestStatus[] = [
-  "ACCEPTED",
-  "IN_PROGRESS",
-  "AWAITING_CONFIRMATION",
+  RequestStatus.Accepted,
+  RequestStatus.InProgress,
+  RequestStatus.AwaitingConfirmation,
 ];
 
 // Stages before client confirmation (client can still cancel or be served).
 const PRE_CONFIRMATION_STAGES: readonly RequestStatus[] = [
-  "CREATED",
-  "ACCEPTED",
-  "IN_PROGRESS",
+  RequestStatus.Created,
+  RequestStatus.Accepted,
+  RequestStatus.InProgress,
 ];
 
 export function isValidRating(rating: unknown): rating is number {
@@ -50,7 +50,7 @@ export function isActiveStage(status: RequestStatus): boolean {
 export function canClaim(request: RuleCheckRequest): boolean {
   return (
     !request.cancelled &&
-    request.status === "CREATED" &&
+    request.status === RequestStatus.Created &&
     request.specialistId == null
   );
 }
@@ -66,17 +66,19 @@ export function canAdvance(request: RuleCheckRequest): boolean {
 }
 
 export function requiresCompletionReport(status: RequestStatus): boolean {
-  return status === "IN_PROGRESS";
+  return status === RequestStatus.InProgress;
 }
 
 export function canConfirmCompletion(request: RuleCheckRequest): boolean {
-  return !request.cancelled && request.status === "AWAITING_CONFIRMATION";
+  return (
+    !request.cancelled && request.status === RequestStatus.AwaitingConfirmation
+  );
 }
 
 export function canFlagIssue(request: RuleCheckRequest): boolean {
   return (
     !request.cancelled &&
-    request.status === "AWAITING_CONFIRMATION" &&
+    request.status === RequestStatus.AwaitingConfirmation &&
     !request.issue
   );
 }
@@ -88,7 +90,7 @@ export function canResolveIssue(request: RuleCheckRequest): boolean {
 export function canRate(request: RuleCheckRequest, rating: unknown): boolean {
   return (
     !request.cancelled &&
-    request.status === "COMPLETED" &&
+    request.status === RequestStatus.Completed &&
     request.rating == null &&
     isValidRating(rating)
   );

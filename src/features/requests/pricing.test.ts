@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { initialTariffs } from "./demo-data";
 import { calculateQuote, quoteScope } from "./pricing";
+import { Plan } from "./types";
 
 describe("booking prices", () => {
   it("uses category tariffs for the first service and the fixed diagnostic price for the second", () => {
@@ -17,22 +18,22 @@ describe("booking prices", () => {
   ])(
     "prices an 80 m² home for $visits monthly visits",
     ({ visits, expected }) => {
-      expect(calculateQuote(initialTariffs, 4, 0, "home", 80, visits)).toBe(
+      expect(calculateQuote(initialTariffs, 4, 0, Plan.Home, 80, visits)).toBe(
         expected,
       );
     },
   );
 
   it("prices entry subscriptions by floor count and rounds the discounted total", () => {
-    expect(calculateQuote(initialTariffs, 4, 0, "entry", 6, 2)).toBe(216);
-    expect(calculateQuote(initialTariffs, 4, 0, "entry", 7, 4)).toBe(454);
+    expect(calculateQuote(initialTariffs, 4, 0, Plan.Entry, 6, 2)).toBe(216);
+    expect(calculateQuote(initialTariffs, 4, 0, Plan.Entry, 7, 4)).toBe(454);
   });
 
   it.each([0, -1, 1001, NaN, Infinity])(
     "rejects invalid subscription quantity %s",
     (quantity) => {
       expect(() =>
-        calculateQuote(initialTariffs, 4, 0, "home", quantity),
+        calculateQuote(initialTariffs, 4, 0, Plan.Home, quantity),
       ).toThrow();
     },
   );
@@ -41,7 +42,7 @@ describe("booking prices", () => {
     "rejects invalid monthly visit count %s",
     (visitsPerMonth) => {
       expect(() =>
-        calculateQuote(initialTariffs, 4, 0, "home", 80, visitsPerMonth),
+        calculateQuote(initialTariffs, 4, 0, Plan.Home, 80, visitsPerMonth),
       ).toThrow();
     },
   );

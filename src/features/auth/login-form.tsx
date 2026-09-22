@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth-provider";
+import { UserRole, UserStatus } from "./types";
 import { validateLogin, type LoginErrors } from "./validation";
 import styles from "./auth.module.css";
 
@@ -85,12 +86,12 @@ export function LoginForm() {
 
       router.refresh();
 
-      if (result.user?.role === "SPECIALIST") {
-        if (result.user.status === "PENDING") {
+      if (result.user?.role === UserRole.Specialist) {
+        if (result.user.status === UserStatus.Pending) {
           router.push("/pending-approval");
           return;
         }
-        if (result.user.status === "REJECTED") {
+        if (result.user.status === UserStatus.Rejected) {
           await logout();
           setErrorBanner(
             "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
@@ -101,7 +102,7 @@ export function LoginForm() {
         return;
       }
 
-      if (result.user?.role === "ADMIN") {
+      if (result.user?.role === UserRole.Admin) {
         router.push("/admin");
         return;
       }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useDemo } from "@/features/requests/demo-provider";
 import { isActiveStage } from "@/features/requests/request-rules";
 import { localDate, money } from "@/lib/format";
+import { RequestStatus } from "@/features/requests/types";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
@@ -16,7 +17,7 @@ function computeStats(requests: ServiceRequest[]) {
     .filter(
       (request) =>
         !request.cancelled &&
-        request.status === "COMPLETED" &&
+        request.status === RequestStatus.Completed &&
         request.date === today,
     )
     .reduce((sum, request) => sum + (request.price || 0), 0);

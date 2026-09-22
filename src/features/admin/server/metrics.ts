@@ -6,6 +6,9 @@ import type {
   ServiceRequest,
   Tariffs,
 } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/features/auth/types";
+import { RequestStatus } from "@/features/requests/types";
+import { RequestPriority } from "@/features/requests/types";
 
 export interface WorkspaceStatsData {
   total: number;
@@ -51,22 +54,30 @@ export async function findAdminKpiMetrics(): Promise<AdminKpiMetrics | null> {
       .from(requests)
       .where(
         and(
-          eq(requests.status, "CREATED"),
-          inArray(requests.priority, ["URGENT", "EMERGENCY"]),
+          eq(requests.status, RequestStatus.Created),
+          inArray(requests.priority, [
+            RequestPriority.Urgent,
+            RequestPriority.Emergency,
+          ]),
         ),
       ),
     db
       .select({ value: count() })
       .from(users)
-      .where(and(eq(users.role, "SPECIALIST"), eq(users.status, "PENDING"))),
+      .where(
+        and(
+          eq(users.role, UserRole.Specialist),
+          eq(users.status, UserStatus.Pending),
+        ),
+      ),
     db
       .select({ value: count() })
       .from(requests)
       .where(
         inArray(requests.status, [
-          "ACCEPTED",
-          "IN_PROGRESS",
-          "AWAITING_CONFIRMATION",
+          RequestStatus.Accepted,
+          RequestStatus.InProgress,
+          RequestStatus.AwaitingConfirmation,
         ]),
       ),
     db
@@ -74,7 +85,7 @@ export async function findAdminKpiMetrics(): Promise<AdminKpiMetrics | null> {
       .from(requests)
       .where(
         and(
-          eq(requests.status, "COMPLETED"),
+          eq(requests.status, RequestStatus.Completed),
           or(
             gte(requests.updatedAt, startOfMonth),
             gte(requests.createdAt, startOfMonth),
@@ -105,15 +116,15 @@ export async function findOperationalMetrics(): Promise<WorkspaceStatsData | nul
   const [activeResult] = await db
     .select({ value: count() })
     .from(requests)
-    .where(ne(requests.status, "COMPLETED"));
+    .where(ne(requests.status, RequestStatus.Completed));
   const [completedResult] = await db
     .select({ value: count() })
     .from(requests)
-    .where(eq(requests.status, "COMPLETED"));
+    .where(eq(requests.status, RequestStatus.Completed));
   const [specialistsResult] = await db
     .select({ value: count() })
     .from(users)
-    .where(eq(users.role, "SPECIALIST"));
+    .where(eq(users.role, UserRole.Specialist));
 
   return {
     total: totalResult?.value ?? 0,

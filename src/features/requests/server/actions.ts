@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import {
   canClaim,
   canConfirmCompletion,
@@ -15,6 +16,7 @@ import {
   nextExecutionStep,
   requiresCompletionReport,
 } from "../request-rules";
+import { RequestPriority, RequestStatus } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
 export interface CreateServiceRequestInput {
@@ -26,7 +28,7 @@ export interface CreateServiceRequestInput {
   time?: string;
   price: number;
   plan?: Plan;
-  priority?: "STANDARD" | "URGENT" | "EMERGENCY";
+  priority?: RequestPriority;
 }
 
 export interface ServiceRequestActionResult {
@@ -94,8 +96,8 @@ export async function createServiceRequestAction(
       description,
       category: String(input.category),
       address,
-      priority: input.priority ?? "STANDARD",
-      status: "CREATED",
+      priority: input.priority ?? RequestPriority.Standard,
+      status: RequestStatus.Created,
       price: Math.round(input.price),
       clientPhone: user.phone || "0888000000",
     })
@@ -115,7 +117,7 @@ export async function createServiceRequestAction(
       input.time ||
       now.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }),
     price: Math.round(input.price),
-    status: "CREATED",
+    status: RequestStatus.Created,
     description,
     plan: input.plan,
   };
@@ -135,14 +137,17 @@ export async function assignSpecialistAction(
   }
 
   const user = await getServerSession();
-  if (!user || (user.role !== "SPECIALIST" && user.role !== "ADMIN")) {
+  if (
+    !user ||
+    (user.role !== UserRole.Specialist && user.role !== UserRole.Admin)
+  ) {
     return {
       success: false,
       error: "Само специалист или администратор може да приема заявки.",
     };
   }
 
-  if (user.role === "SPECIALIST" && user.status !== "ACTIVE") {
+  if (user.role === UserRole.Specialist && user.status !== UserStatus.Active) {
     return {
       success: false,
       error: "Профилът ви все още не е одобрен.",
@@ -176,10 +181,15 @@ export async function assignSpecialistAction(
     .update(requests)
     .set({
       specialistId: user.id,
-      status: "ACCEPTED",
+      status: RequestStatus.Accepted,
       updatedAt: new Date(),
     })
-    .where(and(eq(requests.id, requestId), eq(requests.status, "CREATED")));
+    .where(
+      and(
+        eq(requests.id, requestId),
+        eq(requests.status, RequestStatus.Created),
+      ),
+    );
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
@@ -222,7 +232,8 @@ export async function startWorkAction(
   // 2-step execution: unassigned work is claimed, accepted work jumps
   // straight to "В процес" once the specialist starts.
   const nextStatus =
-    currentStatus === "CREATED" || currentStatus === "ACCEPTED"
+    currentStatus === RequestStatus.Created ||
+    currentStatus === RequestStatus.Accepted
       ? nextExecutionStep(currentStatus)
       : currentStatus;
 
@@ -230,7 +241,7 @@ export async function startWorkAction(
     .update(requests)
     .set({
       status: nextStatus,
-      ...(currentStatus === "CREATED" && !existing.specialistId
+      ...(currentStatus === RequestStatus.Created && !existing.specialistId
         ? { specialistId: user.id }
         : {}),
       updatedAt: new Date(),
@@ -286,10 +297,10 @@ export async function completeWorkAction(
         error: "Отчетът е задължителен, за да завършите задачата.",
       };
     }
-    nextStatus = "AWAITING_CONFIRMATION";
+    nextStatus = RequestStatus.AwaitingConfirmation;
     nextReport = report.trim();
   } else if (canConfirmCompletion({ status, cancelled: existing.cancelled })) {
-    nextStatus = "COMPLETED";
+    nextStatus = RequestStatus.Completed;
   } else {
     return {
       success: false,
@@ -341,14 +352,15 @@ export async function cancelRequestAction(
   }
 
   if (
-    user.role === "SPECIALIST" &&
-    (existing.status === "CREATED" || existing.status === "ACCEPTED")
+    user.role === UserRole.Specialist &&
+    (existing.status === RequestStatus.Created ||
+      existing.status === RequestStatus.Accepted)
   ) {
     await db
       .update(requests)
       .set({
         specialistId: null,
-        status: "CREATED",
+        status: RequestStatus.Created,
         updatedAt: new Date(),
       })
       .where(eq(requests.id, requestId));
@@ -389,10 +401,10 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
-      if (req.status === "CREATED") {
+      if (req.status === RequestStatus.Created) {
         return assignSpecialistAction(requestId);
       }
-      if (req.status === "IN_PROGRESS") {
+      if (req.status === RequestStatus.InProgress) {
         return completeWorkAction(requestId, action.report);
       }
       return startWorkAction(requestId);
@@ -519,7 +531,7 @@ async function validateDispatchTarget(
   specialistId: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== "ADMIN") {
+  if (!currentUser || currentUser.role !== UserRole.Admin) {
     return {
       ok: false,
       error: "Неоторизиран достъп. Изискват се администраторски права.",
@@ -554,8 +566,8 @@ async function validateDispatchTarget(
     .where(eq(users.id, specialistId));
   if (
     !specialist ||
-    specialist.role !== "SPECIALIST" ||
-    specialist.status !== "ACTIVE"
+    specialist.role !== UserRole.Specialist ||
+    specialist.status !== UserStatus.Active
   ) {
     return {
       ok: false,
@@ -591,7 +603,7 @@ export async function adminAssignSpecialistAction(
     .update(requests)
     .set({
       specialistId,
-      status: "ACCEPTED",
+      status: RequestStatus.Accepted,
       recommendedSpecialistId: null,
       dispatchedByAdmin: true,
       updatedAt: new Date(),

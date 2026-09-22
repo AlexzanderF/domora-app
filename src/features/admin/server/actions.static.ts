@@ -1,3 +1,4 @@
+import type { UserStatus } from "@/features/auth/types";
 import type { Tariffs } from "@/features/requests/types";
 
 export interface UpdateSpecialistStatusResult {
@@ -14,7 +15,7 @@ export interface UpdateTariffsResult {
 
 export async function updateSpecialistStatusAction(
   userId: string,
-  status: "ACTIVE" | "REJECTED",
+  status: UserStatus,
 ): Promise<UpdateSpecialistStatusResult> {
   void userId;
   void status;

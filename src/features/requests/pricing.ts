@@ -1,4 +1,5 @@
-import type { CategoryId, Plan, Tariffs } from "./types";
+import { Plan } from "./types";
+import type { CategoryId, Tariffs } from "./types";
 
 export function calculateQuote(
   tariffs: Tariffs,
@@ -33,7 +34,7 @@ export function quoteScope(
   plan?: Plan,
 ) {
   if (plan)
-    return plan === "home"
+    return plan === Plan.Home
       ? "2 почиствания месечно"
       : "Почистване веднъж седмично";
   return serviceIndex > 0 || category === 3 || category === 5

@@ -4,7 +4,8 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "./demo-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { canAdvance, requiresCompletionReport } from "./request-rules";
-import type { RequestAction, Role, ServiceRequest } from "./types";
+import { RequestStatus, Role } from "./types";
+import type { RequestAction, ServiceRequest } from "./types";
 
 export function RequestActions({
   request,
@@ -46,7 +47,7 @@ export function RequestActions({
 
   return (
     <div className="actions">
-      {role === "client" && canAdvance(request) && (
+      {role === Role.Client && canAdvance(request) && (
         <button
           className="secondary"
           onClick={() => {
@@ -58,16 +59,16 @@ export function RequestActions({
           Откажи заявката
         </button>
       )}
-      {role !== "client" && canAdvance(request) && (
+      {role !== Role.Client && canAdvance(request) && (
         <>
           <button className="primary" onClick={advance}>
-            {request.status === "CREATED"
+            {request.status === RequestStatus.Created
               ? "Приеми заявката"
-              : request.status === "IN_PROGRESS"
+              : request.status === RequestStatus.InProgress
                 ? "Добави отчет"
                 : "Следващ статус"}
           </button>
-          {request.status === "CREATED" && (
+          {request.status === RequestStatus.Created && (
             <button
               className="secondary"
               onClick={() =>
@@ -82,34 +83,35 @@ export function RequestActions({
           )}
         </>
       )}
-      {role === "client" && request.status === "AWAITING_CONFIRMATION" && (
-        <>
-          <button
-            className="primary"
-            onClick={() =>
-              void perform(
-                { type: "complete" },
-                "Услугата е приключена. Можете да оставите оценка.",
-              )
-            }
-          >
-            Потвърди приключването
-          </button>
-          <button
-            className="secondary"
-            onClick={() =>
-              void perform(
-                { type: "issue" },
-                "Сигналът е отбелязан за преглед.",
-              )
-            }
-          >
-            Има проблем
-          </button>
-        </>
-      )}
-      {role === "client" &&
-        request.status === "COMPLETED" &&
+      {role === Role.Client &&
+        request.status === RequestStatus.AwaitingConfirmation && (
+          <>
+            <button
+              className="primary"
+              onClick={() =>
+                void perform(
+                  { type: "complete" },
+                  "Услугата е приключена. Можете да оставите оценка.",
+                )
+              }
+            >
+              Потвърди приключването
+            </button>
+            <button
+              className="secondary"
+              onClick={() =>
+                void perform(
+                  { type: "issue" },
+                  "Сигналът е отбелязан за преглед.",
+                )
+              }
+            >
+              Има проблем
+            </button>
+          </>
+        )}
+      {role === Role.Client &&
+        request.status === RequestStatus.Completed &&
         !request.rating && (
           <>
             <span>Оценете:</span>

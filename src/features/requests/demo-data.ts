@@ -1,4 +1,9 @@
+import { RequestPriority, RequestStatus } from "./types";
 import type { ServiceRequest, Tariffs } from "./types";
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "@/features/subscriptions/types";
 import type { Subscription } from "@/features/subscriptions/types";
 import { defaultPlanPrices } from "@/features/plans/pricing";
 import { defaultServicePrices } from "@/features/services/pricing";
@@ -15,10 +20,10 @@ export function generateDemoId(): number {
 export const initialSubscription: Subscription = {
   id: 1001,
   userId: 1,
-  planType: "HOME",
+  planType: SubscriptionPlan.Home,
   propertyAddress: "София · ул. Примерна 12, ет. 3, ап. 8",
   propertyArea: 85,
-  status: "ACTIVE",
+  status: SubscriptionStatus.Active,
   visitsRemaining: 2,
   validUntil: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
   createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -34,8 +39,8 @@ export const initialRequests: ServiceRequest[] = [
     date: "Демо посещение",
     time: "09:00–12:00",
     price: 45,
-    status: "ACCEPTED",
-    priority: "STANDARD",
+    status: RequestStatus.Accepted,
+    priority: RequestPriority.Standard,
     description: "Подмяна на смесителя в кухнята.",
     specialist: "Демо специалист · ВиК",
     specialistPhone: "+359 88 123 4567",
@@ -48,8 +53,8 @@ export const initialRequests: ServiceRequest[] = [
     date: "Демо посещение",
     time: "12:00–15:00",
     price: 65,
-    status: "AWAITING_CONFIRMATION",
-    priority: "STANDARD",
+    status: RequestStatus.AwaitingConfirmation,
+    priority: RequestPriority.Standard,
     description: "Почистване на апартамент до 80 м².",
     specialist: "Демо екип · Почистване",
     specialistPhone: "+359 88 987 6543",
@@ -64,8 +69,8 @@ export const initialRequests: ServiceRequest[] = [
     date: "Днес",
     time: "Спешно",
     price: 85,
-    status: "CREATED",
-    priority: "URGENT",
+    status: RequestStatus.Created,
+    priority: RequestPriority.Urgent,
     description: "Искри от главното ел. табло и прекъснато захранване.",
   },
   {
@@ -76,8 +81,8 @@ export const initialRequests: ServiceRequest[] = [
     date: "Днес",
     time: "10:00",
     price: 90,
-    status: "COMPLETED",
-    priority: "STANDARD",
+    status: RequestStatus.Completed,
+    priority: RequestPriority.Standard,
     description:
       "Годишна профилактика, почистване на филтри и тест на налягане.",
     specialist: "Демо специалист · Климатизация",

@@ -1,11 +1,11 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
+import { UserStatus } from "./types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
   User,
-  UserStatus,
 } from "./types";
 import {
   loginAction,
@@ -150,7 +150,10 @@ export function AuthProvider({
 
   const updateUserStatus = useCallback(
     async (userId: number, newStatus: UserStatus): Promise<User | null> => {
-      if (newStatus === "ACTIVE" || newStatus === "REJECTED") {
+      if (
+        newStatus === UserStatus.Active ||
+        newStatus === UserStatus.Rejected
+      ) {
         const res = await updateSpecialistStatusAction(userId, newStatus);
         if (!res.success) {
           throw new Error(res.error || "Грешка при актуализиране на статуса.");
