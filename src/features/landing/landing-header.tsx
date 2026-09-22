@@ -13,9 +13,9 @@ export function LandingHeader() {
           DOMORA
         </Link>
         <div className={styles.anchorLinks}>
-          <Link href="#how-it-works">Как работи</Link>
-          <Link href="#services">Услуги</Link>
-          <Link href="#faq">ЧЗВ</Link>
+          <Link href="/#how-it-works">Как работи</Link>
+          <Link href="/#services">Услуги</Link>
+          <Link href="/#faq">ЧЗВ</Link>
         </div>
         <div className={styles.accountLinks}>
           <Link className={styles.login} href="/login">

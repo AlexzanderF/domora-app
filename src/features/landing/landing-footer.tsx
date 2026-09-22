@@ -11,8 +11,8 @@ export function LandingFooter() {
         </div>
         <div className={styles.footerColumn}>
           <strong>Разгледайте</strong>
-          <Link href="#how-it-works">Как работи</Link>
-          <Link href="#services">Услуги</Link>
+          <Link href="/#how-it-works">Как работи</Link>
+          <Link href="/#services">Услуги</Link>
           <Link href="/plans">Абонаменти</Link>
         </div>
         <div className={styles.footerColumn}>
