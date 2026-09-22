@@ -3,6 +3,8 @@ export type Plan = "home" | "entry";
 export type CategoryId = 0 | 1 | 2 | 3 | 4 | 5;
 export type RequestStatus = 0 | 1 | 2 | 3 | 4 | 5;
 
+export type RequestPriority = "STANDARD" | "URGENT" | "HOLIDAY" | "EMERGENCY";
+
 export interface ServiceRequest {
   id: number;
   category: CategoryId;
@@ -12,6 +14,7 @@ export interface ServiceRequest {
   time: string;
   price: number;
   status: RequestStatus;
+  priority?: RequestPriority;
   description: string;
   plan?: Plan;
   visitsPerMonth?: number;

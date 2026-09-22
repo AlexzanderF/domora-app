@@ -1,0 +1,250 @@
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1080px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpiCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 22px;
+  border-radius: var(--radius-md, 12px);
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.kpiCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+}
+
+.cardAccentBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+}
+
+.cardUrgent .cardAccentBar {
+  background: linear-gradient(90deg, #dc2626, #f59e0b);
+}
+
+.cardPending .cardAccentBar {
+  background: linear-gradient(90deg, #2563eb, #38bdf8);
+}
+
+.cardActive .cardAccentBar {
+  background: linear-gradient(90deg, #059669, #34d399);
+}
+
+.cardRevenue .cardAccentBar {
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--surface-muted, rgba(0, 0, 0, 0.04));
+}
+
+.cardUrgent .cardIcon {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+}
+
+.cardPending .cardIcon {
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
+.cardActive .cardIcon {
+  background: rgba(5, 150, 105, 0.1);
+  color: #059669;
+}
+
+.cardRevenue .cardIcon {
+  background: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+.cardTag {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.cardUrgent .cardTag {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.cardPending .cardTag {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.cardActive .cardTag {
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
+
+.cardRevenue .cardTag {
+  background: rgba(124, 58, 237, 0.12);
+  color: #6d28d9;
+}
+
+.cardLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.cardValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+  line-height: 1.1;
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+
+.cardSubtext {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  line-height: 1.3;
+}
+
+/* Triage Queues Scaffolding */
+.queuesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.queueSection {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius-md, 12px);
+  padding: 20px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.queueHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.06));
+}
+
+.queueTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.queueTitle {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text, #0f172a);
+  margin: 0;
+}
+
+.queueBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--surface-muted, #f1f5f9);
+  color: var(--text-muted, #475569);
+}
+
+.queueLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary, #0f52ba);
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.queueLink:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.queuePlaceholder {
+  border: 1.5px dashed var(--border, rgba(0, 0, 0, 0.15));
+  border-radius: 8px;
+  padding: 28px 20px;
+  text-align: center;
+  background: var(--surface-muted, rgba(248, 250, 252, 0.6));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderIcon {
+  font-size: 24px;
+  margin-bottom: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderHeading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text, #1e293b);
+  margin: 0 0 4px;
+}
+
+.placeholderDescription {
+  font-size: 13px;
+  color: var(--text-muted, #64748b);
+  max-width: 520px;
+  margin: 0;
+  line-height: 1.45;
+}
