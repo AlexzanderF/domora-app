@@ -1,12 +1,14 @@
+import { UserRole, UserStatus } from "./types";
+
 export function getRoleDashboardPath(
   role?: string | null,
   status?: string | null,
 ): string {
-  if (role === "ADMIN") {
+  if (role === UserRole.Admin) {
     return "/admin";
   }
-  if (role === "SPECIALIST") {
-    return status === "PENDING" ? "/pending-approval" : "/specialist";
+  if (role === UserRole.Specialist) {
+    return status === UserStatus.Pending ? "/pending-approval" : "/specialist";
   }
   return "/client";
 }

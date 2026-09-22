@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth-provider";
+import { UserRole, UserStatus } from "./types";
 import styles from "./auth.module.css";
 
 export function PendingApprovalCard() {
@@ -19,7 +20,10 @@ export function PendingApprovalCard() {
   // If user is already ACTIVE, redirect to specialist workspace
   useEffect(() => {
     if (status === "authenticated" && user) {
-      if (user.role === "SPECIALIST" && user.status === "ACTIVE") {
+      if (
+        user.role === UserRole.Specialist &&
+        user.status === UserStatus.Active
+      ) {
         router.replace("/specialist");
       }
     }
@@ -30,7 +34,7 @@ export function PendingApprovalCard() {
     setNotice(null);
     try {
       const updated = await refreshUser();
-      if (updated && updated.status === "ACTIVE") {
+      if (updated && updated.status === UserStatus.Active) {
         setNotice(
           "Поздравления! Профилът ви е одобрен. Пренасочване към работното пространство...",
         );
@@ -38,7 +42,7 @@ export function PendingApprovalCard() {
         setTimeout(() => {
           router.push("/specialist");
         }, 1200);
-      } else if (updated && updated.status === "REJECTED") {
+      } else if (updated && updated.status === UserStatus.Rejected) {
         setNotice("Кандидатурата ви е отхвърлена.");
         setNoticeType("error");
       } else {
@@ -92,8 +96,8 @@ export function PendingApprovalCard() {
   }
 
   const profile = user.specialistProfile;
-  const isRejected = user.status === "REJECTED";
-  const isActive = user.status === "ACTIVE";
+  const isRejected = user.status === UserStatus.Rejected;
+  const isActive = user.status === UserStatus.Active;
 
   return (
     <>

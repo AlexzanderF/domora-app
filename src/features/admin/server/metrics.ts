@@ -1,23 +1,14 @@
-import {
-  and,
-  count,
-  desc,
-  eq,
-  gte,
-  inArray,
-  lt,
-  lte,
-  or,
-  sum,
-} from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, ne, or, sum } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, tariffs, users } from "@/db/schema";
 import type {
   CategoryId,
-  RequestStatus,
   ServiceRequest,
   Tariffs,
 } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/features/auth/types";
+import { RequestStatus } from "@/features/requests/types";
+import { RequestPriority } from "@/features/requests/types";
 
 export interface WorkspaceStatsData {
   total: number;
@@ -63,24 +54,38 @@ export async function findAdminKpiMetrics(): Promise<AdminKpiMetrics | null> {
       .from(requests)
       .where(
         and(
-          eq(requests.status, 0),
-          inArray(requests.priority, ["URGENT", "EMERGENCY"]),
+          eq(requests.status, RequestStatus.Created),
+          inArray(requests.priority, [
+            RequestPriority.Urgent,
+            RequestPriority.Emergency,
+          ]),
         ),
       ),
     db
       .select({ value: count() })
       .from(users)
-      .where(and(eq(users.role, "SPECIALIST"), eq(users.status, "PENDING"))),
+      .where(
+        and(
+          eq(users.role, UserRole.Specialist),
+          eq(users.status, UserStatus.Pending),
+        ),
+      ),
     db
       .select({ value: count() })
       .from(requests)
-      .where(and(gte(requests.status, 1), lte(requests.status, 4))),
+      .where(
+        inArray(requests.status, [
+          RequestStatus.Accepted,
+          RequestStatus.InProgress,
+          RequestStatus.AwaitingConfirmation,
+        ]),
+      ),
     db
       .select({ value: sum(requests.price) })
       .from(requests)
       .where(
         and(
-          eq(requests.status, 5),
+          eq(requests.status, RequestStatus.Completed),
           or(
             gte(requests.updatedAt, startOfMonth),
             gte(requests.createdAt, startOfMonth),
@@ -111,15 +116,15 @@ export async function findOperationalMetrics(): Promise<WorkspaceStatsData | nul
   const [activeResult] = await db
     .select({ value: count() })
     .from(requests)
-    .where(lt(requests.status, 5));
+    .where(ne(requests.status, RequestStatus.Completed));
   const [completedResult] = await db
     .select({ value: count() })
     .from(requests)
-    .where(eq(requests.status, 5));
+    .where(eq(requests.status, RequestStatus.Completed));
   const [specialistsResult] = await db
     .select({ value: count() })
     .from(users)
-    .where(eq(users.role, "SPECIALIST"));
+    .where(eq(users.role, UserRole.Specialist));
 
   return {
     total: totalResult?.value ?? 0,
@@ -152,9 +157,6 @@ export async function findAllRequestsForAdmin(): Promise<
     const rawCategory = Number(request.category);
     const category: CategoryId =
       rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-    const rawStatus = request.status;
-    const status: RequestStatus =
-      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
 
     return {
       id: request.id,
@@ -167,7 +169,7 @@ export async function findAllRequestsForAdmin(): Promise<
         minute: "2-digit",
       }),
       price: request.price,
-      status,
+      status: request.status,
       priority: request.priority,
       description: request.description,
       cancelled: request.cancelled,

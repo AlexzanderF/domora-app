@@ -5,7 +5,8 @@ import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
-import type { Subscription, SubscriptionPlan } from "../types";
+import { SubscriptionPlan, SubscriptionStatus } from "../types";
+import type { Subscription } from "../types";
 
 export interface SubscribeInput {
   planType: SubscriptionPlan;
@@ -52,7 +53,7 @@ export async function createSubscriptionAction(
   }
 
   const validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const visitsRemaining = input.planType === "HOME" ? 2 : 4;
+  const visitsRemaining = input.planType === SubscriptionPlan.Home ? 2 : 4;
 
   const [created] = await db
     .insert(subscriptions)
@@ -61,7 +62,7 @@ export async function createSubscriptionAction(
       planType: input.planType,
       propertyAddress: address,
       propertyArea: area,
-      status: "ACTIVE",
+      status: SubscriptionStatus.Active,
       visitsRemaining,
       validUntil,
     })
@@ -71,7 +72,7 @@ export async function createSubscriptionAction(
         planType: input.planType,
         propertyAddress: address,
         propertyArea: area,
-        status: "ACTIVE",
+        status: SubscriptionStatus.Active,
         visitsRemaining,
         validUntil,
         updatedAt: new Date(),
@@ -123,7 +124,7 @@ export async function cancelSubscriptionAction(): Promise<SubscriptionActionResu
   await db
     .update(subscriptions)
     .set({
-      status: "CANCELLED",
+      status: SubscriptionStatus.Cancelled,
       updatedAt: new Date(),
     })
     .where(eq(subscriptions.userId, user.id));

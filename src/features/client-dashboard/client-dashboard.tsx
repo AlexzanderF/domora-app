@@ -6,9 +6,14 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { transitionRequest } from "@/features/requests/transitions";
+import { RequestStatus, Role } from "@/features/requests/types";
 import type { RequestAction, ServiceRequest } from "@/features/requests/types";
 import { categories } from "@/features/services/catalog";
 import { ServiceIcon } from "@/features/services/service-icon";
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "@/features/subscriptions/types";
 import type { Subscription } from "@/features/subscriptions/types";
 import { money } from "@/lib/format";
 import {
@@ -53,12 +58,12 @@ export function ClientDashboard({
         (current) =>
           current?.map((request) =>
             request.id === id
-              ? transitionRequest(request, action, "client")
+              ? transitionRequest(request, action, Role.Client)
               : request,
           ) ?? null,
       );
     } else {
-      demo.updateRequest(id, action, "client");
+      demo.updateRequest(id, action, Role.Client);
     }
   }
 
@@ -167,7 +172,7 @@ export function ClientDashboard({
               <h2 id="property-title">Абонамент & Имот</h2>
             </div>
           </div>
-          {subscription?.status === "ACTIVE" ? (
+          {subscription?.status === SubscriptionStatus.Active ? (
             <SubscriptionSummary subscription={subscription} />
           ) : (
             <div className={styles.subscriptionOffer}>
@@ -282,7 +287,7 @@ function ActiveRequest({
         )}
       </div>
 
-      {request.status === 4 && !ratingOpen && (
+      {request.status === RequestStatus.AwaitingConfirmation && !ratingOpen && (
         <div className={styles.trackerActions}>
           <button className="primary" type="button" onClick={onConfirm}>
             Потвърди и оцени
@@ -328,7 +333,8 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
       <div className={styles.planName}>
         <span>Активен план</span>
         <strong>
-          План „{subscription.planType === "HOME" ? "Дом" : "Вход"}“
+          План „
+          {subscription.planType === SubscriptionPlan.Home ? "Дом" : "Вход"}“
         </strong>
       </div>
       <dl>

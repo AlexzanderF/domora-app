@@ -28,6 +28,14 @@ export const requestPriorityEnum = pgEnum("request_priority", [
   "EMERGENCY",
 ]);
 
+export const requestStatusEnum = pgEnum("request_status", [
+  "CREATED",
+  "ACCEPTED",
+  "IN_PROGRESS",
+  "AWAITING_CONFIRMATION",
+  "COMPLETED",
+]);
+
 export const subscriptionPlanEnum = pgEnum("subscription_plan", [
   "HOME",
   "ENTRY",
@@ -102,7 +110,7 @@ export const requests = pgTable(
     category: text("category").notNull(),
     address: text("address").notNull(),
     priority: requestPriorityEnum("priority").notNull().default("STANDARD"),
-    status: integer("status").notNull().default(0),
+    status: requestStatusEnum("status").notNull().default("CREATED"),
     price: integer("price").notNull(),
     clientPhone: text("client_phone").notNull(),
     cancelled: boolean("cancelled").notNull().default(false),

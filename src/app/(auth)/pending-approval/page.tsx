@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PendingApprovalCard } from "@/features/auth/pending-approval-card";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 
@@ -15,13 +16,16 @@ export default async function PendingApprovalPage() {
     if (!user) {
       redirect("/login");
     }
-    if (user.role === "CLIENT") {
+    if (user.role === UserRole.Client) {
       redirect("/client");
     }
-    if (user.role === "ADMIN") {
+    if (user.role === UserRole.Admin) {
       redirect("/admin");
     }
-    if (user.role === "SPECIALIST" && user.status === "ACTIVE") {
+    if (
+      user.role === UserRole.Specialist &&
+      user.status === UserStatus.Active
+    ) {
       redirect("/specialist");
     }
   }

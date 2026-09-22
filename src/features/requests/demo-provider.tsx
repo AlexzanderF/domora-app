@@ -15,10 +15,11 @@ import type {
   ServiceRequest,
   Tariffs,
 } from "./types";
-import type {
-  Subscription,
+import {
   SubscriptionPlan,
+  SubscriptionStatus,
 } from "@/features/subscriptions/types";
+import type { Subscription } from "@/features/subscriptions/types";
 
 interface DemoContextValue {
   requests: ServiceRequest[];
@@ -77,7 +78,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
     (
       planType: SubscriptionPlan,
       propertyAddress: string = "София · ул. Примерна 12, ет. 3, ап. 8",
-      propertyArea: number = planType === "HOME" ? 85 : 6,
+      propertyArea: number = planType === SubscriptionPlan.Home ? 85 : 6,
     ) => {
       const newSub: Subscription = {
         id: generateDemoId(),
@@ -85,8 +86,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
         planType,
         propertyAddress,
         propertyArea,
-        status: "ACTIVE",
-        visitsRemaining: planType === "HOME" ? 2 : 4,
+        status: SubscriptionStatus.Active,
+        visitsRemaining: planType === SubscriptionPlan.Home ? 2 : 4,
         validUntil: new Date(
           Date.now() + 30 * 24 * 60 * 60 * 1000,
         ).toISOString(),
@@ -103,7 +104,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }) {
       curr
         ? {
             ...curr,
-            status: "CANCELLED",
+            status: SubscriptionStatus.Cancelled,
             updatedAt: new Date().toISOString(),
           }
         : null,

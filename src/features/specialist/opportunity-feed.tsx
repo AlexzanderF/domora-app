@@ -8,11 +8,19 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import { assignSpecialistAction } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
+import {
+  RequestPriority,
+  RequestStatus,
+  Role,
+} from "@/features/requests/types";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
 function isUrgent(request: ServiceRequest): boolean {
-  return request.priority === "URGENT" || request.priority === "EMERGENCY";
+  return (
+    request.priority === RequestPriority.Urgent ||
+    request.priority === RequestPriority.Emergency
+  );
 }
 
 export function OpportunityFeed({
@@ -34,14 +42,15 @@ export function OpportunityFeed({
   const source =
     initialOpportunities ??
     demoRequests.filter(
-      (request) => request.status === 0 && !request.cancelled,
+      (request) =>
+        request.status === RequestStatus.Created && !request.cancelled,
     );
   const visible = source.filter((request) => !dismissedIds.has(request.id));
   const items = limit ? visible.slice(0, limit) : visible;
 
   async function accept(request: ServiceRequest) {
     setAcceptingId(request.id);
-    updateRequest(request.id, { type: "accept" }, "specialist");
+    updateRequest(request.id, { type: "accept" }, Role.Specialist);
     try {
       const result = await assignSpecialistAction(request.id);
       if (!result.success) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useDemo } from "@/features/requests/demo-provider";
+import { RequestStatus } from "@/features/requests/types";
 
 export interface WorkspaceStatsProps {
   initialStats?: {
@@ -16,11 +17,14 @@ export function WorkspaceStats({ initialStats }: WorkspaceStatsProps = {}) {
   const total = initialStats?.total ?? requests.length;
   const active =
     initialStats?.active ??
-    requests.filter((request) => !request.cancelled && request.status < 5)
-      .length;
+    requests.filter(
+      (request) =>
+        !request.cancelled && request.status !== RequestStatus.Completed,
+    ).length;
   const completed =
     initialStats?.completed ??
-    requests.filter((request) => request.status === 5).length;
+    requests.filter((request) => request.status === RequestStatus.Completed)
+      .length;
 
   return (
     <div className="stats">

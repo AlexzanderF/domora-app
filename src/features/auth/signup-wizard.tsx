@@ -11,6 +11,8 @@ import {
   type ClientRegistrationErrors,
   type SpecialistRegistrationErrors,
 } from "./validation";
+import { Role } from "@/features/requests/types";
+import { UserStatus } from "./types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
@@ -25,7 +27,7 @@ interface AccountFieldsProps {
   errors: ClientRegistrationErrors;
   showPassword: boolean;
   onTogglePassword: () => void;
-  termsLabel: "client" | "specialist";
+  termsLabel: Role;
 }
 
 function AccountFields({
@@ -190,7 +192,7 @@ function AccountFields({
           <span>
             Съгласен съм с{" "}
             <Link href="/terms" className={styles.link}>
-              {termsLabel === "client"
+              {termsLabel === Role.Client
                 ? "Общите условия"
                 : "Общите условия за партньори"}
             </Link>{" "}
@@ -220,8 +222,8 @@ export function SignupWizard() {
   const { registerClient, registerSpecialist } = useAuth();
 
   const initialRoleParam = searchParams.get("role");
-  const [role, setRole] = useState<"client" | "specialist">(
-    initialRoleParam === "specialist" ? "specialist" : "client",
+  const [role, setRole] = useState<Role>(
+    initialRoleParam === Role.Specialist ? Role.Specialist : Role.Client,
   );
 
   // Common Step 1 fields
@@ -325,7 +327,7 @@ export function SignupWizard() {
   };
 
   // Switch role handler
-  const handleRoleChange = (newRole: "client" | "specialist") => {
+  const handleRoleChange = (newRole: Role) => {
     setRole(newRole);
     setGeneralError(null);
     setClientErrors({});
@@ -412,7 +414,7 @@ export function SignupWizard() {
       setIsSubmitting(true);
       const newUser = await registerSpecialist(fullSpecialistInput);
       router.refresh();
-      if (newUser.status === "PENDING") {
+      if (newUser.status === UserStatus.Pending) {
         router.push("/pending-approval");
       } else {
         router.push("/specialist");
@@ -439,18 +441,18 @@ export function SignupWizard() {
         <button
           type="button"
           role="tab"
-          aria-selected={role === "client"}
-          onClick={() => handleRoleChange("client")}
-          className={`${styles.tab} ${role === "client" ? styles.tabActive : ""}`}
+          aria-selected={role === Role.Client}
+          onClick={() => handleRoleChange(Role.Client)}
+          className={`${styles.tab} ${role === Role.Client ? styles.tabActive : ""}`}
         >
           Клиент
         </button>
         <button
           type="button"
           role="tab"
-          aria-selected={role === "specialist"}
-          onClick={() => handleRoleChange("specialist")}
-          className={`${styles.tab} ${role === "specialist" ? styles.tabActive : ""}`}
+          aria-selected={role === Role.Specialist}
+          onClick={() => handleRoleChange(Role.Specialist)}
+          className={`${styles.tab} ${role === Role.Specialist ? styles.tabActive : ""}`}
         >
           Специалист
         </button>
@@ -467,7 +469,7 @@ export function SignupWizard() {
       )}
 
       {/* ===================== CLIENT REGISTRATION ===================== */}
-      {role === "client" && (
+      {role === Role.Client && (
         <>
           <h1 className={styles.title}>Регистрация на клиент</h1>
           <p className={styles.subtitle}>
@@ -488,7 +490,7 @@ export function SignupWizard() {
               errors={clientErrors}
               showPassword={showPassword}
               onTogglePassword={() => setShowPassword((prev) => !prev)}
-              termsLabel="client"
+              termsLabel={Role.Client}
             />
 
             <button
@@ -512,7 +514,7 @@ export function SignupWizard() {
               Вие сте майстор или фирма за услуги?{" "}
               <button
                 type="button"
-                onClick={() => handleRoleChange("specialist")}
+                onClick={() => handleRoleChange(Role.Specialist)}
                 className={styles.link}
                 style={{
                   background: "none",
@@ -530,7 +532,7 @@ export function SignupWizard() {
       )}
 
       {/* ===================== SPECIALIST ONBOARDING ===================== */}
-      {role === "specialist" && (
+      {role === Role.Specialist && (
         <>
           <h1 className={styles.title}>Кандидатствайте като специалист</h1>
           <p className={styles.subtitle}>
@@ -594,7 +596,7 @@ export function SignupWizard() {
                 errors={specialistErrors}
                 showPassword={showPassword}
                 onTogglePassword={() => setShowPassword((prev) => !prev)}
-                termsLabel="specialist"
+                termsLabel={Role.Specialist}
               />
 
               <button
@@ -840,7 +842,7 @@ export function SignupWizard() {
               Търсите майстор за дома си?{" "}
               <button
                 type="button"
-                onClick={() => handleRoleChange("client")}
+                onClick={() => handleRoleChange(Role.Client)}
                 className={styles.link}
                 style={{
                   background: "none",

@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
+import { isActiveStage } from "@/features/requests/request-rules";
 import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import {
@@ -10,6 +11,7 @@ import {
   startWorkAction,
 } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
+import { RequestStatus, Role } from "@/features/requests/types";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
@@ -27,13 +29,12 @@ export function DailyAgenda({
   const items =
     initialAgenda ??
     demoRequests.filter(
-      (request) =>
-        !request.cancelled && request.status >= 1 && request.status <= 4,
+      (request) => !request.cancelled && isActiveStage(request.status),
     );
 
   async function startWork(request: ServiceRequest) {
     setBusyId(request.id);
-    updateRequest(request.id, { type: "advance" }, "specialist");
+    updateRequest(request.id, { type: "advance" }, Role.Specialist);
     try {
       const result = await startWorkAction(request.id);
       if (!result.success) {
@@ -69,7 +70,11 @@ export function DailyAgenda({
     }
 
     setBusyId(reportTarget.id);
-    updateRequest(reportTarget.id, { type: "advance", report }, "specialist");
+    updateRequest(
+      reportTarget.id,
+      { type: "advance", report },
+      Role.Specialist,
+    );
     try {
       const result = await completeWorkAction(reportTarget.id, report);
       if (!result.success) {
@@ -136,7 +141,7 @@ export function DailyAgenda({
                 </p>
               )}
               <div className="actions">
-                {request.status === 1 && (
+                {request.status === RequestStatus.Accepted && (
                   <button
                     className="primary"
                     disabled={busyId === request.id}
@@ -145,7 +150,7 @@ export function DailyAgenda({
                     {busyId === request.id ? "Стартиране…" : "Започни работа"}
                   </button>
                 )}
-                {request.status === 3 && (
+                {request.status === RequestStatus.InProgress && (
                   <button
                     className="primary"
                     disabled={busyId === request.id}

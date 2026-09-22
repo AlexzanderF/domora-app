@@ -1,5 +1,17 @@
-export type SubscriptionPlan = "HOME" | "ENTRY";
-export type SubscriptionStatus = "ACTIVE" | "CANCELLED" | "EXPIRED";
+export const SubscriptionPlan = {
+  Home: "HOME",
+  Entry: "ENTRY",
+} as const;
+export type SubscriptionPlan =
+  (typeof SubscriptionPlan)[keyof typeof SubscriptionPlan];
+
+export const SubscriptionStatus = {
+  Active: "ACTIVE",
+  Cancelled: "CANCELLED",
+  Expired: "EXPIRED",
+} as const;
+export type SubscriptionStatus =
+  (typeof SubscriptionStatus)[keyof typeof SubscriptionStatus];
 
 export interface Subscription {
   id: number;

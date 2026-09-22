@@ -1,9 +1,5 @@
-import type {
-  RequestAction,
-  RequestStatus,
-  Role,
-  ServiceRequest,
-} from "./types";
+import { RequestStatus, Role } from "./types";
+import type { RequestAction, ServiceRequest } from "./types";
 import {
   canAdvance,
   canCancelAsClient,
@@ -27,14 +23,14 @@ export function transitionRequest(
   if (request.cancelled) return request;
   switch (action.type) {
     case "cancel":
-      return role === "client" && canCancelAsClient(request)
+      return role === Role.Client && canCancelAsClient(request)
         ? { ...request, cancelled: true }
         : request;
     case "accept":
-      return role === "specialist" && canClaim(request)
+      return role === Role.Specialist && canClaim(request)
         ? {
             ...request,
-            status: 1,
+            status: RequestStatus.Accepted,
             specialist:
               action.specialist ||
               request.specialist ||
@@ -44,22 +40,22 @@ export function transitionRequest(
     case "dismiss":
       return request;
     case "admin-assign":
-      return role === "admin" && canClaim(request)
+      return role === Role.Admin && canClaim(request)
         ? {
             ...request,
-            status: 1,
+            status: RequestStatus.Accepted,
             specialist: action.specialist,
           }
         : request;
     case "admin-recommend":
-      return role === "admin" && canClaim(request)
+      return role === Role.Admin && canClaim(request)
         ? {
             ...request,
             recommendedSpecialistId: action.specialistId,
           }
         : request;
     case "advance": {
-      if (role === "client" || !canAdvance(request)) return request;
+      if (role === Role.Client || !canAdvance(request)) return request;
       if (requiresCompletionReport(request.status) && !action.report?.trim())
         return request;
       const nextStatus: RequestStatus = nextExecutionStep(request.status);
@@ -74,23 +70,23 @@ export function transitionRequest(
       };
     }
     case "decline":
-      return role !== "client" && request.status === 0
+      return role !== Role.Client && request.status === RequestStatus.Created
         ? { ...request, specialist: undefined }
         : request;
     case "complete":
-      return role === "client" && canConfirmCompletion(request)
-        ? { ...request, status: 5 }
+      return role === Role.Client && canConfirmCompletion(request)
+        ? { ...request, status: RequestStatus.Completed }
         : request;
     case "issue":
-      return role === "client" && canFlagIssue(request)
+      return role === Role.Client && canFlagIssue(request)
         ? { ...request, issue: true }
         : request;
     case "resolve":
-      return role === "admin" && canResolveIssue(request)
+      return role === Role.Admin && canResolveIssue(request)
         ? { ...request, issue: false }
         : request;
     case "rate":
-      return role === "client" && canRate(request, action.rating)
+      return role === Role.Client && canRate(request, action.rating)
         ? { ...request, rating: action.rating }
         : request;
   }

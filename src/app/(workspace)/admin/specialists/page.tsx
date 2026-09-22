@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { SpecialistsReview } from "@/features/admin/specialists-review";
 import { findSpecialistApplications } from "@/features/admin/server/queries";
+import { UserRole } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 
@@ -19,8 +20,8 @@ export default async function AdminSpecialistsPage() {
     if (!user) {
       redirect("/login");
     }
-    if (user.role !== "ADMIN") {
-      redirect(user.role === "SPECIALIST" ? "/specialist" : "/client");
+    if (user.role !== UserRole.Admin) {
+      redirect(user.role === UserRole.Specialist ? "/specialist" : "/client");
     }
   }
 

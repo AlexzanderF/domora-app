@@ -1,9 +1,35 @@
-export type Role = "client" | "specialist" | "admin";
-export type Plan = "home" | "entry";
-export type CategoryId = 0 | 1 | 2 | 3 | 4 | 5;
-export type RequestStatus = 0 | 1 | 2 | 3 | 4 | 5;
+export const Role = {
+  Client: "client",
+  Specialist: "specialist",
+  Admin: "admin",
+} as const;
+export type Role = (typeof Role)[keyof typeof Role];
 
-export type RequestPriority = "STANDARD" | "URGENT" | "HOLIDAY" | "EMERGENCY";
+export const Plan = {
+  Home: "home",
+  Entry: "entry",
+} as const;
+export type Plan = (typeof Plan)[keyof typeof Plan];
+
+export type CategoryId = 0 | 1 | 2 | 3 | 4 | 5;
+
+export const RequestStatus = {
+  Created: "CREATED",
+  Accepted: "ACCEPTED",
+  InProgress: "IN_PROGRESS",
+  AwaitingConfirmation: "AWAITING_CONFIRMATION",
+  Completed: "COMPLETED",
+} as const;
+export type RequestStatus = (typeof RequestStatus)[keyof typeof RequestStatus];
+
+export const RequestPriority = {
+  Standard: "STANDARD",
+  Urgent: "URGENT",
+  Holiday: "HOLIDAY",
+  Emergency: "EMERGENCY",
+} as const;
+export type RequestPriority =
+  (typeof RequestPriority)[keyof typeof RequestPriority];
 
 export interface ServiceRequest {
   id: number;

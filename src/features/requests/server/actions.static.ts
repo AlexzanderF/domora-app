@@ -1,3 +1,4 @@
+import { RequestPriority } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
 export interface CreateServiceRequestInput {
@@ -9,7 +10,7 @@ export interface CreateServiceRequestInput {
   time?: string;
   price: number;
   plan?: Plan;
-  priority?: "STANDARD" | "URGENT" | "EMERGENCY";
+  priority?: RequestPriority;
 }
 
 export interface ServiceRequestActionResult {

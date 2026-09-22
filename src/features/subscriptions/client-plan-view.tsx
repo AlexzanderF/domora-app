@@ -6,7 +6,8 @@ import {
   cancelSubscriptionAction,
   createSubscriptionAction,
 } from "./server/actions";
-import type { Subscription, SubscriptionPlan } from "./types";
+import { SubscriptionPlan, SubscriptionStatus } from "./types";
+import type { Subscription } from "./types";
 import styles from "./client-plan.module.css";
 
 interface ClientPlanViewProps {
@@ -63,18 +64,19 @@ export function ClientPlanView({
   const [isProcessing, setIsProcessing] = useState(false);
 
   const isSubscribed = Boolean(
-    subscription && subscription.status === "ACTIVE",
+    subscription && subscription.status === SubscriptionStatus.Active,
   );
 
   async function handleSubscribe(planType: SubscriptionPlan) {
     if (isProcessing || !canManageSubscriptions) return;
     const address = propertyAddress.trim();
-    const areaValue = planType === "HOME" ? homeArea : entryFloors;
+    const areaValue =
+      planType === SubscriptionPlan.Home ? homeArea : entryFloors;
     const area = Number(areaValue);
     const nextError = !address
       ? "Въведете адрес на имота."
       : !Number.isInteger(area) || area < 1 || area > 1000
-        ? `Въведете ${planType === "HOME" ? "площ" : "брой етажи"} между 1 и 1000.`
+        ? `Въведете ${planType === SubscriptionPlan.Home ? "площ" : "брой етажи"} между 1 и 1000.`
         : "";
 
     setFormError(nextError);
@@ -110,7 +112,7 @@ export function ClientPlanView({
       const result = await cancelSubscriptionAction();
       if (result.success) {
         setSubscription((prev) =>
-          prev ? { ...prev, status: "CANCELLED" } : null,
+          prev ? { ...prev, status: SubscriptionStatus.Cancelled } : null,
         );
         notify("Абонаментът беше прекратен успешно.");
       } else if (result.error) {
@@ -174,13 +176,15 @@ export function ClientPlanView({
             <div className={styles.metricCard}>
               <span className={styles.metricIcon}>📐</span>
               <span className={styles.metricLabel}>
-                {subscription.planType === "HOME"
+                {subscription.planType === SubscriptionPlan.Home
                   ? "Площ на имота"
                   : "Брой етажи"}
               </span>
               <span className={styles.metricValue}>
                 {subscription.propertyArea}{" "}
-                {subscription.planType === "HOME" ? "м²" : "етажа"}
+                {subscription.planType === SubscriptionPlan.Home
+                  ? "м²"
+                  : "етажа"}
               </span>
               <span className={styles.metricSubtext}>
                 Покрит обем по договор
@@ -217,7 +221,7 @@ export function ClientPlanView({
               <li className={styles.coverageItem}>
                 <span className={styles.checkIcon}>✓</span>
                 <span>
-                  {subscription.planType === "HOME"
+                  {subscription.planType === SubscriptionPlan.Home
                     ? "Периодично почистване на подове и повърхности"
                     : "Редовно хигиенизиране на стълбища и вход"}
                 </span>
@@ -225,7 +229,7 @@ export function ClientPlanView({
               <li className={styles.coverageItem}>
                 <span className={styles.checkIcon}>✓</span>
                 <span>
-                  {subscription.planType === "HOME"
+                  {subscription.planType === SubscriptionPlan.Home
                     ? "Профилактика на ВиК и електроинсталации"
                     : "Инспекция на осветление, автомати и входна врата"}
                 </span>
@@ -377,7 +381,7 @@ export function ClientPlanView({
               <button
                 type="button"
                 className={styles.subscribeCta}
-                onClick={() => handleSubscribe("HOME")}
+                onClick={() => handleSubscribe(SubscriptionPlan.Home)}
                 disabled={isProcessing}
               >
                 {isProcessing ? "Зареждане..." : "Абонирай се за дома"}
@@ -433,7 +437,7 @@ export function ClientPlanView({
               <button
                 type="button"
                 className={styles.subscribeCtaOutline}
-                onClick={() => handleSubscribe("ENTRY")}
+                onClick={() => handleSubscribe(SubscriptionPlan.Entry)}
                 disabled={isProcessing}
               >
                 {isProcessing ? "Зареждане..." : "Абонирай се за входа"}

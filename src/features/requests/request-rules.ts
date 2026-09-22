@@ -1,4 +1,4 @@
-import type { RequestStatus } from "./types";
+import { RequestStatus } from "./types";
 
 // Minimal structural input shared by the in-memory transition seam and the
 // database-backed server actions, so both enforce identical lifecycle rules.
@@ -10,6 +10,29 @@ export interface RuleCheckRequest {
   specialistId?: number | null;
 }
 
+// Ordered execution pipeline: every stage knows its successor.
+const NEXT_STEP: Record<RequestStatus, RequestStatus> = {
+  [RequestStatus.Created]: RequestStatus.Accepted,
+  [RequestStatus.Accepted]: RequestStatus.InProgress,
+  [RequestStatus.InProgress]: RequestStatus.AwaitingConfirmation,
+  [RequestStatus.AwaitingConfirmation]: RequestStatus.Completed,
+  [RequestStatus.Completed]: RequestStatus.Completed,
+};
+
+// Stages still in flight (visible in agendas and active counters).
+const ACTIVE_STAGES: readonly RequestStatus[] = [
+  RequestStatus.Accepted,
+  RequestStatus.InProgress,
+  RequestStatus.AwaitingConfirmation,
+];
+
+// Stages before client confirmation (client can still cancel or be served).
+const PRE_CONFIRMATION_STAGES: readonly RequestStatus[] = [
+  RequestStatus.Created,
+  RequestStatus.Accepted,
+  RequestStatus.InProgress,
+];
+
 export function isValidRating(rating: unknown): rating is number {
   return (
     Number.isInteger(rating) &&
@@ -18,39 +41,46 @@ export function isValidRating(rating: unknown): rating is number {
   );
 }
 
+export function isActiveStage(status: RequestStatus): boolean {
+  return ACTIVE_STAGES.includes(status);
+}
+
 // Unassigned and claimable: the entry point for accept, admin dispatch,
 // and recommendations.
 export function canClaim(request: RuleCheckRequest): boolean {
   return (
-    !request.cancelled && request.status === 0 && request.specialistId == null
+    !request.cancelled &&
+    request.status === RequestStatus.Created &&
+    request.specialistId == null
   );
 }
 
-// Specialist execution step: unassigned work is claimed (0 → 1), accepted
-// work (or legacy 2) jumps straight to 3 ("В процес"), skipping the
-// intermediate travelling stage.
+// Specialist execution step: unassigned work is claimed, accepted work jumps
+// straight to "В процес".
 export function nextExecutionStep(status: RequestStatus): RequestStatus {
-  if (status === 0) return 1;
-  if (status === 1 || status === 2) return 3;
-  if (status === 3) return 4;
-  if (status === 4) return 5;
-  return status;
+  return NEXT_STEP[status];
 }
 
 export function canAdvance(request: RuleCheckRequest): boolean {
-  return !request.cancelled && request.status < 4;
+  return !request.cancelled && PRE_CONFIRMATION_STAGES.includes(request.status);
 }
 
 export function requiresCompletionReport(status: RequestStatus): boolean {
-  return status === 3;
+  return status === RequestStatus.InProgress;
 }
 
 export function canConfirmCompletion(request: RuleCheckRequest): boolean {
-  return !request.cancelled && request.status === 4;
+  return (
+    !request.cancelled && request.status === RequestStatus.AwaitingConfirmation
+  );
 }
 
 export function canFlagIssue(request: RuleCheckRequest): boolean {
-  return !request.cancelled && request.status === 4 && !request.issue;
+  return (
+    !request.cancelled &&
+    request.status === RequestStatus.AwaitingConfirmation &&
+    !request.issue
+  );
 }
 
 export function canResolveIssue(request: RuleCheckRequest): boolean {
@@ -60,12 +90,12 @@ export function canResolveIssue(request: RuleCheckRequest): boolean {
 export function canRate(request: RuleCheckRequest, rating: unknown): boolean {
   return (
     !request.cancelled &&
-    request.status === 5 &&
+    request.status === RequestStatus.Completed &&
     request.rating == null &&
     isValidRating(rating)
   );
 }
 
 export function canCancelAsClient(request: RuleCheckRequest): boolean {
-  return !request.cancelled && request.status < 4;
+  return !request.cancelled && PRE_CONFIRMATION_STAGES.includes(request.status);
 }

@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { initialRequests } from "./demo-data";
 import { transitionRequest } from "./transitions";
+import { Role } from "./types";
 import type { ServiceRequest } from "./types";
 
 const newRequest: ServiceRequest = {
   ...initialRequests[0],
-  status: 0,
+  status: "CREATED",
   specialist: undefined,
 };
 
@@ -14,25 +15,25 @@ describe("request lifecycle", () => {
     let request = transitionRequest(
       newRequest,
       { type: "advance" },
-      "specialist",
+      Role.Specialist,
     );
-    expect(request.status).toBe(1);
+    expect(request.status).toBe("ACCEPTED");
     // Specialist advance skips status 2: moves directly from 1 to 3
     request = transitionRequest(request, { type: "advance" }, "specialist");
-    expect(request.status).toBe(3);
+    expect(request.status).toBe("IN_PROGRESS");
     expect(
       transitionRequest(
         request,
         { type: "advance", report: "  " },
-        "specialist",
+        Role.Specialist,
       ),
     ).toBe(request);
     request = transitionRequest(
       request,
       { type: "advance", report: "  Ремонтът е готов.  " },
-      "specialist",
+      Role.Specialist,
     );
-    expect(request.status).toBe(4);
+    expect(request.status).toBe("AWAITING_CONFIRMATION");
     expect(request.report).toBe("Ремонтът е готов.");
     expect(transitionRequest(request, { type: "complete" }, "specialist")).toBe(
       request,
@@ -43,7 +44,7 @@ describe("request lifecycle", () => {
     expect(
       transitionRequest(request, { type: "rate", rating: 1 }, "client"),
     ).toBe(request);
-    expect(newRequest.status).toBe(0);
+    expect(newRequest.status).toBe("CREATED");
   });
 
   it("handles specialist accept and dismiss actions", () => {
@@ -56,9 +57,9 @@ describe("request lifecycle", () => {
     const accepted = transitionRequest(
       newRequest,
       { type: "accept", specialist: "Иван Иванов" },
-      "specialist",
+      Role.Specialist,
     );
-    expect(accepted.status).toBe(1);
+    expect(accepted.status).toBe("ACCEPTED");
     expect(accepted.specialist).toBe("Иван Иванов");
     expect(transitionRequest(accepted, { type: "accept" }, "specialist")).toBe(
       accepted,
@@ -73,39 +74,39 @@ describe("request lifecycle", () => {
       transitionRequest(
         newRequest,
         { type: "admin-assign", specialist: "Георги Димитров" },
-        "specialist",
+        Role.Specialist,
       ),
     ).toBe(newRequest);
     expect(
       transitionRequest(
         newRequest,
         { type: "admin-assign", specialist: "Георги Димитров" },
-        "client",
+        Role.Client,
       ),
     ).toBe(newRequest);
 
     const assigned = transitionRequest(
       newRequest,
       { type: "admin-assign", specialist: "Георги Димитров" },
-      "admin",
+      Role.Admin,
     );
-    expect(assigned.status).toBe(1);
+    expect(assigned.status).toBe("ACCEPTED");
     expect(assigned.specialist).toBe("Георги Димитров");
 
     expect(
       transitionRequest(
         newRequest,
         { type: "admin-recommend", specialistId: 123 },
-        "client",
+        Role.Client,
       ),
     ).toBe(newRequest);
 
     const recommended = transitionRequest(
       newRequest,
       { type: "admin-recommend", specialistId: 123 },
-      "admin",
+      Role.Admin,
     );
-    expect(recommended.status).toBe(0);
+    expect(recommended.status).toBe("CREATED");
     expect(recommended.recommendedSpecialistId).toBe(123);
 
     // Cannot recommend on an active or assigned request
@@ -113,7 +114,7 @@ describe("request lifecycle", () => {
       transitionRequest(
         assigned,
         { type: "admin-recommend", specialistId: 456 },
-        "admin",
+        Role.Admin,
       ),
     ).toBe(assigned);
   });
@@ -125,7 +126,7 @@ describe("request lifecycle", () => {
     expect(transitionRequest(newRequest, { type: "cancel" }, "admin")).toBe(
       newRequest,
     );
-    const completed: ServiceRequest = { ...newRequest, status: 5 };
+    const completed: ServiceRequest = { ...newRequest, status: "COMPLETED" };
     expect(
       transitionRequest(completed, { type: "rate", rating: 5 }, "specialist"),
     ).toBe(completed);
@@ -141,7 +142,7 @@ describe("request lifecycle", () => {
     const cancelled = transitionRequest(
       newRequest,
       { type: "cancel" },
-      "client",
+      Role.Client,
     );
     expect(cancelled.cancelled).toBe(true);
     expect(
@@ -157,7 +158,7 @@ describe("request lifecycle", () => {
     expect(
       transitionRequest(initialRequests[1], { type: "issue" }, "client").issue,
     ).toBe(true);
-    const completed: ServiceRequest = { ...newRequest, status: 5 };
+    const completed: ServiceRequest = { ...newRequest, status: "COMPLETED" };
     for (const rating of [0, 6, 2.5, NaN])
       expect(
         transitionRequest(completed, { type: "rate", rating }, "client"),

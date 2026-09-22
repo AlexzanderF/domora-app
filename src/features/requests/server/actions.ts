@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
+import { UserRole, UserStatus } from "@/features/auth/types";
 import {
   canClaim,
   canConfirmCompletion,
@@ -15,13 +16,8 @@ import {
   nextExecutionStep,
   requiresCompletionReport,
 } from "../request-rules";
-import type {
-  CategoryId,
-  Plan,
-  RequestAction,
-  RequestStatus,
-  ServiceRequest,
-} from "../types";
+import { RequestPriority, RequestStatus } from "../types";
+import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
 export interface CreateServiceRequestInput {
   category: CategoryId;
@@ -32,7 +28,7 @@ export interface CreateServiceRequestInput {
   time?: string;
   price: number;
   plan?: Plan;
-  priority?: "STANDARD" | "URGENT" | "EMERGENCY";
+  priority?: RequestPriority;
 }
 
 export interface ServiceRequestActionResult {
@@ -100,8 +96,8 @@ export async function createServiceRequestAction(
       description,
       category: String(input.category),
       address,
-      priority: input.priority ?? "STANDARD",
-      status: 0,
+      priority: input.priority ?? RequestPriority.Standard,
+      status: RequestStatus.Created,
       price: Math.round(input.price),
       clientPhone: user.phone || "0888000000",
     })
@@ -121,7 +117,7 @@ export async function createServiceRequestAction(
       input.time ||
       now.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }),
     price: Math.round(input.price),
-    status: 0 as RequestStatus,
+    status: RequestStatus.Created,
     description,
     plan: input.plan,
   };
@@ -141,14 +137,17 @@ export async function assignSpecialistAction(
   }
 
   const user = await getServerSession();
-  if (!user || (user.role !== "SPECIALIST" && user.role !== "ADMIN")) {
+  if (
+    !user ||
+    (user.role !== UserRole.Specialist && user.role !== UserRole.Admin)
+  ) {
     return {
       success: false,
       error: "Само специалист или администратор може да приема заявки.",
     };
   }
 
-  if (user.role === "SPECIALIST" && user.status !== "ACTIVE") {
+  if (user.role === UserRole.Specialist && user.status !== UserStatus.Active) {
     return {
       success: false,
       error: "Профилът ви все още не е одобрен.",
@@ -170,7 +169,7 @@ export async function assignSpecialistAction(
   if (
     !existing ||
     !canClaim({
-      status: existing.status as RequestStatus,
+      status: existing.status,
       cancelled: existing.cancelled,
       specialistId: existing.specialistId,
     })
@@ -182,10 +181,15 @@ export async function assignSpecialistAction(
     .update(requests)
     .set({
       specialistId: user.id,
-      status: 1,
+      status: RequestStatus.Accepted,
       updatedAt: new Date(),
     })
-    .where(and(eq(requests.id, requestId), eq(requests.status, 0)));
+    .where(
+      and(
+        eq(requests.id, requestId),
+        eq(requests.status, RequestStatus.Created),
+      ),
+    );
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
@@ -225,18 +229,19 @@ export async function startWorkAction(
   }
 
   const currentStatus = existing.status;
-  // 2-step execution: unassigned work is claimed, then the intermediate
-  // status 2 is skipped straight to "В процес" (3) once work starts.
+  // 2-step execution: unassigned work is claimed, accepted work jumps
+  // straight to "В процес" once the specialist starts.
   const nextStatus =
-    currentStatus === 0 || currentStatus === 1 || currentStatus === 2
-      ? nextExecutionStep(currentStatus as RequestStatus)
+    currentStatus === RequestStatus.Created ||
+    currentStatus === RequestStatus.Accepted
+      ? nextExecutionStep(currentStatus)
       : currentStatus;
 
   await db
     .update(requests)
     .set({
       status: nextStatus,
-      ...(currentStatus === 0 && !existing.specialistId
+      ...(currentStatus === RequestStatus.Created && !existing.specialistId
         ? { specialistId: user.id }
         : {}),
       updatedAt: new Date(),
@@ -281,7 +286,7 @@ export async function completeWorkAction(
     return { success: false, error: "Заявката е отказана." };
   }
 
-  const status = existing.status as RequestStatus;
+  const status = existing.status;
   let nextStatus = existing.status;
   let nextReport: string | undefined;
 
@@ -292,10 +297,10 @@ export async function completeWorkAction(
         error: "Отчетът е задължителен, за да завършите задачата.",
       };
     }
-    nextStatus = 4;
+    nextStatus = RequestStatus.AwaitingConfirmation;
     nextReport = report.trim();
   } else if (canConfirmCompletion({ status, cancelled: existing.cancelled })) {
-    nextStatus = 5;
+    nextStatus = RequestStatus.Completed;
   } else {
     return {
       success: false,
@@ -346,12 +351,16 @@ export async function cancelRequestAction(
     return { success: false, error: "Заявката не е намерена." };
   }
 
-  if (user.role === "SPECIALIST" && existing.status <= 1) {
+  if (
+    user.role === UserRole.Specialist &&
+    (existing.status === RequestStatus.Created ||
+      existing.status === RequestStatus.Accepted)
+  ) {
     await db
       .update(requests)
       .set({
         specialistId: null,
-        status: 0,
+        status: RequestStatus.Created,
         updatedAt: new Date(),
       })
       .where(eq(requests.id, requestId));
@@ -392,10 +401,10 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
-      if (req.status === 0) {
+      if (req.status === RequestStatus.Created) {
         return assignSpecialistAction(requestId);
       }
-      if (req.status === 3) {
+      if (req.status === RequestStatus.InProgress) {
         return completeWorkAction(requestId, action.report);
       }
       return startWorkAction(requestId);
@@ -422,7 +431,7 @@ export async function transitionRequestServerAction(
       if (
         !canRate(
           {
-            status: req.status as RequestStatus,
+            status: req.status,
             cancelled: req.cancelled,
             rating: req.rating,
           },
@@ -460,7 +469,7 @@ export async function transitionRequestServerAction(
       }
       if (
         !canFlagIssue({
-          status: req.status as RequestStatus,
+          status: req.status,
           cancelled: req.cancelled,
           issue: req.issue,
         })
@@ -493,7 +502,7 @@ export async function transitionRequestServerAction(
       if (!req) return { success: false, error: "Заявката не е намерена." };
       if (
         !canResolveIssue({
-          status: req.status as RequestStatus,
+          status: req.status,
           issue: req.issue,
         })
       ) {
@@ -522,7 +531,7 @@ async function validateDispatchTarget(
   specialistId: number,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== "ADMIN") {
+  if (!currentUser || currentUser.role !== UserRole.Admin) {
     return {
       ok: false,
       error: "Неоторизиран достъп. Изискват се администраторски права.",
@@ -543,7 +552,7 @@ async function validateDispatchTarget(
   }
   if (
     !canClaim({
-      status: req.status as RequestStatus,
+      status: req.status,
       cancelled: req.cancelled,
       specialistId: req.specialistId,
     })
@@ -557,8 +566,8 @@ async function validateDispatchTarget(
     .where(eq(users.id, specialistId));
   if (
     !specialist ||
-    specialist.role !== "SPECIALIST" ||
-    specialist.status !== "ACTIVE"
+    specialist.role !== UserRole.Specialist ||
+    specialist.status !== UserStatus.Active
   ) {
     return {
       ok: false,
@@ -594,7 +603,7 @@ export async function adminAssignSpecialistAction(
     .update(requests)
     .set({
       specialistId,
-      status: 1,
+      status: RequestStatus.Accepted,
       recommendedSpecialistId: null,
       dispatchedByAdmin: true,
       updatedAt: new Date(),

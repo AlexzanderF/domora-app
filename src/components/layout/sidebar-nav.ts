@@ -1,6 +1,7 @@
-import type { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/features/auth/types";
+import { Role } from "@/features/requests/types";
 
-export type WorkspaceRole = "client" | "specialist" | "admin";
+export type WorkspaceRole = Role;
 
 export interface NavItemConfig {
   readonly href: string;
@@ -16,19 +17,19 @@ export const ROLE_NAVIGATION_MAP: Record<
   WorkspaceRole,
   readonly NavItemConfig[]
 > = {
-  client: [
+  [Role.Client]: [
     { href: "/client", label: "Табло", icon: "⌂" },
     { href: "/client/requests", label: "Моите заявки", icon: "▤" },
     { href: "/client/plan", label: "Абонамент", icon: "◈" },
     { href: "/client/profile", label: "Профил", icon: "👤" },
   ],
-  specialist: [
+  [Role.Specialist]: [
     { href: "/specialist", label: "Табло & График", icon: "⌂" },
     { href: "/specialist/opportunities", label: "Възможности", icon: "⚡" },
     { href: "/specialist/history", label: "История & Приходи", icon: "📈" },
     { href: "/specialist/profile", label: "Профил", icon: "👤" },
   ],
-  admin: [
+  [Role.Admin]: [
     { href: "/admin", label: "Команден център", icon: "⌂" },
     { href: "/admin/requests", label: "Заявки", icon: "▤" },
     { href: "/admin/specialists", label: "Специалисти", icon: "👥" },
@@ -37,9 +38,9 @@ export const ROLE_NAVIGATION_MAP: Record<
 } as const;
 
 export const ROLE_DASHBOARD_PATHS: Record<WorkspaceRole, string> = {
-  client: "/client",
-  specialist: "/specialist",
-  admin: "/admin",
+  [Role.Client]: "/client",
+  [Role.Specialist]: "/specialist",
+  [Role.Admin]: "/admin",
 };
 
 const ROOT_DASHBOARD_PATHS = Object.values(
@@ -51,23 +52,23 @@ export function resolveWorkspaceRole(
   userRole?: UserRole | string | null,
 ): WorkspaceRole {
   if (pathname.startsWith("/admin")) {
-    return "admin";
+    return Role.Admin;
   }
   if (pathname.startsWith("/specialist")) {
-    return "specialist";
+    return Role.Specialist;
   }
   if (pathname.startsWith("/client")) {
-    return "client";
+    return Role.Client;
   }
 
-  if (userRole === "ADMIN") {
-    return "admin";
+  if (userRole === UserRole.Admin) {
+    return Role.Admin;
   }
-  if (userRole === "SPECIALIST") {
-    return "specialist";
+  if (userRole === UserRole.Specialist) {
+    return Role.Specialist;
   }
 
-  return "client";
+  return Role.Client;
 }
 
 export function isNavItemActive(
@@ -92,7 +93,7 @@ export function getNavigationItems(
   role: WorkspaceRole,
   currentPath: string = "",
 ): ActiveNavItem[] {
-  const items = ROLE_NAVIGATION_MAP[role] ?? ROLE_NAVIGATION_MAP.client;
+  const items = ROLE_NAVIGATION_MAP[role] ?? ROLE_NAVIGATION_MAP[Role.Client];
   return items.map((item) => ({
     ...item,
     active: isNavItemActive(item.href, currentPath),

@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
-import type { User, UserStatus } from "@/features/auth/types";
+import { UserStatus } from "@/features/auth/types";
+import type { User } from "@/features/auth/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { formatCompany, formatExperience } from "./specialist-format";
 import styles from "./pending-specialists-queue.module.css";
@@ -30,23 +31,23 @@ export function PendingSpecialistsQueue({
         const override = overrideStatuses[spec.id];
         return override ? { ...spec, status: override } : spec;
       })
-      .filter((spec) => spec.status === "PENDING");
+      .filter((spec) => spec.status === UserStatus.Pending);
   }, [initialSpecialists, overrideStatuses]);
 
-  const handleDecision = async (spec: User, status: "ACTIVE" | "REJECTED") => {
+  const handleDecision = async (spec: User, status: UserStatus) => {
     try {
       setProcessingId(spec.id);
       await updateUserStatus(spec.id, status);
       setOverrideStatuses((prev) => ({ ...prev, [spec.id]: status }));
       notify(
-        status === "ACTIVE"
+        status === UserStatus.Active
           ? `Кандидатурата на ${spec.name} е одобрена успешно.`
           : `Кандидатурата на ${spec.name} е отказана.`,
       );
       router.refresh();
     } catch {
       notify(
-        status === "ACTIVE"
+        status === UserStatus.Active
           ? "Възникна грешка при одобряване на кандидатурата."
           : "Възникна грешка при отказване на кандидатурата.",
       );
@@ -112,7 +113,7 @@ export function PendingSpecialistsQueue({
               <div className={styles.actionsGroup}>
                 <button
                   type="button"
-                  onClick={() => handleDecision(spec, "ACTIVE")}
+                  onClick={() => handleDecision(spec, UserStatus.Active)}
                   disabled={isProcessing}
                   className={styles.approveButton}
                 >
@@ -120,7 +121,7 @@ export function PendingSpecialistsQueue({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDecision(spec, "REJECTED")}
+                  onClick={() => handleDecision(spec, UserStatus.Rejected)}
                   disabled={isProcessing}
                   className={styles.rejectButton}
                 >
