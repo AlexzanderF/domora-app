@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export default async function ClientRequestsPage() {
   const user = await getServerSession();
   if (isDbConfigured && !user) {
-    redirect("/login");
+    redirect("/api/auth/logout?next=/login");
   }
 
   const initialRequests = user ? await findClientRequests(user.id) : null;

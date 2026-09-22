@@ -14,7 +14,7 @@ export default async function PendingApprovalPage() {
   const user = await getServerSession();
   if (isDbConfigured) {
     if (!user) {
-      redirect("/login");
+      redirect("/api/auth/logout?next=/login");
     }
     if (user.role === UserRole.Client) {
       redirect("/client");

@@ -9,7 +9,7 @@ export default async function WorkspaceLayout({
   if (isDbConfigured) {
     const user = await getServerSession();
     if (!user) {
-      redirect("/login");
+      redirect("/api/auth/logout?next=/login");
     }
   }
 
