@@ -1,4 +1,15 @@
-import { count, desc, eq, lt } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lt,
+  lte,
+  or,
+  sum,
+} from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, tariffs, users } from "@/db/schema";
 import { parseDescription } from "@/features/requests/server/queries";
@@ -14,6 +25,79 @@ export interface WorkspaceStatsData {
   active: number;
   completed: number;
   totalSpecialists?: number;
+}
+
+export interface AdminKpiMetrics {
+  unassignedUrgentCount: number;
+  pendingSpecialistsCount: number;
+  activeRepairsCount: number;
+  monthlyRevenue: number;
+}
+
+export async function findAdminKpiMetrics(): Promise<AdminKpiMetrics | null> {
+  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+    return null;
+  }
+
+  const db = getDb();
+  if (!db) return null;
+
+  const now = new Date();
+  const startOfMonth = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1,
+    0,
+    0,
+    0,
+    0,
+  );
+
+  const [
+    [unassignedUrgentResult],
+    [pendingSpecialistsResult],
+    [activeRepairsResult],
+    [monthlyRevenueResult],
+  ] = await Promise.all([
+    db
+      .select({ value: count() })
+      .from(requests)
+      .where(
+        and(
+          eq(requests.status, 0),
+          inArray(requests.priority, ["URGENT", "EMERGENCY"]),
+        ),
+      ),
+    db
+      .select({ value: count() })
+      .from(users)
+      .where(and(eq(users.role, "SPECIALIST"), eq(users.status, "PENDING"))),
+    db
+      .select({ value: count() })
+      .from(requests)
+      .where(and(gte(requests.status, 1), lte(requests.status, 4))),
+    db
+      .select({ value: sum(requests.price) })
+      .from(requests)
+      .where(
+        and(
+          eq(requests.status, 5),
+          or(
+            gte(requests.updatedAt, startOfMonth),
+            gte(requests.createdAt, startOfMonth),
+          ),
+        ),
+      ),
+  ]);
+
+  return {
+    unassignedUrgentCount: unassignedUrgentResult?.value ?? 0,
+    pendingSpecialistsCount: pendingSpecialistsResult?.value ?? 0,
+    activeRepairsCount: activeRepairsResult?.value ?? 0,
+    monthlyRevenue: monthlyRevenueResult?.value
+      ? Number(monthlyRevenueResult.value)
+      : 0,
+  };
 }
 
 export async function findOperationalMetrics(): Promise<WorkspaceStatsData | null> {
@@ -86,6 +170,7 @@ export async function findAllRequestsForAdmin(): Promise<
       }),
       price: request.price,
       status,
+      priority: request.priority,
       description: parsed.cleanDescription,
       cancelled: parsed.cancelled,
       report: parsed.report,
