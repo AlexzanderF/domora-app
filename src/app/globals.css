@@ -59,7 +59,7 @@ aside {
 }
 .collapse-edge-toggle {
   position: absolute;
-  top: 78px;
+  top: 100px;
   right: -12px;
   width: 24px;
   height: 24px;
@@ -88,6 +88,15 @@ aside {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   transform: scale(1.08);
 }
+.sidebar-brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 12px;
+}
 .brand {
   text-decoration: none;
   color: var(--green);
@@ -98,7 +107,7 @@ aside {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-width: 0;
+  width: 100%;
 }
 .brand-text {
   overflow: hidden;
@@ -119,11 +128,12 @@ aside {
 .tagline {
   font-size: 10px;
   letter-spacing: 1.3px;
-  margin: 8px 0 16px;
+  margin: 6px 0 0 0;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 100%;
 }
 .navlabel,
 .eyebrow {
@@ -139,6 +149,7 @@ nav {
   margin-top: 0;
   display: grid;
   gap: 8px;
+  width: 100%;
 }
 nav a {
   background: none;
@@ -183,6 +194,9 @@ nav a span:not([aria-hidden]) {
   padding: 30px 10px;
   align-items: center;
 }
+[data-sidebar-collapsed="true"] .sidebar-brand-block {
+  margin-bottom: 16px;
+}
 [data-sidebar-collapsed="true"] .brand-text,
 [data-sidebar-collapsed="true"] .tagline,
 [data-sidebar-collapsed="true"] .navlabel,
@@ -209,7 +223,7 @@ header {
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 64px;
+  height: 72px;
   padding: 0 44px;
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -238,8 +252,8 @@ main {
   max-width: 1320px;
   margin: auto;
   padding: 38px 44px;
-  min-height: calc(100vh - 120px);
-  scroll-margin-top: 64px;
+  min-height: calc(100vh - 130px);
+  scroll-margin-top: 72px;
 }
 h1 {
   font-size: 34px;

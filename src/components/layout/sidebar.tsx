@@ -28,6 +28,7 @@ export function Sidebar({
         <button
           type="button"
           className="collapse-edge-toggle"
+          style={{ top: "100px" }}
           onClick={onToggleCollapse}
           aria-label={
             collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
@@ -52,13 +53,15 @@ export function Sidebar({
           </svg>
         </button>
       )}
-      <Link className="brand" href="/" title="DOMORA Начало">
-        <span className="mark" aria-hidden="true">
-          ⌂
-        </span>
-        <span className="brand-text">DOMORA</span>
-      </Link>
-      <p className="tagline">WE TAKE CARE OF YOUR HOME</p>
+      <div className="sidebar-brand-block">
+        <Link className="brand" href="/" title="DOMORA Начало">
+          <span className="mark" aria-hidden="true">
+            ⌂
+          </span>
+          <span className="brand-text">DOMORA</span>
+        </Link>
+        <p className="tagline">WE TAKE CARE OF YOUR HOME</p>
+      </div>
       <nav aria-label="Основна навигация">
         {navigation.map((item) => (
           <Link
