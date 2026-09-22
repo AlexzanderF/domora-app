@@ -34,7 +34,12 @@ DOMORA is a property care and home service management web application.
    - Feature Modules: `src/features/<feature-name>/` (colocate UI components, styles, types, and mock stores).
 3. **State & Mocking**:
    - Use the demo provider pattern (e.g., `src/features/requests/demo-provider.tsx`) when prototyping interactive flows without a backend.
-4. **Generated Files**:
+4. **Domain Literals**:
+   - Declare every domain string union (roles, statuses, priorities, plans) once as a const object with PascalCase members, deriving the union type from it (e.g., `RequestStatus.Created` in `src/features/requests/types.ts`).
+   - Reference members in all boolean logic, filters, sorts, drizzle predicates, lookup maps, seeds, and fixtures — never raw literals.
+   - Key lookup maps with computed member keys and keep them total over the union, so `tsc` enforces exhaustiveness.
+   - Raw literals stay only where they define values: `pgEnum` declarations in `src/db/schema.ts`, storage codes, and type-checked test data.
+5. **Generated Files**:
    - Do NOT manually edit files in `dist/` or `.next/`.
 
 ---
