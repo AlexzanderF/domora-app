@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useDemo } from "@/features/requests/demo-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { useToast } from "@/components/ui/toast-provider";
 import { categories, requestStages } from "@/features/services/catalog";
@@ -17,26 +16,23 @@ export interface DisputedRequestsQueueProps {
 export function DisputedRequestsQueue({
   initialDisputedRequests,
 }: DisputedRequestsQueueProps = {}) {
-  const { requests: demoRequests, updateRequest } = useDemo();
   const notify = useToast();
   const router = useRouter();
   const [resolvedIds, setResolvedIds] = useState<Set<number>>(new Set());
   const [processingId, setProcessingId] = useState<number | null>(null);
 
   const disputed = useMemo(() => {
-    const source =
-      initialDisputedRequests ?? demoRequests.filter((r) => r.issue);
+    const source = initialDisputedRequests ?? [];
     return source.filter((r) => r.issue && !resolvedIds.has(r.id));
-  }, [initialDisputedRequests, demoRequests, resolvedIds]);
+  }, [initialDisputedRequests, resolvedIds]);
 
   const handleResolve = async (request: ServiceRequest) => {
     try {
       setProcessingId(request.id);
-      updateRequest(request.id, { type: "resolve" }, "admin");
       const res = await transitionRequestServerAction(request.id, {
         type: "resolve",
       });
-      if (res.mode === "db" && !res.success) {
+      if (!res.success) {
         notify(res.error ?? "Възникна грешка при разрешаване на сигнала.");
         return;
       }
