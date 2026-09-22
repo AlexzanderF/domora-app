@@ -1,0 +1,176 @@
+.dialog {
+  width: min(720px, 94vw);
+  max-height: min(96vh, 820px);
+  padding: 22px;
+  overflow: auto;
+  border-radius: 14px;
+}
+
+.dialogHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.dialogHead h2 {
+  margin: 5px 0 0;
+  color: #17372f;
+  font-size: 1.35rem;
+  line-height: 1.18;
+}
+
+.eyebrow {
+  color: #668078;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.closeButton {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid #d9e3dd;
+  border-radius: 7px;
+  background: #fff;
+  color: #526b63;
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+  place-items: center;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  border-color: #7fa699;
+  color: #17372f;
+  outline: none;
+}
+
+.form {
+  display: grid;
+  gap: 0.78rem;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.field {
+  display: grid;
+  align-content: start;
+  gap: 0.36rem;
+  margin: 0;
+  color: #40564f;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.field input,
+.field select,
+.field textarea,
+.photoSlot input {
+  min-height: 42px;
+  margin: 0;
+  border-color: #ccd9d1;
+  border-radius: 6px;
+  color: #182e29;
+  font-size: 0.92rem;
+}
+
+.field textarea {
+  min-height: 74px;
+  resize: vertical;
+}
+
+.field [aria-invalid="true"] {
+  border-color: #b14545;
+}
+
+.photoSlot {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.quote {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 14px;
+  border: 1px solid #dbe5df;
+  border-radius: 7px;
+  background: #edf4e8;
+}
+
+.quote strong {
+  display: block;
+  color: #17372f;
+  font-size: 1.38rem;
+  line-height: 1.1;
+}
+
+.quote small {
+  color: #687b75;
+  font-size: 0.72rem;
+}
+
+.quote > span {
+  max-width: 260px;
+  color: #40564f;
+  font-size: 0.78rem;
+  text-align: right;
+}
+
+.note {
+  margin: 0;
+  color: #6d7c76;
+  font-size: 0.8rem;
+}
+
+.submit {
+  min-height: 44px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--green);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.error {
+  color: #b14545;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .dialog {
+    padding: 18px;
+  }
+
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quote {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .quote > span {
+    max-width: none;
+    text-align: left;
+  }
+}

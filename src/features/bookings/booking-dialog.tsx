@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
+import { DatePicker } from "@/features/plans/date-picker";
+import { TimePicker } from "@/features/plans/time-picker";
 import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote, quoteScope } from "@/features/requests/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
@@ -11,6 +19,7 @@ import type { BookingSelection, CategoryId } from "@/features/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";
+import styles from "./booking-dialog.module.css";
 
 export function BookingDialog() {
   const { booking } = useDemo();
@@ -32,6 +41,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
   const [quantity, setQuantity] = useState(
     selection.plan === "entry" ? "6" : "80",
   );
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const plan = selection.plan;
   const validQuantity =
     Number.isInteger(Number(quantity)) &&
@@ -55,20 +65,32 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    if (!form.reportValidity() || price === null || isSubmitting) return;
+    if (isSubmitting) return;
     const data = new FormData(form);
     const description = String(data.get("description") ?? "").trim();
     const address = String(data.get("address") ?? "").trim();
-    if (description.length < 5 || !address) {
-      notify("Въведете адрес и описание с поне 5 символа.");
-      return;
+    const dateStr = String(data.get("date"));
+    const timeStr = String(data.get("time"));
+    const nextErrors: Record<string, string> = {};
+
+    if (!description) nextErrors.description = "Опишете накратко проблема.";
+    else if (description.length < 5)
+      nextErrors.description = "Описанието трябва да е поне 5 символа.";
+    if (!address) nextErrors.address = "Въведете адрес на имота.";
+    if (!dateStr) nextErrors.date = "Изберете предпочитана дата.";
+    else if (dateStr < today)
+      nextErrors.date = "Датата не може да бъде в миналото.";
+    if (!timeStr) nextErrors.time = "Изберете часови диапазон.";
+    if (!validQuantity) {
+      nextErrors.quantity = `Въведете ${plan === "entry" ? "брой етажи" : "площ"} между 1 и 1000.`;
     }
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+    if (price === null) return;
 
     const serviceName = plan
       ? `Абонамент ${plan === "home" ? "За дома" : "За входа"}`
       : categories[category].services[serviceIndex];
-    const dateStr = String(data.get("date"));
-    const timeStr = String(data.get("time"));
 
     setIsSubmitting(true);
     try {
@@ -142,28 +164,34 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
   return (
     <dialog
       ref={dialog}
+      className={styles.dialog}
       aria-labelledby="booking-title"
       onCancel={(event) => {
         event.preventDefault();
         closeBooking();
       }}
     >
-      <div className="dialoghead">
+      <div className={styles.dialogHead}>
         <div>
-          <span className="eyebrow">DOMORA / НОВА ЗАЯВКА</span>
+          <span className={styles.eyebrow}>DOMORA / НОВА ЗАЯВКА</span>
           <h2 id="booking-title">
             {plan
               ? `Абонамент ${plan === "home" ? "за дома" : "за входа"}`
               : "Разкажете ни от какво се нуждаете"}
           </h2>
         </div>
-        <button className="icon" aria-label="Затвори" onClick={closeBooking}>
+        <button
+          className={styles.closeButton}
+          type="button"
+          aria-label="Затвори"
+          onClick={closeBooking}
+        >
           ×
         </button>
       </div>
-      <form onSubmit={submit}>
-        <div className="formgrid">
-          <label>
+      <form className={styles.form} onSubmit={submit} noValidate>
+        <div className={styles.fieldGrid}>
+          <label className={styles.field}>
             Категория
             <select
               disabled={Boolean(plan)}
@@ -183,7 +211,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
               ))}
             </select>
           </label>
-          <label>
+          <label className={styles.field}>
             Услуга
             <select
               disabled={Boolean(plan)}
@@ -206,54 +234,75 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
             </select>
           </label>
         </div>
-        <label>
-          Описание на проблема
+        <Field
+          label="Описание на проблема"
+          error={errors.description}
+          id="description-error"
+        >
           <textarea
             name="description"
-            required
-            minLength={5}
+            aria-invalid={Boolean(errors.description)}
+            aria-describedby={
+              errors.description ? "description-error" : undefined
+            }
             placeholder="Какво трябва да направим?"
-            rows={3}
+            rows={2}
           />
-        </label>
-        <PhotoPicker />
-        <label>
-          Адрес
+        </Field>
+        <div className={styles.photoSlot}>
+          <PhotoPicker />
+        </div>
+        <Field label="Адрес" error={errors.address} id="address-error">
           <input
             name="address"
-            required
+            autoComplete="street-address"
+            aria-invalid={Boolean(errors.address)}
+            aria-describedby={errors.address ? "address-error" : undefined}
             placeholder="Град, улица, номер, вход"
           />
-        </label>
-        <div className="formgrid">
-          <label>
-            Предпочитана дата
-            <input name="date" type="date" required min={today} />
-          </label>
-          <label>
-            Предпочитан час
-            <select name="time">
-              <option>09:00–12:00</option>
-              <option>12:00–15:00</option>
-              <option>15:00–18:00</option>
-            </select>
-          </label>
+        </Field>
+        <div className={styles.fieldGrid}>
+          <FieldGroup
+            label="Предпочитана дата"
+            error={errors.date}
+            id="date-error"
+          >
+            <DatePicker
+              min={today}
+              invalid={Boolean(errors.date)}
+              describedBy={errors.date ? "date-error" : undefined}
+            />
+          </FieldGroup>
+          <FieldGroup
+            label="Часови диапазон"
+            error={errors.time}
+            id="time-error"
+          >
+            <TimePicker
+              invalid={Boolean(errors.time)}
+              describedBy={errors.time ? "time-error" : undefined}
+            />
+          </FieldGroup>
         </div>
         {plan && (
-          <label>
-            {plan === "entry" ? "Брой етажи" : "Площ на дома (м²)"}
+          <Field
+            label={plan === "entry" ? "Брой етажи" : "Площ на дома (м²)"}
+            error={errors.quantity}
+            id="quantity-error"
+          >
             <input
               type="number"
               min="1"
               max="1000"
               step="1"
-              required
+              aria-invalid={Boolean(errors.quantity)}
+              aria-describedby={errors.quantity ? "quantity-error" : undefined}
               value={quantity}
               onChange={(event) => setQuantity(event.target.value)}
             />
-          </label>
+          </Field>
         )}
-        <div className="quote" aria-live="polite">
+        <div className={styles.quote} aria-live="polite">
           <div>
             <small>Демонстрационна цена</small>
             <strong>
@@ -263,12 +312,12 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           </div>
           <span>{quoteScope(category, serviceIndex, plan)}</span>
         </div>
-        <p className="muted">
+        <p className={styles.note}>
           Часът подлежи на потвърждение. Материали и допълнителна работа се
           одобряват отделно.
         </p>
         <button
-          className="primary full"
+          className={styles.submit}
           type="submit"
           disabled={isSubmitting}
           aria-label="Изпрати демо заявка"
@@ -277,5 +326,53 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         </button>
       </form>
     </dialog>
+  );
+}
+
+function Field({
+  label,
+  error,
+  id,
+  children,
+}: {
+  label: string;
+  error?: string;
+  id: string;
+  children: ReactNode;
+}) {
+  return (
+    <label className={styles.field}>
+      {label}
+      {children}
+      {error && (
+        <span id={id} className={styles.error}>
+          {error}
+        </span>
+      )}
+    </label>
+  );
+}
+
+function FieldGroup({
+  label,
+  error,
+  id,
+  children,
+}: {
+  label: string;
+  error?: string;
+  id: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles.field}>
+      <span>{label}</span>
+      {children}
+      {error && (
+        <span id={id} className={styles.error}>
+          {error}
+        </span>
+      )}
+    </div>
   );
 }
