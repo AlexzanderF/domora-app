@@ -115,7 +115,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
           date: dateStr,
           time: timeStr,
           price,
-          status: 0,
+          status: "CREATED",
           plan,
         });
         closeBooking();
@@ -150,7 +150,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         date: dateStr,
         time: timeStr,
         price,
-        status: 0,
+        status: "CREATED",
         plan,
       });
       closeBooking();

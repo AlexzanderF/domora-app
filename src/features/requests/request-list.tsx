@@ -47,7 +47,7 @@ export function RequestList({
               {request.address}
             </p>
             <span
-              className={`badge ${request.status === 0 && !request.cancelled ? "wait" : ""}`}
+              className={`badge ${request.status === "CREATED" && !request.cancelled ? "wait" : ""}`}
             >
               {request.cancelled ? "Отказана" : requestStages[request.status]}
             </span>{" "}

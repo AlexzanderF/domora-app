@@ -1,4 +1,4 @@
-import type { ServiceRequest } from "@/features/requests/types";
+import type { RequestStatus, ServiceRequest } from "@/features/requests/types";
 
 export const trackerStages = [
   "Създадена",
@@ -7,22 +7,31 @@ export const trackerStages = [
   "Очаква потвърждение",
 ] as const;
 
+const TRACKER_INDEX: Record<Exclude<RequestStatus, "COMPLETED">, number> = {
+  CREATED: 0,
+  ACCEPTED: 1,
+  IN_PROGRESS: 2,
+  AWAITING_CONFIRMATION: 3,
+};
+
 export function getTrackerStageIndex(status: ServiceRequest["status"]) {
-  if (status === 0) return 0;
-  if (status === 1) return 1;
-  if (status === 2 || status === 3) return 2;
-  return 3;
+  if (status === "COMPLETED") return 3;
+  return TRACKER_INDEX[status];
 }
 
 export function selectActiveRequest(requests: ServiceRequest[]) {
   const active = requests.filter(
-    (request) => !request.cancelled && request.status <= 4,
+    (request) => !request.cancelled && request.status !== "COMPLETED",
   );
-  return active.find((request) => request.status === 4) ?? active.at(0) ?? null;
+  return (
+    active.find((request) => request.status === "AWAITING_CONFIRMATION") ??
+    active.at(0) ??
+    null
+  );
 }
 
 export function getRecentCompletedRequests(requests: ServiceRequest[]) {
   return requests
-    .filter((request) => request.status === 5 && !request.cancelled)
+    .filter((request) => request.status === "COMPLETED" && !request.cancelled)
     .slice(0, 3);
 }

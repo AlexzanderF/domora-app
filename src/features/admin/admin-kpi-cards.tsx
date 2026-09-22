@@ -1,6 +1,8 @@
 "use client";
 
 import { useDemo } from "@/features/requests/demo-provider";
+import { isActiveStage } from "@/features/requests/request-rules";
+import { isUrgentPriority } from "@/features/requests/priority";
 import { money } from "@/lib/format";
 import type { AdminKpiMetrics } from "./server/metrics";
 import styles from "./admin-command-center.module.css";
@@ -17,22 +19,19 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps = {}) {
     initialMetrics?.unassignedUrgentCount ??
     requests.filter(
       (r) =>
-        !r.cancelled &&
-        r.status === 0 &&
-        (r.priority === "URGENT" || r.priority === "EMERGENCY"),
+        !r.cancelled && r.status === "CREATED" && isUrgentPriority(r.priority),
     ).length;
 
   const pendingSpecialistsCount = initialMetrics?.pendingSpecialistsCount ?? 1;
 
   const activeRepairsCount =
     initialMetrics?.activeRepairsCount ??
-    requests.filter((r) => !r.cancelled && r.status >= 1 && r.status <= 4)
-      .length;
+    requests.filter((r) => !r.cancelled && isActiveStage(r.status)).length;
 
   const monthlyRevenue =
     initialMetrics?.monthlyRevenue ??
     requests
-      .filter((r) => r.status === 5)
+      .filter((r) => r.status === "COMPLETED")
       .reduce((sum, r) => sum + (r.price || 0), 0);
 
   return (

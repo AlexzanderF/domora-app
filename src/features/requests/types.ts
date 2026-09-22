@@ -1,7 +1,12 @@
 export type Role = "client" | "specialist" | "admin";
 export type Plan = "home" | "entry";
 export type CategoryId = 0 | 1 | 2 | 3 | 4 | 5;
-export type RequestStatus = 0 | 1 | 2 | 3 | 4 | 5;
+export type RequestStatus =
+  | "CREATED"
+  | "ACCEPTED"
+  | "IN_PROGRESS"
+  | "AWAITING_CONFIRMATION"
+  | "COMPLETED";
 
 export type RequestPriority = "STANDARD" | "URGENT" | "HOLIDAY" | "EMERGENCY";
 

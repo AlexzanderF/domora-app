@@ -15,13 +15,7 @@ import {
   nextExecutionStep,
   requiresCompletionReport,
 } from "../request-rules";
-import type {
-  CategoryId,
-  Plan,
-  RequestAction,
-  RequestStatus,
-  ServiceRequest,
-} from "../types";
+import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
 export interface CreateServiceRequestInput {
   category: CategoryId;
@@ -101,7 +95,7 @@ export async function createServiceRequestAction(
       category: String(input.category),
       address,
       priority: input.priority ?? "STANDARD",
-      status: 0,
+      status: "CREATED",
       price: Math.round(input.price),
       clientPhone: user.phone || "0888000000",
     })
@@ -121,7 +115,7 @@ export async function createServiceRequestAction(
       input.time ||
       now.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }),
     price: Math.round(input.price),
-    status: 0 as RequestStatus,
+    status: "CREATED",
     description,
     plan: input.plan,
   };
@@ -170,7 +164,7 @@ export async function assignSpecialistAction(
   if (
     !existing ||
     !canClaim({
-      status: existing.status as RequestStatus,
+      status: existing.status,
       cancelled: existing.cancelled,
       specialistId: existing.specialistId,
     })
@@ -182,10 +176,10 @@ export async function assignSpecialistAction(
     .update(requests)
     .set({
       specialistId: user.id,
-      status: 1,
+      status: "ACCEPTED",
       updatedAt: new Date(),
     })
-    .where(and(eq(requests.id, requestId), eq(requests.status, 0)));
+    .where(and(eq(requests.id, requestId), eq(requests.status, "CREATED")));
 
   revalidatePath("/specialist");
   revalidatePath("/requests");
@@ -225,18 +219,18 @@ export async function startWorkAction(
   }
 
   const currentStatus = existing.status;
-  // 2-step execution: unassigned work is claimed, then the intermediate
-  // status 2 is skipped straight to "В процес" (3) once work starts.
+  // 2-step execution: unassigned work is claimed, accepted work jumps
+  // straight to "В процес" once the specialist starts.
   const nextStatus =
-    currentStatus === 0 || currentStatus === 1 || currentStatus === 2
-      ? nextExecutionStep(currentStatus as RequestStatus)
+    currentStatus === "CREATED" || currentStatus === "ACCEPTED"
+      ? nextExecutionStep(currentStatus)
       : currentStatus;
 
   await db
     .update(requests)
     .set({
       status: nextStatus,
-      ...(currentStatus === 0 && !existing.specialistId
+      ...(currentStatus === "CREATED" && !existing.specialistId
         ? { specialistId: user.id }
         : {}),
       updatedAt: new Date(),
@@ -281,7 +275,7 @@ export async function completeWorkAction(
     return { success: false, error: "Заявката е отказана." };
   }
 
-  const status = existing.status as RequestStatus;
+  const status = existing.status;
   let nextStatus = existing.status;
   let nextReport: string | undefined;
 
@@ -292,10 +286,10 @@ export async function completeWorkAction(
         error: "Отчетът е задължителен, за да завършите задачата.",
       };
     }
-    nextStatus = 4;
+    nextStatus = "AWAITING_CONFIRMATION";
     nextReport = report.trim();
   } else if (canConfirmCompletion({ status, cancelled: existing.cancelled })) {
-    nextStatus = 5;
+    nextStatus = "COMPLETED";
   } else {
     return {
       success: false,
@@ -346,12 +340,15 @@ export async function cancelRequestAction(
     return { success: false, error: "Заявката не е намерена." };
   }
 
-  if (user.role === "SPECIALIST" && existing.status <= 1) {
+  if (
+    user.role === "SPECIALIST" &&
+    (existing.status === "CREATED" || existing.status === "ACCEPTED")
+  ) {
     await db
       .update(requests)
       .set({
         specialistId: null,
-        status: 0,
+        status: "CREATED",
         updatedAt: new Date(),
       })
       .where(eq(requests.id, requestId));
@@ -392,10 +389,10 @@ export async function transitionRequestServerAction(
         .where(eq(requests.id, requestId));
       if (!req) return { success: false, error: "Заявката не е намерена." };
 
-      if (req.status === 0) {
+      if (req.status === "CREATED") {
         return assignSpecialistAction(requestId);
       }
-      if (req.status === 3) {
+      if (req.status === "IN_PROGRESS") {
         return completeWorkAction(requestId, action.report);
       }
       return startWorkAction(requestId);
@@ -422,7 +419,7 @@ export async function transitionRequestServerAction(
       if (
         !canRate(
           {
-            status: req.status as RequestStatus,
+            status: req.status,
             cancelled: req.cancelled,
             rating: req.rating,
           },
@@ -460,7 +457,7 @@ export async function transitionRequestServerAction(
       }
       if (
         !canFlagIssue({
-          status: req.status as RequestStatus,
+          status: req.status,
           cancelled: req.cancelled,
           issue: req.issue,
         })
@@ -493,7 +490,7 @@ export async function transitionRequestServerAction(
       if (!req) return { success: false, error: "Заявката не е намерена." };
       if (
         !canResolveIssue({
-          status: req.status as RequestStatus,
+          status: req.status,
           issue: req.issue,
         })
       ) {
@@ -543,7 +540,7 @@ async function validateDispatchTarget(
   }
   if (
     !canClaim({
-      status: req.status as RequestStatus,
+      status: req.status,
       cancelled: req.cancelled,
       specialistId: req.specialistId,
     })
@@ -594,7 +591,7 @@ export async function adminAssignSpecialistAction(
     .update(requests)
     .set({
       specialistId,
-      status: 1,
+      status: "ACCEPTED",
       recommendedSpecialistId: null,
       dispatchedByAdmin: true,
       updatedAt: new Date(),

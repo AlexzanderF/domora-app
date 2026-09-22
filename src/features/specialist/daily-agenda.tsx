@@ -3,6 +3,7 @@
 import { useRef, useState, type FormEvent } from "react";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
+import { isActiveStage } from "@/features/requests/request-rules";
 import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "@/features/requests/demo-provider";
 import {
@@ -27,8 +28,7 @@ export function DailyAgenda({
   const items =
     initialAgenda ??
     demoRequests.filter(
-      (request) =>
-        !request.cancelled && request.status >= 1 && request.status <= 4,
+      (request) => !request.cancelled && isActiveStage(request.status),
     );
 
   async function startWork(request: ServiceRequest) {
@@ -136,7 +136,7 @@ export function DailyAgenda({
                 </p>
               )}
               <div className="actions">
-                {request.status === 1 && (
+                {request.status === "ACCEPTED" && (
                   <button
                     className="primary"
                     disabled={busyId === request.id}
@@ -145,7 +145,7 @@ export function DailyAgenda({
                     {busyId === request.id ? "Стартиране…" : "Започни работа"}
                   </button>
                 )}
-                {request.status === 3 && (
+                {request.status === "IN_PROGRESS" && (
                   <button
                     className="primary"
                     disabled={busyId === request.id}

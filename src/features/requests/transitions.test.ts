@@ -5,7 +5,7 @@ import type { ServiceRequest } from "./types";
 
 const newRequest: ServiceRequest = {
   ...initialRequests[0],
-  status: 0,
+  status: "CREATED",
   specialist: undefined,
 };
 
@@ -16,10 +16,10 @@ describe("request lifecycle", () => {
       { type: "advance" },
       "specialist",
     );
-    expect(request.status).toBe(1);
+    expect(request.status).toBe("ACCEPTED");
     // Specialist advance skips status 2: moves directly from 1 to 3
     request = transitionRequest(request, { type: "advance" }, "specialist");
-    expect(request.status).toBe(3);
+    expect(request.status).toBe("IN_PROGRESS");
     expect(
       transitionRequest(
         request,
@@ -32,7 +32,7 @@ describe("request lifecycle", () => {
       { type: "advance", report: "  Ремонтът е готов.  " },
       "specialist",
     );
-    expect(request.status).toBe(4);
+    expect(request.status).toBe("AWAITING_CONFIRMATION");
     expect(request.report).toBe("Ремонтът е готов.");
     expect(transitionRequest(request, { type: "complete" }, "specialist")).toBe(
       request,
@@ -43,7 +43,7 @@ describe("request lifecycle", () => {
     expect(
       transitionRequest(request, { type: "rate", rating: 1 }, "client"),
     ).toBe(request);
-    expect(newRequest.status).toBe(0);
+    expect(newRequest.status).toBe("CREATED");
   });
 
   it("handles specialist accept and dismiss actions", () => {
@@ -58,7 +58,7 @@ describe("request lifecycle", () => {
       { type: "accept", specialist: "Иван Иванов" },
       "specialist",
     );
-    expect(accepted.status).toBe(1);
+    expect(accepted.status).toBe("ACCEPTED");
     expect(accepted.specialist).toBe("Иван Иванов");
     expect(transitionRequest(accepted, { type: "accept" }, "specialist")).toBe(
       accepted,
@@ -89,7 +89,7 @@ describe("request lifecycle", () => {
       { type: "admin-assign", specialist: "Георги Димитров" },
       "admin",
     );
-    expect(assigned.status).toBe(1);
+    expect(assigned.status).toBe("ACCEPTED");
     expect(assigned.specialist).toBe("Георги Димитров");
 
     expect(
@@ -105,7 +105,7 @@ describe("request lifecycle", () => {
       { type: "admin-recommend", specialistId: 123 },
       "admin",
     );
-    expect(recommended.status).toBe(0);
+    expect(recommended.status).toBe("CREATED");
     expect(recommended.recommendedSpecialistId).toBe(123);
 
     // Cannot recommend on an active or assigned request
@@ -125,7 +125,7 @@ describe("request lifecycle", () => {
     expect(transitionRequest(newRequest, { type: "cancel" }, "admin")).toBe(
       newRequest,
     );
-    const completed: ServiceRequest = { ...newRequest, status: 5 };
+    const completed: ServiceRequest = { ...newRequest, status: "COMPLETED" };
     expect(
       transitionRequest(completed, { type: "rate", rating: 5 }, "specialist"),
     ).toBe(completed);
@@ -157,7 +157,7 @@ describe("request lifecycle", () => {
     expect(
       transitionRequest(initialRequests[1], { type: "issue" }, "client").issue,
     ).toBe(true);
-    const completed: ServiceRequest = { ...newRequest, status: 5 };
+    const completed: ServiceRequest = { ...newRequest, status: "COMPLETED" };
     for (const rating of [0, 6, 2.5, NaN])
       expect(
         transitionRequest(completed, { type: "rate", rating }, "client"),

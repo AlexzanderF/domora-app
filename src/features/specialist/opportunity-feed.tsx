@@ -34,7 +34,7 @@ export function OpportunityFeed({
   const source =
     initialOpportunities ??
     demoRequests.filter(
-      (request) => request.status === 0 && !request.cancelled,
+      (request) => request.status === "CREATED" && !request.cancelled,
     );
   const visible = source.filter((request) => !dismissedIds.has(request.id));
   const items = limit ? visible.slice(0, limit) : visible;

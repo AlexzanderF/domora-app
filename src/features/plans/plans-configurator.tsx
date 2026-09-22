@@ -107,7 +107,7 @@ export function PlansConfigurator() {
       date,
       time,
       price,
-      status: 0,
+      status: "CREATED",
       plan,
       visitsPerMonth: visits,
       propertySize: quantity,

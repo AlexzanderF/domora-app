@@ -33,7 +33,7 @@ export default async function SpecialistOpportunitiesPage() {
       : null;
 
   const initialOpportunities = allRequests
-    ? allRequests.filter((req) => req.status === 0 && !req.cancelled)
+    ? allRequests.filter((req) => req.status === "CREATED" && !req.cancelled)
     : null;
 
   return (

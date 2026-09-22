@@ -34,7 +34,7 @@ export function transitionRequest(
       return role === "specialist" && canClaim(request)
         ? {
             ...request,
-            status: 1,
+            status: "ACCEPTED",
             specialist:
               action.specialist ||
               request.specialist ||
@@ -47,7 +47,7 @@ export function transitionRequest(
       return role === "admin" && canClaim(request)
         ? {
             ...request,
-            status: 1,
+            status: "ACCEPTED",
             specialist: action.specialist,
           }
         : request;
@@ -74,12 +74,12 @@ export function transitionRequest(
       };
     }
     case "decline":
-      return role !== "client" && request.status === 0
+      return role !== "client" && request.status === "CREATED"
         ? { ...request, specialist: undefined }
         : request;
     case "complete":
       return role === "client" && canConfirmCompletion(request)
-        ? { ...request, status: 5 }
+        ? { ...request, status: "COMPLETED" }
         : request;
     case "issue":
       return role === "client" && canFlagIssue(request)

@@ -4,11 +4,7 @@ import { getDb, isDbConfigured } from "@/db";
 import { requests, specialistProfiles, users } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
 import { isUrgentPriority } from "@/features/requests/priority";
-import type {
-  CategoryId,
-  RequestStatus,
-  ServiceRequest,
-} from "@/features/requests/types";
+import type { CategoryId, ServiceRequest } from "@/features/requests/types";
 
 type AdminRequestRow = {
   request: typeof requests.$inferSelect;
@@ -24,9 +20,6 @@ function mapAdminRequestRow({
   const rawCategory = Number(request.category);
   const category: CategoryId =
     rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-  const rawStatus = request.status;
-  const status: RequestStatus =
-    rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
 
   return {
     id: request.id,
@@ -39,7 +32,7 @@ function mapAdminRequestRow({
       minute: "2-digit",
     }),
     price: request.price,
-    status,
+    status: request.status,
     priority: request.priority,
     description: request.description,
     cancelled: request.cancelled,
@@ -148,7 +141,7 @@ export async function findUnassignedRequestsForAdmin(): Promise<
     })
     .from(requests)
     .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(and(eq(requests.status, 0), eq(requests.cancelled, false)))
+    .where(and(eq(requests.status, "CREATED"), eq(requests.cancelled, false)))
     .orderBy(desc(requests.createdAt));
 
   const mapped = rows.map((row) => mapAdminRequestRow(row));

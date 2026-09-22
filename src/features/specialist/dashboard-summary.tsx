@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useDemo } from "@/features/requests/demo-provider";
+import { isActiveStage } from "@/features/requests/request-rules";
 import { localDate, money } from "@/lib/format";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
@@ -9,13 +10,14 @@ import styles from "./specialist-dashboard.module.css";
 function computeStats(requests: ServiceRequest[]) {
   const today = localDate();
   const activeJobs = requests.filter(
-    (request) =>
-      !request.cancelled && request.status >= 1 && request.status <= 4,
+    (request) => !request.cancelled && isActiveStage(request.status),
   ).length;
   const todaysEarnings = requests
     .filter(
       (request) =>
-        !request.cancelled && request.status === 5 && request.date === today,
+        !request.cancelled &&
+        request.status === "COMPLETED" &&
+        request.date === today,
     )
     .reduce((sum, request) => sum + (request.price || 0), 0);
   return { activeJobs, todaysEarnings };

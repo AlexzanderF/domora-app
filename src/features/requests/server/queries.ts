@@ -2,7 +2,7 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
-import type { CategoryId, RequestStatus, ServiceRequest } from "../types";
+import type { CategoryId, ServiceRequest } from "../types";
 
 const CATEGORY_NAMES: Record<string, string> = {
   "0": "0",
@@ -43,9 +43,6 @@ export async function findClientRequests(
     const rawCategory = Number(request.category);
     const category: CategoryId =
       rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-    const rawStatus = request.status;
-    const status: RequestStatus =
-      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
 
     return {
       id: request.id,
@@ -58,7 +55,7 @@ export async function findClientRequests(
         minute: "2-digit",
       }),
       price: request.price,
-      status,
+      status: request.status,
       description: request.description,
       cancelled: request.cancelled,
       report: request.report ?? undefined,
@@ -84,7 +81,10 @@ export async function findSpecialistRequests(
   if (!db) return null;
 
   const assignedCondition = eq(requests.specialistId, specialistId);
-  const conditions = [isNull(requests.specialistId), eq(requests.status, 0)];
+  const conditions = [
+    isNull(requests.specialistId),
+    eq(requests.status, "CREATED"),
+  ];
 
   if (category) {
     const catCode = CATEGORY_NAMES[category] ?? category;
@@ -117,9 +117,6 @@ export async function findSpecialistRequests(
       const rawCategory = Number(request.category);
       const categoryId: CategoryId =
         rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-      const rawStatus = request.status;
-      const status: RequestStatus =
-        rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
 
       return {
         id: request.id,
@@ -132,7 +129,7 @@ export async function findSpecialistRequests(
           minute: "2-digit",
         }),
         price: request.price,
-        status,
+        status: request.status,
         priority: request.priority,
         description: request.description,
         cancelled: request.cancelled,

@@ -3,6 +3,7 @@
 import { useToast } from "@/components/ui/toast-provider";
 import { useDemo } from "./demo-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import { canAdvance, requiresCompletionReport } from "./request-rules";
 import type { RequestAction, Role, ServiceRequest } from "./types";
 
 export function RequestActions({
@@ -32,11 +33,11 @@ export function RequestActions({
   if (request.cancelled) return null;
 
   function advance() {
-    const report =
-      request.status === 3
-        ? window.prompt("Опишете извършената работа:")
-        : undefined;
-    if (request.status === 3 && !report?.trim()) return;
+    const needsReport = requiresCompletionReport(request.status);
+    const report = needsReport
+      ? window.prompt("Опишете извършената работа:")
+      : undefined;
+    if (needsReport && !report?.trim()) return;
     void perform(
       { type: "advance", report: report ?? undefined },
       "Статусът е обновен.",
@@ -45,7 +46,7 @@ export function RequestActions({
 
   return (
     <div className="actions">
-      {role === "client" && request.status < 4 && (
+      {role === "client" && canAdvance(request) && (
         <button
           className="secondary"
           onClick={() => {
@@ -57,16 +58,16 @@ export function RequestActions({
           Откажи заявката
         </button>
       )}
-      {role !== "client" && request.status < 4 && (
+      {role !== "client" && canAdvance(request) && (
         <>
           <button className="primary" onClick={advance}>
-            {request.status === 0
+            {request.status === "CREATED"
               ? "Приеми заявката"
-              : request.status === 3
+              : request.status === "IN_PROGRESS"
                 ? "Добави отчет"
                 : "Следващ статус"}
           </button>
-          {request.status === 0 && (
+          {request.status === "CREATED" && (
             <button
               className="secondary"
               onClick={() =>
@@ -81,7 +82,7 @@ export function RequestActions({
           )}
         </>
       )}
-      {role === "client" && request.status === 4 && (
+      {role === "client" && request.status === "AWAITING_CONFIRMATION" && (
         <>
           <button
             className="primary"
@@ -107,26 +108,28 @@ export function RequestActions({
           </button>
         </>
       )}
-      {role === "client" && request.status === 5 && !request.rating && (
-        <>
-          <span>Оценете:</span>
-          {[1, 2, 3, 4, 5].map((rating) => (
-            <button
-              key={rating}
-              className="starbutton"
-              aria-label={`${rating} звезди`}
-              onClick={() =>
-                void perform(
-                  { type: "rate", rating },
-                  "Благодарим за оценката!",
-                )
-              }
-            >
-              {rating}★
-            </button>
-          ))}
-        </>
-      )}
+      {role === "client" &&
+        request.status === "COMPLETED" &&
+        !request.rating && (
+          <>
+            <span>Оценете:</span>
+            {[1, 2, 3, 4, 5].map((rating) => (
+              <button
+                key={rating}
+                className="starbutton"
+                aria-label={`${rating} звезди`}
+                onClick={() =>
+                  void perform(
+                    { type: "rate", rating },
+                    "Благодарим за оценката!",
+                  )
+                }
+              >
+                {rating}★
+              </button>
+            ))}
+          </>
+        )}
       {request.rating && (
         <span className="muted">Оценка: {request.rating}/5 ★</span>
       )}

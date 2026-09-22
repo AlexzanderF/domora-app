@@ -1,4 +1,4 @@
-import type { CategoryId } from "@/features/requests/types";
+import type { CategoryId, RequestStatus } from "@/features/requests/types";
 
 export const categories: {
   id: CategoryId;
@@ -47,14 +47,13 @@ export const categories: {
   },
 ];
 
-export const requestStages = [
-  "Създадена",
-  "Приета",
-  "В процес",
-  "В процес",
-  "Очаква потвърждение",
-  "Завършена",
-];
+export const requestStages: Record<RequestStatus, string> = {
+  CREATED: "Създадена",
+  ACCEPTED: "Приета",
+  IN_PROGRESS: "В процес",
+  AWAITING_CONFIRMATION: "Очаква потвърждение",
+  COMPLETED: "Завършена",
+};
 
 export function isCategoryId(value: number): value is CategoryId {
   return Number.isInteger(value) && value >= 0 && value < categories.length;

@@ -282,7 +282,7 @@ function ActiveRequest({
         )}
       </div>
 
-      {request.status === 4 && !ratingOpen && (
+      {request.status === "AWAITING_CONFIRMATION" && !ratingOpen && (
         <div className={styles.trackerActions}>
           <button className="primary" type="button" onClick={onConfirm}>
             Потвърди и оцени

@@ -4,6 +4,7 @@ import { PageHeading } from "@/components/ui/page-heading";
 import { DashboardSummary } from "@/features/specialist/dashboard-summary";
 import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
 import { DailyAgenda } from "@/features/specialist/daily-agenda";
+import { isActiveStage } from "@/features/requests/request-rules";
 import { getServerSession } from "@/features/auth/server/session";
 import { findSpecialistRequests } from "@/features/requests/server/queries";
 import { isDbConfigured } from "@/db";
@@ -35,12 +36,10 @@ export default async function SpecialistPage() {
       : null;
 
   const initialOpportunities = allRequests
-    ? allRequests.filter((req) => req.status === 0 && !req.cancelled)
+    ? allRequests.filter((req) => req.status === "CREATED" && !req.cancelled)
     : null;
   const initialAgenda = allRequests
-    ? allRequests.filter(
-        (req) => !req.cancelled && req.status >= 1 && req.status <= 4,
-      )
+    ? allRequests.filter((req) => !req.cancelled && isActiveStage(req.status))
     : null;
 
   return (
