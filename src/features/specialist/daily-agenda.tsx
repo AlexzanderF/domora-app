@@ -113,6 +113,11 @@ export function DailyAgenda({
                 {request.address}
               </p>
               <span className="badge">{requestStages[request.status]}</span>
+              {request.dispatchedByAdmin && (
+                <span className={styles.recommendedBadge}>
+                  Разпределена от администратор
+                </span>
+              )}
               <p>
                 {request.clientName ?? "Клиент"}
                 {request.clientPhone && (
