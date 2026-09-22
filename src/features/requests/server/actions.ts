@@ -5,6 +5,10 @@ import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import { getServerSession } from "@/features/auth/server/session";
+import {
+  appendDispatchMarker,
+  appendRecommendMarker,
+} from "../dispatch-markers";
 import type {
   CategoryId,
   Plan,
@@ -439,11 +443,7 @@ export async function transitionRequestServerAction(
   }
 }
 
-function stripRecommendMarkers(description: string): string {
-  return description.replace(/\n?\[ПРЕПОРЪЧАНА:\s*\d+\]/g, "").trim();
-}
-
-async function findDispatchCandidate(
+async function validateDispatchTarget(
   requestId: number,
   specialistId: number,
 ): Promise<{ ok: true; description: string } | { ok: false; error: string }> {
@@ -500,7 +500,7 @@ export async function adminAssignSpecialistAction(
     };
   }
 
-  const candidate = await findDispatchCandidate(requestId, specialistId);
+  const candidate = await validateDispatchTarget(requestId, specialistId);
   if (!candidate.ok) {
     return { success: false, error: candidate.error };
   }
@@ -515,7 +515,7 @@ export async function adminAssignSpecialistAction(
     .set({
       specialistId,
       status: 1,
-      description: `${stripRecommendMarkers(candidate.description)}\n[ДИСПЕЧЕР] Разпределена от администратор`,
+      description: appendDispatchMarker(candidate.description),
       updatedAt: new Date(),
     })
     .where(eq(requests.id, requestId));
@@ -536,7 +536,7 @@ export async function adminRecommendSpecialistAction(
     };
   }
 
-  const candidate = await findDispatchCandidate(requestId, specialistId);
+  const candidate = await validateDispatchTarget(requestId, specialistId);
   if (!candidate.ok) {
     return { success: false, error: candidate.error };
   }
@@ -549,7 +549,7 @@ export async function adminRecommendSpecialistAction(
   await db
     .update(requests)
     .set({
-      description: `${stripRecommendMarkers(candidate.description)}\n[ПРЕПОРЪЧАНА: ${specialistId}]`,
+      description: appendRecommendMarker(candidate.description, specialistId),
       updatedAt: new Date(),
     })
     .where(eq(requests.id, requestId));

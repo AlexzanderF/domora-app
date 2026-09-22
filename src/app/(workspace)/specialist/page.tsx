@@ -55,6 +55,7 @@ export default async function SpecialistPage() {
         initialOpportunities={initialOpportunities}
         limit={5}
         viewAllHref="/specialist/opportunities"
+        specialistId={user?.role === "SPECIALIST" ? user.id : undefined}
       />
       <DailyAgenda initialAgenda={initialAgenda} />
     </>

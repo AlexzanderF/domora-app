@@ -4,11 +4,58 @@ import { getDb, isDbConfigured } from "@/db";
 import { requests, specialistProfiles, users } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
 import { parseDescription } from "@/features/requests/server/queries";
+import { isUrgentPriority } from "@/features/requests/priority";
 import type {
   CategoryId,
   RequestStatus,
   ServiceRequest,
 } from "@/features/requests/types";
+
+type AdminRequestRow = {
+  request: typeof requests.$inferSelect;
+  specialist?: typeof users.$inferSelect | null;
+  client?: typeof users.$inferSelect | null;
+};
+
+function mapAdminRequestRow({
+  request,
+  specialist,
+  client,
+}: AdminRequestRow): ServiceRequest {
+  const rawCategory = Number(request.category);
+  const category: CategoryId =
+    rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
+  const rawStatus = request.status;
+  const status: RequestStatus =
+    rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
+  const parsed = parseDescription(request.description);
+
+  return {
+    id: request.id,
+    category,
+    service: request.title,
+    address: request.address,
+    date: request.createdAt.toISOString().split("T")[0],
+    time: request.createdAt.toLocaleTimeString("bg-BG", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    price: request.price,
+    status,
+    priority: request.priority,
+    description: parsed.cleanDescription,
+    cancelled: parsed.cancelled,
+    report: parsed.report,
+    rating: parsed.rating,
+    issue: parsed.issue,
+    recommendedSpecialistId: parsed.recommendedSpecialistId,
+    dispatchedByAdmin: parsed.dispatchedByAdmin,
+    specialist: specialist?.name,
+    specialistPhone: specialist?.phone,
+    clientName: client?.name,
+    clientPhone: request.clientPhone,
+  };
+}
 
 function mapToDomainProfile(
   profile: typeof specialistProfiles.$inferSelect | null,
@@ -80,43 +127,7 @@ export async function findDisputedRequestsForAdmin(): Promise<
     .where(like(requests.description, "%[СИГНАЛ]%"))
     .orderBy(desc(requests.updatedAt));
 
-  return rows.map(({ request, specialist, client }) => {
-    const rawCategory = Number(request.category);
-    const category: CategoryId =
-      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-    const rawStatus = request.status;
-    const status: RequestStatus =
-      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-    const parsed = parseDescription(request.description);
-
-    return {
-      id: request.id,
-      category,
-      service: request.title,
-      address: request.address,
-      date: request.createdAt.toISOString().split("T")[0],
-      time: request.createdAt.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      price: request.price,
-      status,
-      priority: request.priority,
-      description: parsed.cleanDescription,
-      cancelled: parsed.cancelled,
-      report: parsed.report,
-      rating: parsed.rating,
-      issue: parsed.issue,
-      specialist: specialist?.name,
-      specialistPhone: specialist?.phone,
-      clientName: client?.name,
-      clientPhone: request.clientPhone,
-    };
-  });
-}
-
-function isUrgentPriority(priority: string): boolean {
-  return priority === "URGENT" || priority === "EMERGENCY";
+  return rows.map((row) => mapAdminRequestRow(row));
 }
 
 export async function findUnassignedRequestsForAdmin(): Promise<
@@ -146,44 +157,12 @@ export async function findUnassignedRequestsForAdmin(): Promise<
     )
     .orderBy(desc(requests.createdAt));
 
-  const mapped = rows.map(({ request, client }) => {
-    const rawCategory = Number(request.category);
-    const category: CategoryId =
-      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-    const rawStatus = request.status;
-    const status: RequestStatus =
-      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-    const parsed = parseDescription(request.description);
-
-    return {
-      id: request.id,
-      category,
-      service: request.title,
-      address: request.address,
-      date: request.createdAt.toISOString().split("T")[0],
-      time: request.createdAt.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      price: request.price,
-      status,
-      priority: request.priority,
-      description: parsed.cleanDescription,
-      cancelled: parsed.cancelled,
-      report: parsed.report,
-      rating: parsed.rating,
-      issue: parsed.issue,
-      recommendedSpecialistId: parsed.recommendedSpecialistId,
-      dispatchedByAdmin: parsed.dispatchedByAdmin,
-      clientName: client?.name,
-      clientPhone: request.clientPhone,
-    };
-  });
+  const mapped = rows.map((row) => mapAdminRequestRow(row));
 
   // Urgent and emergency requests first, then newest first.
   return mapped.sort((a, b) => {
-    const aUrgent = a.priority && isUrgentPriority(a.priority) ? 0 : 1;
-    const bUrgent = b.priority && isUrgentPriority(b.priority) ? 0 : 1;
+    const aUrgent = isUrgentPriority(a.priority) ? 0 : 1;
+    const bUrgent = isUrgentPriority(b.priority) ? 0 : 1;
     return aUrgent - bUrgent;
   });
 }

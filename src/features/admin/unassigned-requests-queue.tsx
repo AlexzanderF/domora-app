@@ -9,6 +9,7 @@ import {
 import type { User } from "@/features/auth/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { categories } from "@/features/services/catalog";
+import { isUrgentPriority } from "@/features/requests/priority";
 import { money } from "@/lib/format";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./unassigned-requests-queue.module.css";
@@ -31,8 +32,10 @@ function priorityLabel(priority?: ServiceRequest["priority"]): string {
   }
 }
 
-function isUrgent(priority?: ServiceRequest["priority"]): boolean {
-  return priority === "URGENT" || priority === "EMERGENCY";
+function matchesArea(address: string, area?: string): boolean {
+  const normalized = area?.trim().toLowerCase();
+  if (!normalized) return false;
+  return address.toLowerCase().includes(normalized);
 }
 
 export function UnassignedRequestsQueue({
@@ -65,18 +68,39 @@ export function UnassignedRequestsQueue({
 
   const sortedSpecialistsFor = (request: ServiceRequest): User[] => {
     const trade = categories.find((c) => c.id === request.category)?.name;
+    const rank = (spec: User): number => {
+      const tradeMatch =
+        trade && spec.specialistProfile?.category === trade ? 0 : 1;
+      const areaMatch = matchesArea(
+        request.address,
+        spec.specialistProfile?.area,
+      )
+        ? 0
+        : 1;
+      return tradeMatch + areaMatch;
+    };
     return [...activeSpecialists].sort((a, b) => {
-      const aMatch = trade && a.specialistProfile?.category === trade ? 0 : 1;
-      const bMatch = trade && b.specialistProfile?.category === trade ? 0 : 1;
-      if (aMatch !== bMatch) return aMatch - bMatch;
+      const rankDiff = rank(a) - rank(b);
+      if (rankDiff !== 0) return rankDiff;
       return a.name.localeCompare(b.name, "bg");
     });
   };
 
-  const getSelectedId = (request: ServiceRequest): number | undefined => {
-    const explicit = selectedSpecialists[request.id];
-    if (explicit) return explicit;
+  const isFullMatch = (request: ServiceRequest, spec: User): boolean => {
+    const trade = categories.find((c) => c.id === request.category)?.name;
+    if (!trade) return false;
+    return (
+      spec.specialistProfile?.category === trade &&
+      matchesArea(request.address, spec.specialistProfile?.area)
+    );
+  };
+
+  const getRecommendedId = (request: ServiceRequest): number | undefined => {
     return request.recommendedSpecialistId ?? recommendedOverrides[request.id];
+  };
+
+  const getSelectedId = (request: ServiceRequest): number | undefined => {
+    return selectedSpecialists[request.id] ?? getRecommendedId(request);
   };
 
   const handleAssign = async (request: ServiceRequest) => {
@@ -150,9 +174,8 @@ export function UnassignedRequestsQueue({
       {queue.map((request) => {
         const categoryName =
           categories.find((c) => c.id === request.category)?.name ?? "Друго";
-        const urgent = isUrgent(request.priority);
-        const recommendedId =
-          request.recommendedSpecialistId ?? recommendedOverrides[request.id];
+        const urgent = isUrgentPriority(request.priority);
+        const recommendedId = getRecommendedId(request);
         const recommendedName = recommendedId
           ? specialistNames.get(recommendedId)
           : undefined;
@@ -220,6 +243,7 @@ export function UnassignedRequestsQueue({
                   <option value="">Избери специалист…</option>
                   {options.map((spec) => (
                     <option key={spec.id} value={spec.id}>
+                      {isFullMatch(request, spec) ? "✓ " : ""}
                       {spec.name}
                       {spec.specialistProfile?.category
                         ? ` · ${spec.specialistProfile.category}`

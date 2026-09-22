@@ -2,6 +2,11 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
+import {
+  hasDispatchMarker,
+  parseRecommendMarker,
+  stripDispatchMarkers,
+} from "../dispatch-markers";
 import type { CategoryId, RequestStatus, ServiceRequest } from "../types";
 
 const CATEGORY_NAMES: Record<string, string> = {
@@ -33,7 +38,6 @@ export function parseDescription(description: string): {
   let report: string | undefined;
   let rating: number | undefined;
   let issue: boolean | undefined;
-  let recommendedSpecialistId: number | undefined;
   let dispatchedByAdmin: boolean | undefined;
 
   if (clean.startsWith("[ОТКАЗАНА] ")) {
@@ -55,14 +59,12 @@ export function parseDescription(description: string): {
     issue = true;
   }
 
-  const recommendMatch = clean.match(/\[ПРЕПОРЪЧАНА:\s*(\d+)\]/);
-  if (recommendMatch) {
-    recommendedSpecialistId = Number(recommendMatch[1]);
-  }
-
-  if (clean.includes("[ДИСПЕЧЕР]")) {
+  const recommendedSpecialistId = parseRecommendMarker(clean);
+  if (hasDispatchMarker(clean)) {
     dispatchedByAdmin = true;
   }
+
+  clean = stripDispatchMarkers(clean);
 
   return {
     cleanDescription: clean,
@@ -168,40 +170,47 @@ export async function findSpecialistRequests(
     .where(whereCondition)
     .orderBy(desc(requests.createdAt));
 
-  return rows.map(({ request, specialist, client }) => {
-    const rawCategory = Number(request.category);
-    const categoryId: CategoryId =
-      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-    const rawStatus = request.status;
-    const status: RequestStatus =
-      rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
-    const parsed = parseDescription(request.description);
+  return rows
+    .map(({ request, specialist, client }) => {
+      const rawCategory = Number(request.category);
+      const categoryId: CategoryId =
+        rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
+      const rawStatus = request.status;
+      const status: RequestStatus =
+        rawStatus >= 0 && rawStatus <= 5 ? (rawStatus as RequestStatus) : 0;
+      const parsed = parseDescription(request.description);
 
-    return {
-      id: request.id,
-      category: categoryId,
-      service: request.title,
-      address: request.address,
-      date: request.createdAt.toISOString().split("T")[0],
-      time: request.createdAt.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      price: request.price,
-      status,
-      priority: request.priority,
-      description: parsed.cleanDescription,
-      cancelled: parsed.cancelled,
-      report: parsed.report,
-      rating: parsed.rating,
-      issue: parsed.issue,
-      recommendedSpecialistId: parsed.recommendedSpecialistId,
-      dispatchedByAdmin: parsed.dispatchedByAdmin,
-      specialist:
-        request.specialistId === specialistId ? "Вие" : specialist?.name,
-      specialistPhone: specialist?.phone,
-      clientName: client?.name,
-      clientPhone: request.clientPhone,
-    };
-  });
+      return {
+        id: request.id,
+        category: categoryId,
+        service: request.title,
+        address: request.address,
+        date: request.createdAt.toISOString().split("T")[0],
+        time: request.createdAt.toLocaleTimeString("bg-BG", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        price: request.price,
+        status,
+        priority: request.priority,
+        description: parsed.cleanDescription,
+        cancelled: parsed.cancelled,
+        report: parsed.report,
+        rating: parsed.rating,
+        issue: parsed.issue,
+        recommendedSpecialistId: parsed.recommendedSpecialistId,
+        dispatchedByAdmin: parsed.dispatchedByAdmin,
+        specialist:
+          request.specialistId === specialistId ? "Вие" : specialist?.name,
+        specialistPhone: specialist?.phone,
+        clientName: client?.name,
+        clientPhone: request.clientPhone,
+      };
+    })
+    .sort((a, b) => {
+      // Requests recommended to the viewing specialist float to the top.
+      const aRecommended = a.recommendedSpecialistId === specialistId ? 0 : 1;
+      const bRecommended = b.recommendedSpecialistId === specialistId ? 0 : 1;
+      return aRecommended - bRecommended;
+    });
 }

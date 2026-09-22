@@ -19,10 +19,12 @@ export function OpportunityFeed({
   initialOpportunities,
   limit,
   viewAllHref,
+  specialistId,
 }: {
   initialOpportunities?: ServiceRequest[] | null;
   limit?: number;
   viewAllHref?: string;
+  specialistId?: number;
 }) {
   const { requests: demoRequests, updateRequest } = useDemo();
   const notify = useToast();
@@ -92,7 +94,9 @@ export function OpportunityFeed({
               <span className={`badge ${isUrgent(request) ? "wait" : ""}`}>
                 {isUrgent(request) ? "Спешна" : "Стандартна"}
               </span>{" "}
-              {request.recommendedSpecialistId && (
+              {(specialistId === undefined
+                ? request.recommendedSpecialistId !== undefined
+                : request.recommendedSpecialistId === specialistId) && (
                 <span className={styles.recommendedBadge}>
                   Препоръчана от администратор
                 </span>
