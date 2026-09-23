@@ -43,7 +43,7 @@ a:focus-visible {
   outline: 3px solid #84b998;
   outline-offset: 3px;
 }
-aside {
+.workspace-sidebar {
   width: var(--sidebar-width);
   background: white;
   border-right: 1px solid var(--line);
@@ -190,7 +190,7 @@ nav a span:not([aria-hidden]) {
 [data-sidebar-collapsed="true"] {
   --sidebar-width: var(--sidebar-collapsed-width);
 }
-[data-sidebar-collapsed="true"] aside {
+[data-sidebar-collapsed="true"] .workspace-sidebar {
   padding: 30px 10px;
   align-items: center;
 }
@@ -662,13 +662,13 @@ textarea {
   :root {
     --sidebar-width: 250px;
   }
-  aside {
+  .workspace-sidebar {
     padding: 26px 14px;
   }
   [data-sidebar-collapsed="true"] {
     --sidebar-width: var(--sidebar-collapsed-width);
   }
-  [data-sidebar-collapsed="true"] aside {
+  [data-sidebar-collapsed="true"] .workspace-sidebar {
     padding: 24px 8px;
   }
   main {
@@ -694,8 +694,8 @@ textarea {
   }
 }
 @media (max-width: 700px) {
-  aside,
-  [data-sidebar-collapsed="true"] aside {
+  .workspace-sidebar,
+  [data-sidebar-collapsed="true"] .workspace-sidebar {
     position: static;
     width: 100%;
     padding: 18px 20px;

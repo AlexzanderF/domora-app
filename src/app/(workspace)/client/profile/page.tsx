@@ -133,7 +133,10 @@ export default async function ClientProfilePage() {
             </section>
           </div>
 
-          <aside className={styles.quickLinks} aria-labelledby="profile-links">
+          <section
+            className={styles.quickLinks}
+            aria-labelledby="profile-links"
+          >
             <div>
               <span className={styles.eyebrow}>БЪРЗИ ВРЪЗКИ</span>
               <h2 id="profile-links">Услуги към профила</h2>
@@ -153,7 +156,7 @@ export default async function ClientProfilePage() {
                 {getStatusLabel(user.status)}
               </span>
             </div>
-          </aside>
+          </section>
         </div>
       )}
     </>
