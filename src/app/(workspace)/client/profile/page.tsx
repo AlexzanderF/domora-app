@@ -7,8 +7,6 @@ import { getServerSession } from "@/features/auth/server/session";
 import { UserRole, UserStatus } from "@/features/auth/types";
 import { ClientProfileForm } from "@/features/client-profile/client-profile-form";
 import styles from "@/features/client-profile/client-profile.module.css";
-import { findClientRequests } from "@/features/requests/server/queries";
-import { findUserSubscription } from "@/features/subscriptions/server/queries";
 
 export const metadata: Metadata = { title: "Моят профил" };
 export const dynamic = "force-dynamic";
@@ -31,23 +29,7 @@ export default async function ClientProfilePage() {
     redirect("/api/auth/logout?next=/login");
   }
 
-  const [subscription, requests] = user
-    ? await Promise.all([
-        findUserSubscription(user.id),
-        findClientRequests(user.id),
-      ])
-    : [null, null];
-
-  const latestRequestAddress = requests?.find((request) =>
-    request.address.trim(),
-  )?.address;
-  const propertyAddress =
-    subscription?.propertyAddress ?? latestRequestAddress ?? null;
-  const propertySource = subscription
-    ? "Адрес от активния абонамент"
-    : latestRequestAddress
-      ? "Адрес от последната заявка"
-      : "Все още няма регистриран адрес";
+  const propertyAddress = user?.propertyAddress ?? "";
 
   return (
     <>
@@ -97,6 +79,7 @@ export default async function ClientProfilePage() {
               name={user.name}
               email={user.email}
               phone={user.phone}
+              propertyAddress={propertyAddress}
             />
 
             <section
@@ -109,27 +92,14 @@ export default async function ClientProfilePage() {
                   <h2 id="property-summary">Регистриран адрес</h2>
                 </div>
               </div>
-              {propertyAddress ? (
-                <div className={styles.propertyGrid}>
-                  <div className={styles.propertyItem}>
-                    <span className={styles.propertyLabel}>Адрес</span>
-                    <span className={styles.propertyValue}>
-                      {propertyAddress}
-                    </span>
-                  </div>
-                  <div className={styles.propertyItem}>
-                    <span className={styles.propertyLabel}>Източник</span>
-                    <span className={styles.propertyValue}>
-                      {propertySource}
-                    </span>
-                  </div>
+              <div className={styles.propertyGrid}>
+                <div className={styles.propertyItem}>
+                  <span className={styles.propertyLabel}>Адрес</span>
+                  <span className={styles.propertyValue}>
+                    {propertyAddress || "Не е добавен адрес."}
+                  </span>
                 </div>
-              ) : (
-                <p className={styles.emptyText}>
-                  Добавете заявка или абонамент, за да се появи адресът на имота
-                  тук.
-                </p>
-              )}
+              </div>
             </section>
           </div>
 

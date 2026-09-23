@@ -125,6 +125,10 @@
   grid-column: 1 / -1;
 }
 
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
 .field input[aria-invalid="true"] {
   border-color: #c2410c;
   background: #fff7ed;

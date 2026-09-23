@@ -38,6 +38,7 @@ const seedUsers: {
       name: "Иван Иванов",
       email: "client@domora.bg",
       phone: "0888123456",
+      propertyAddress: "София, ул. Примерна 12, ап. 5",
       passwordHash: defaultPasswordHash,
       role: UserRole.Client,
       status: UserStatus.Active,
