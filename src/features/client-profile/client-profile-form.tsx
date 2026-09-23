@@ -14,18 +14,25 @@ interface ClientProfileFormProps {
   name: string;
   email: string;
   phone: string;
+  propertyAddress: string;
 }
 
 export function ClientProfileForm({
   name,
   email,
   phone,
+  propertyAddress,
 }: ClientProfileFormProps) {
   const notify = useToast();
   const router = useRouter();
   const { refreshUser } = useAuth();
   const [isPending, startTransition] = useTransition();
-  const [values, setValues] = useState({ name, email, phone });
+  const [values, setValues] = useState({
+    name,
+    email,
+    phone,
+    propertyAddress,
+  });
   const [fieldErrors, setFieldErrors] = useState<ClientProfileErrors>({});
   const [formMessage, setFormMessage] = useState("");
   const [formError, setFormError] = useState("");
@@ -46,6 +53,7 @@ export function ClientProfileForm({
           name: result.user.name,
           email: result.user.email,
           phone: result.user.phone,
+          propertyAddress: result.user.propertyAddress ?? "",
         });
         setFieldErrors({});
         setFormError("");
@@ -131,6 +139,32 @@ export function ClientProfileForm({
           {fieldErrors.phone && (
             <span className={styles.errorText} id="profile-phone-error">
               {fieldErrors.phone}
+            </span>
+          )}
+        </label>
+
+        <label className={`${styles.field} ${styles.fieldWide}`}>
+          Адрес на имота
+          <input
+            value={values.propertyAddress}
+            onChange={(event) =>
+              updateField("propertyAddress", event.target.value)
+            }
+            aria-invalid={Boolean(fieldErrors.propertyAddress)}
+            aria-describedby={
+              fieldErrors.propertyAddress
+                ? "profile-property-address-error"
+                : undefined
+            }
+            disabled={isPending}
+            placeholder="Град, улица, номер, вход, апартамент"
+          />
+          {fieldErrors.propertyAddress && (
+            <span
+              className={styles.errorText}
+              id="profile-property-address-error"
+            >
+              {fieldErrors.propertyAddress}
             </span>
           )}
         </label>

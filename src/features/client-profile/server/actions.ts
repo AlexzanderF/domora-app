@@ -21,12 +21,14 @@ export interface ClientProfileInput {
   name: string;
   email: string;
   phone: string;
+  propertyAddress: string;
 }
 
 export interface ClientProfileErrors {
   name?: string;
   email?: string;
   phone?: string;
+  propertyAddress?: string;
 }
 
 export type ClientProfileActionResult =
@@ -58,6 +60,7 @@ export async function updateClientProfileAction(
   const nextName = input.name.trim();
   const nextEmail = input.email.trim().toLowerCase();
   const nextPhone = input.phone.trim();
+  const nextPropertyAddress = input.propertyAddress.trim();
   const fieldErrors: ClientProfileErrors = {};
 
   const nameError = validateName(nextName);
@@ -68,6 +71,13 @@ export async function updateClientProfileAction(
 
   const phoneError = validatePhone(nextPhone);
   if (phoneError) fieldErrors.phone = phoneError;
+
+  if (!nextPropertyAddress) {
+    fieldErrors.propertyAddress = "Адресът на имота е задължителен.";
+  } else if (nextPropertyAddress.length < 5) {
+    fieldErrors.propertyAddress =
+      "Адресът на имота трябва да съдържа поне 5 символа.";
+  }
 
   if (Object.keys(fieldErrors).length > 0) {
     return {
@@ -109,6 +119,7 @@ export async function updateClientProfileAction(
       name: nextName,
       email: nextEmail,
       phone: nextPhone,
+      propertyAddress: nextPropertyAddress,
       updatedAt: new Date(),
     })
     .where(eq(users.id, currentUser.id))
@@ -126,6 +137,7 @@ export async function updateClientProfileAction(
     name: updatedUser.name,
     email: updatedUser.email,
     phone: updatedUser.phone,
+    propertyAddress: updatedUser.propertyAddress ?? undefined,
     role: updatedUser.role,
     status: updatedUser.status,
     createdAt: updatedUser.createdAt.toISOString(),
