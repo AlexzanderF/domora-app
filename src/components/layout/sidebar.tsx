@@ -23,7 +23,7 @@ export function Sidebar({
   const navigation = getNavigationItems(currentRole, pathname);
 
   return (
-    <aside aria-label="Странично меню">
+    <aside className="workspace-sidebar" aria-label="Странично меню">
       {onToggleCollapse && (
         <button
           type="button"
