@@ -78,13 +78,6 @@ export function ClientProfileForm({
           <span className={styles.eyebrow}>КОНТАКТИ</span>
           <h2>Редакция на профила</h2>
         </div>
-        <button
-          className={styles.primaryButton}
-          type="submit"
-          disabled={isPending}
-        >
-          {isPending ? "Запазване..." : "Запази промените"}
-        </button>
       </div>
 
       <div className={styles.formGrid}>
@@ -170,16 +163,32 @@ export function ClientProfileForm({
         </label>
       </div>
 
-      {formError && (
-        <p className={styles.errorNotice} role="alert">
-          {formError}
-        </p>
-      )}
-      {formMessage && (
-        <p className={styles.successNotice} role="status">
-          {formMessage}
-        </p>
-      )}
+      <div className={styles.saveBar}>
+        <div className={styles.saveBarStatus}>
+          {formError && (
+            <p className={styles.errorNotice} role="alert">
+              {formError}
+            </p>
+          )}
+          {formMessage && (
+            <p className={styles.successNotice} role="status">
+              {formMessage}
+            </p>
+          )}
+          {!formError && !formMessage && (
+            <p className={styles.saveHint}>
+              Запазете промените, за да обновите профила си.
+            </p>
+          )}
+        </div>
+        <button
+          className={styles.primaryButton}
+          type="submit"
+          disabled={isPending}
+        >
+          {isPending ? "Запазване..." : "Запази промените"}
+        </button>
+      </div>
     </form>
   );
 }
