@@ -112,11 +112,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 2rem;
-  padding: clamp(1.3rem, 3vw, 2rem);
+  padding: clamp(1.15rem, 2.7vw, 1.8rem);
   margin-top: 1rem;
   border-radius: 18px;
-  background: #d7ef77;
-  color: #17362f;
+  background: #174c41;
+  color: #ffffff;
 }
 
 .comparison span {
@@ -147,9 +147,9 @@
   gap: 0.15rem;
   min-width: 210px;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgb(23 54 47 / 18%);
+  border: 1px solid rgb(215 239 119 / 28%);
   border-radius: 10px;
-  background: rgb(255 255 255 / 28%);
+  background: rgb(255 255 255 / 12%);
 }
 
 .comparisonDetails small {
@@ -165,14 +165,14 @@
   flex: 0 0 auto;
   padding: 0.85rem 1.2rem;
   border-radius: 9px;
-  background: #174c41;
-  color: #ffffff;
+  background: #d7ef77;
+  color: #17362f;
   font-weight: 750;
   text-decoration: none;
 }
 
 .comparison a:hover {
-  background: #103b32;
+  background: #e5f6a3;
 }
 
 @media (max-width: 800px) {
