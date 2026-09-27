@@ -36,6 +36,7 @@ function mapToDomainUser(
     name: userRow.name,
     email: userRow.email,
     phone: userRow.phone,
+    propertyAddress: userRow.propertyAddress ?? undefined,
     role: userRow.role,
     status: userRow.status,
     specialistProfile: mapToDomainProfile(profileRow ?? null),
