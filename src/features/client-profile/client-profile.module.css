@@ -105,6 +105,7 @@
 .form {
   display: grid;
   gap: 1rem;
+  padding-bottom: 0;
 }
 
 .formHeader {
@@ -138,6 +139,25 @@
 .field textarea {
   min-height: 96px;
   resize: vertical;
+}
+
+.formActionBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin: 0 -1.5rem;
+  border-top: 1px solid var(--line);
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -12px 24px rgba(24, 43, 38, 0.08);
+}
+
+.formActionState {
+  min-width: 0;
 }
 
 .errorText {
@@ -268,5 +288,11 @@
 
   .primaryButton {
     width: 100%;
+  }
+
+  .formActionBar {
+    grid-template-columns: 1fr;
+    margin: 0 -1.15rem;
+    padding: 0.9rem 1.15rem 1rem;
   }
 }
