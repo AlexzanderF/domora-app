@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "property_address" text;

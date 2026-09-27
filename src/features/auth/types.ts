@@ -28,6 +28,7 @@ export interface User {
   name: string;
   email: string;
   phone: string;
+  propertyAddress?: string;
   role: UserRole;
   status: UserStatus;
   specialistProfile?: SpecialistProfile;

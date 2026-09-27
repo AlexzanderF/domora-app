@@ -42,12 +42,10 @@ export default async function ClientProfilePage() {
     request.address.trim(),
   )?.address;
   const propertyAddress =
-    subscription?.propertyAddress ?? latestRequestAddress ?? null;
-  const propertySource = subscription
-    ? "Адрес от активния абонамент"
-    : latestRequestAddress
-      ? "Адрес от последната заявка"
-      : "Все още няма регистриран адрес";
+    user?.propertyAddress ??
+    subscription?.propertyAddress ??
+    latestRequestAddress ??
+    "";
 
   return (
     <>
@@ -90,6 +88,10 @@ export default async function ClientProfilePage() {
                   <span className={styles.detailLabel}>Телефон</span>
                   <span className={styles.detailValue}>{user.phone}</span>
                 </div>
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Адрес на имота</span>
+                  <span className={styles.detailValue}>{propertyAddress}</span>
+                </div>
               </div>
             </section>
 
@@ -97,40 +99,8 @@ export default async function ClientProfilePage() {
               name={user.name}
               email={user.email}
               phone={user.phone}
+              propertyAddress={propertyAddress}
             />
-
-            <section
-              className={styles.panel}
-              aria-labelledby="property-summary"
-            >
-              <div className={styles.panelHeader}>
-                <div>
-                  <span className={styles.eyebrow}>ИМОТ</span>
-                  <h2 id="property-summary">Регистриран адрес</h2>
-                </div>
-              </div>
-              {propertyAddress ? (
-                <div className={styles.propertyGrid}>
-                  <div className={styles.propertyItem}>
-                    <span className={styles.propertyLabel}>Адрес</span>
-                    <span className={styles.propertyValue}>
-                      {propertyAddress}
-                    </span>
-                  </div>
-                  <div className={styles.propertyItem}>
-                    <span className={styles.propertyLabel}>Източник</span>
-                    <span className={styles.propertyValue}>
-                      {propertySource}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <p className={styles.emptyText}>
-                  Добавете заявка или абонамент, за да се появи адресът на имота
-                  тук.
-                </p>
-              )}
-            </section>
           </div>
 
           <section
