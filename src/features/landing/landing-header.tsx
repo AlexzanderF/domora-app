@@ -16,6 +16,7 @@ export function LandingHeader() {
           <Link href="/#how-it-works">Как работи</Link>
           <Link href="/#services">Услуги</Link>
           <Link href="/#faq">ЧЗВ</Link>
+          <Link href="/contact">Контакти</Link>
         </div>
         <div className={styles.accountLinks}>
           <Link className={styles.login} href="/login">
