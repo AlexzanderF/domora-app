@@ -2,10 +2,10 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(250px, 0.65fr);
-  gap: clamp(2rem, 5vw, 5rem);
+  gap: clamp(1.5rem, 4vw, 3.25rem);
   align-items: center;
-  min-height: 540px;
-  padding: clamp(2rem, 5vw, 4.5rem);
+  min-height: 430px;
+  padding: clamp(1.75rem, 4vw, 3.25rem);
   overflow: hidden;
   border-radius: 24px;
   background: #174c41;
@@ -29,7 +29,7 @@
 }
 
 .eyebrow {
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.85rem;
   color: #d7ef77;
   font-size: 0.75rem;
   font-weight: 800;
@@ -48,7 +48,7 @@
 
 .description {
   max-width: 610px;
-  margin: 1.5rem 0 0;
+  margin: 1rem 0 0;
   color: #d9e8e3;
   font-size: clamp(1rem, 1.4vw, 1.2rem);
   line-height: 1.65;
@@ -58,7 +58,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 2rem;
+  margin-top: 1.45rem;
 }
 
 .primaryAction,
@@ -104,7 +104,7 @@
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
   padding: 0;
-  margin: 2rem 0 0;
+  margin: 1.45rem 0 0;
   list-style: none;
   color: #eff7f4;
   font-size: 0.875rem;
@@ -132,7 +132,7 @@
 .visual {
   position: relative;
   align-self: stretch;
-  min-height: 360px;
+  min-height: 300px;
 }
 
 .sun {
@@ -194,7 +194,7 @@
 
 @media (max-width: 600px) {
   .hero {
-    padding: 2rem 1.25rem;
+    padding: 1.75rem 1.25rem;
     border-radius: 18px;
   }
 
