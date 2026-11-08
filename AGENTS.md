@@ -35,7 +35,7 @@ DOMORA is a property care and home service management web application.
 3. **State & Mocking**:
    - Use the demo provider pattern (e.g., `src/features/requests/demo-provider.tsx`) when prototyping interactive flows without a backend.
 4. **Generated Files**:
-   - Do NOT manually edit files in `dist/` or `.next/`.
+   - Do NOT manually edit files in `.next/`.
 
 ---
 

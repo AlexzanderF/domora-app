@@ -42,7 +42,7 @@ export type ClientProfileActionResult =
 export async function updateClientProfileAction(
   input: ClientProfileInput,
 ): Promise<ClientProfileActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Профилът е временно недостъпен. Опитайте отново по-късно.",

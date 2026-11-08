@@ -8,6 +8,6 @@
 6. Run `npm run format`, `npm run check`, and `npm run build`. Do not write new tests unless explicitly requested.
 7. Open a pull request with the problem, changed behavior, screenshots for UI changes, and relevant validation. Ask your teammate to review before merging.
 
-Agree on feature ownership before editing shared state or global CSS. Keep pull requests focused so reviews stay manageable. Do not hand-edit generated files in `dist/` or `.next/`.
+Agree on feature ownership before editing shared state or global CSS. Keep pull requests focused so reviews stay manageable. Do not hand-edit generated files in `.next/`.
 
 The CI workflow is included in the repository. A repository administrator can enable branch protection requiring the `quality` job and a teammate's review before merging; those GitHub settings are not configured by this migration.

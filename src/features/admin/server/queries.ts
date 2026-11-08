@@ -66,7 +66,7 @@ function mapToDomainProfile(
 }
 
 export async function findSpecialistApplications(): Promise<User[] | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 
@@ -99,7 +99,7 @@ export async function findSpecialistApplications(): Promise<User[] | null> {
 export async function findDisputedRequestsForAdmin(): Promise<
   ServiceRequest[] | null
 > {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 
@@ -127,7 +127,7 @@ export async function findDisputedRequestsForAdmin(): Promise<
 export async function findUnassignedRequestsForAdmin(): Promise<
   ServiceRequest[] | null
 > {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 

@@ -23,7 +23,7 @@ const CATEGORY_NAMES: Record<string, string> = {
 export async function findClientRequests(
   clientId: number,
 ): Promise<ServiceRequest[] | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 
@@ -74,7 +74,7 @@ export async function findSpecialistRequests(
   category?: string,
   area?: string,
 ): Promise<ServiceRequest[] | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 

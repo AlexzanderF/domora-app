@@ -44,16 +44,15 @@ Route files and the shared layout are Server Components. Interactive controls ar
 
 ## Commands
 
-| Command                | Purpose                                                 |
-| ---------------------- | ------------------------------------------------------- |
-| `npm run dev`          | Start development with Fast Refresh                     |
-| `npm run build`        | Build the standard Next.js application                  |
-| `npm start`            | Serve the production build                              |
-| `npm run check`        | Lint, type-check, check formatting, run unit tests      |
-| `npm run format`       | Format source files                                     |
-| `npm run test:watch`   | Watch unit tests during development                     |
-| `npm run test:e2e`     | Run desktop and mobile Chromium user flows              |
-| `npm run build:static` | Generate a static demo in `dist/` for the existing host |
+| Command              | Purpose                                            |
+| -------------------- | -------------------------------------------------- |
+| `npm run dev`        | Start development with Fast Refresh                |
+| `npm run build`      | Build the standard Next.js application             |
+| `npm start`          | Serve the production build                         |
+| `npm run check`      | Lint, type-check, check formatting, run unit tests |
+| `npm run format`     | Format source files                                |
+| `npm run test:watch` | Watch unit tests during development                |
+| `npm run test:e2e`   | Run desktop and mobile Chromium user flows         |
 
 Before running browser tests for the first time:
 
@@ -67,7 +66,7 @@ Playwright starts the production server automatically. GitHub Actions runs the c
 
 ## Collaborating
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the branch and review workflow. Commit source and `package-lock.json`; never commit `node_modules`, `.next`, or generated `dist` files. Use `npm ci` for reproducible installs.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the branch and review workflow. Commit source and `package-lock.json`; never commit `node_modules` or `.next`. Use `npm ci` for reproducible installs.
 
 ## Current scope
 
@@ -83,6 +82,4 @@ For production, replace `features/requests/demo-provider.tsx` with authenticated
 
 ## Hosting
 
-Normal `npm run build` / `npm start` supports a Next.js server, ready for future server features. The existing `.openai/hosting.json` still points at `dist/`. Use `npm run build:static` only when preparing the current frontend demo for that static host; it generates `dist/` from the Next.js source. Do not edit generated output. Static export cannot host database-backed Server Actions or runtime authentication. See the [Next.js static export documentation](https://nextjs.org/docs/app/guides/static-exports).
-
-This migration does not publish or replace the deployed site.
+DOMORA runs as a single Next.js server (`npm run build` / `npm start`). The deploy runbook will be documented in a later change.

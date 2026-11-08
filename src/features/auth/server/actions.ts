@@ -29,7 +29,7 @@ export async function loginAction(
   identifier: string,
   password: string,
 ): Promise<AuthActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Грешка при свързване с базата данни.",
@@ -87,7 +87,7 @@ export async function loginAction(
 export async function registerClientAction(
   input: ClientRegistrationInput,
 ): Promise<AuthActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Грешка при свързване с базата данни.",
@@ -161,7 +161,7 @@ export async function registerClientAction(
 export async function registerSpecialistAction(
   input: SpecialistRegistrationInput,
 ): Promise<AuthActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Грешка при свързване с базата данни.",
@@ -246,7 +246,7 @@ export async function refreshUserAction(): Promise<{
   success: boolean;
   user: User | null;
 }> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, user: null };
   }
 
@@ -255,7 +255,7 @@ export async function refreshUserAction(): Promise<{
 }
 
 export async function logoutAction(): Promise<{ success: boolean }> {
-  if (isDbConfigured && process.env.NEXT_STATIC_EXPORT !== "1") {
+  if (isDbConfigured) {
     await deleteSession();
   }
   return { success: true };
