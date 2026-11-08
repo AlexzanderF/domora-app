@@ -1,5 +1,44 @@
-import { Plan } from "./types";
-import type { CategoryId, Tariffs } from "./types";
+import { Plan } from "@/features/requests/types";
+import type { CategoryId, Tariffs } from "@/features/requests/types";
+
+export const defaultTariffs: Tariffs = {
+  categories: { 0: 45, 1: 35, 2: 55, 3: 25, 4: 65, 5: 25 },
+  home: 1.5,
+  entry: 18,
+};
+
+// The `home` tariff is stored as an integer in tenths of a lev per m² (15 = 1.50);
+// values of 20 or less are read as already being in lev.
+const HOME_TENTHS_THRESHOLD = 20;
+
+export interface TariffRow {
+  category: string;
+  standardRate: number;
+}
+
+export function tariffsFromRows(rows: readonly TariffRow[]): Tariffs {
+  const result: Tariffs = {
+    categories: { ...defaultTariffs.categories },
+    home: defaultTariffs.home,
+    entry: defaultTariffs.entry,
+  };
+
+  for (const row of rows) {
+    const categoryId = Number(row.category);
+    if (Number.isInteger(categoryId) && categoryId >= 0 && categoryId <= 5) {
+      result.categories[categoryId as CategoryId] = row.standardRate;
+    } else if (row.category === "home") {
+      result.home =
+        row.standardRate > HOME_TENTHS_THRESHOLD
+          ? row.standardRate / 10
+          : row.standardRate;
+    } else if (row.category === "entry") {
+      result.entry = row.standardRate;
+    }
+  }
+
+  return result;
+}
 
 export function calculateQuote(
   tariffs: Tariffs,

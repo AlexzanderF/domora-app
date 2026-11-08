@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { getServerSession } from "@/features/auth/server/session";
+import { findTariffs } from "@/domain/pricing/tariffs";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -12,12 +14,19 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const initialUser = await getServerSession();
+  // Tariffs come from the database, so never prerender this layout at build time.
+  await connection();
+  const [initialUser, tariffs] = await Promise.all([
+    getServerSession(),
+    findTariffs(),
+  ]);
 
   return (
     <html lang="bg">
       <body>
-        <Providers initialUser={initialUser}>{children}</Providers>
+        <Providers initialUser={initialUser} tariffs={tariffs}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

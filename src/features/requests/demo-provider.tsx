@@ -43,9 +43,16 @@ interface DemoContextValue {
 const DemoContext = createContext<DemoContextValue | null>(null);
 
 // Session-only demo data; replace this boundary with a server-backed repository later.
-export function DemoProvider({ children }: { children: React.ReactNode }) {
+export function DemoProvider({
+  children,
+  tariffs: serverTariffs = initialTariffs,
+}: {
+  children: React.ReactNode;
+  tariffs?: Tariffs;
+}) {
   const [requests, setRequests] = useState(initialRequests);
-  const [tariffs, updateTariffs] = useState(initialTariffs);
+  const [tariffsOverride, updateTariffs] = useState<Tariffs | null>(null);
+  const tariffs = tariffsOverride ?? serverTariffs;
   const [booking, setBooking] = useState<BookingSelection | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(
     initialSubscription,

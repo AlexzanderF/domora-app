@@ -1,11 +1,7 @@
 import { and, count, desc, eq, gte, inArray, ne, or, sum } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
-import { requests, tariffs, users } from "@/db/schema";
-import type {
-  CategoryId,
-  ServiceRequest,
-  Tariffs,
-} from "@/features/requests/types";
+import { requests, users } from "@/db/schema";
+import type { CategoryId, ServiceRequest } from "@/features/requests/types";
 import { UserRole, UserStatus } from "@/features/auth/types";
 import { RequestStatus } from "@/features/requests/types";
 import { RequestPriority } from "@/features/requests/types";
@@ -180,36 +176,4 @@ export async function findAllRequestsForAdmin(): Promise<
       specialist: specialist?.name,
     };
   });
-}
-
-export async function findDatabaseTariffs(): Promise<Tariffs | null> {
-  if (!isDbConfigured) {
-    return null;
-  }
-
-  const db = getDb();
-  if (!db) return null;
-
-  const rows = await db.select().from(tariffs);
-  if (!rows || rows.length === 0) return null;
-
-  const result: Tariffs = {
-    categories: { 0: 45, 1: 35, 2: 55, 3: 25, 4: 65, 5: 25 },
-    home: 1.5,
-    entry: 18,
-  };
-
-  for (const row of rows) {
-    const catNum = Number(row.category);
-    if (!Number.isNaN(catNum) && catNum >= 0 && catNum <= 5) {
-      result.categories[catNum as CategoryId] = row.standardRate;
-    } else if (row.category === "home") {
-      result.home =
-        row.standardRate > 20 ? row.standardRate / 10 : row.standardRate;
-    } else if (row.category === "entry") {
-      result.entry = row.standardRate;
-    }
-  }
-
-  return result;
 }
