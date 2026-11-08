@@ -1,79 +1,130 @@
-name: Deploy to Contabo VPS
+name: Deploy
 
+# push to main:  ci -> build (push image to GHCR) -> deploy
+# manual run:    redeploys an existing image (rollback); no CI, no build.
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit SHA to deploy (full 40 characters). Leave empty for latest."
+        required: false
+        default: ""
 
 concurrency:
   group: production-deploy
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
-  verify:
-    name: Run Quality Checks & Build
+  ci:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: Build and push image
+    if: github.event_name == 'push'
+    needs: ci
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - name: Compute image name
+        # GHCR requires a lowercase repository path.
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
-          node-version-file: .nvmrc
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run verification checks
-        run: npm run check
-
-      - name: Test production build
-        run: npm run build
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          # Links the package to this repo so the deploy job's GITHUB_TOKEN can pull it.
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
-    name: Deploy to Contabo VPS
+    name: Deploy to production
+    # Runs after a successful build, or directly for a manual (rollback) run.
+    needs: build
+    if: ${{ !cancelled() && (needs.build.result == 'success' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
-    needs: verify
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+    env:
+      # push: the commit just built. dispatch: the given SHA, else latest.
+      TAG: ${{ github.event_name == 'workflow_dispatch' && (inputs.sha || 'latest') || github.sha }}
     steps:
+      - name: Compute image name
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
+          DOMORA_IMAGE: ${{ env.IMAGE }}:${{ env.TAG }}
+          DEPLOY_REF: ${{ env.TAG == 'latest' && 'origin/main' || env.TAG }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'domora_user' }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'domora' }}
           APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           host: ${{ secrets.CONTABO_HOST }}
           username: ${{ secrets.CONTABO_USER }}
           key: ${{ secrets.CONTABO_SSH_KEY }}
           port: ${{ secrets.CONTABO_PORT || 22 }}
-          envs: POSTGRES_PASSWORD,POSTGRES_USER,POSTGRES_DB,APP_DOMAIN
+          envs: DOMORA_IMAGE,DEPLOY_REF,POSTGRES_PASSWORD,POSTGRES_USER,POSTGRES_DB,APP_DOMAIN,GHCR_USER,GHCR_TOKEN
           script: |
-            set -e
+            set -euo pipefail
             cd /opt/domora-app
 
-            # Fetch and align with latest commit
-            git fetch origin main
-            git reset --hard origin/main
+            # The server only needs compose.yaml and the Caddyfile from the repo.
+            git fetch origin
+            git reset --hard "$DEPLOY_REF"
 
             POSTGRES_USER="${POSTGRES_USER:-domora_user}"
             POSTGRES_DB="${POSTGRES_DB:-domora}"
 
-            # Ensure APP_DOMAIN is valid (default to :80 HTTP if empty or raw IP)
+            # Default to plain HTTP on the server IP for the beta stage.
             APP_DOMAIN="${APP_DOMAIN:-:80}"
             if [[ "$APP_DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               APP_DOMAIN="http://${APP_DOMAIN}"
             fi
 
-            # Automatically write .env from GitHub Secrets
+            # CI is the source of truth: rewrite .env on every deploy.
+            umask 077
             cat <<EOF > .env
             POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
             POSTGRES_USER=${POSTGRES_USER}
             POSTGRES_DB=${POSTGRES_DB}
             APP_DOMAIN=${APP_DOMAIN}
+            DOMORA_IMAGE=${DOMORA_IMAGE}
             EOF
 
-            # Build and launch containers
-            docker compose -f compose.yaml up -d --build --wait --remove-orphans
+            # Pull the prebuilt image; never build on the server.
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+            docker compose pull
+
+            # --wait returns non-zero if migrate fails or web is unhealthy.
+            if ! docker compose up -d --no-build --wait --remove-orphans; then
+              docker compose ps -a
+              docker compose logs --tail 80 migrate web
+              exit 1
+            fi
+            docker compose ps
