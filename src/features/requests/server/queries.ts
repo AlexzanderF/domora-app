@@ -2,6 +2,7 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
+import type { RequestSelect } from "@/db/schema";
 import { RequestStatus } from "../types";
 import type { CategoryId, ServiceRequest } from "../types";
 
@@ -19,6 +20,21 @@ const CATEGORY_NAMES: Record<string, string> = {
   "5": "5",
   Други: "5",
 };
+
+// The booked date and time window; rows that predate the columns fall back to
+// when they were created.
+function scheduleOf(request: RequestSelect): { date: string; time: string } {
+  return {
+    date:
+      request.scheduledDate ?? request.createdAt.toISOString().split("T")[0],
+    time:
+      request.scheduledTime ??
+      request.createdAt.toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+  };
+}
 
 export async function findClientRequests(
   clientId: number,
@@ -50,11 +66,7 @@ export async function findClientRequests(
       category,
       service: request.title,
       address: request.address,
-      date: request.createdAt.toISOString().split("T")[0],
-      time: request.createdAt.toLocaleTimeString("bg-BG", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      ...scheduleOf(request),
       price: request.price,
       status: request.status,
       description: request.description,
@@ -124,11 +136,7 @@ export async function findSpecialistRequests(
         category: categoryId,
         service: request.title,
         address: request.address,
-        date: request.createdAt.toISOString().split("T")[0],
-        time: request.createdAt.toLocaleTimeString("bg-BG", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
+        ...scheduleOf(request),
         price: request.price,
         status: request.status,
         priority: request.priority,

@@ -2,6 +2,8 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -64,17 +66,21 @@ export const users = pgTable("users", {
     .notNull(),
 });
 
-export const sessions = pgTable("sessions", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  token: text("token").notNull().unique(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
+export const sessions = pgTable(
+  "sessions",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
+);
 
 export const specialistProfiles = pgTable("specialist_profiles", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -114,6 +120,11 @@ export const requests = pgTable(
     status: requestStatusEnum("status").notNull().default("CREATED"),
     price: integer("price").notNull(),
     clientPhone: text("client_phone").notNull(),
+    // The client's preferred visit: a calendar day plus the time-window label
+    // picked in the booking dialog (e.g. "09:00 - 12:00"). Null on rows that
+    // predate the columns.
+    scheduledDate: date("scheduled_date", { mode: "string" }),
+    scheduledTime: text("scheduled_time"),
     cancelled: boolean("cancelled").notNull().default(false),
     report: text("report"),
     rating: integer("rating"),
@@ -124,6 +135,12 @@ export const requests = pgTable(
       { onDelete: "set null" },
     ),
     dispatchedByAdmin: boolean("dispatched_by_admin").notNull().default(false),
+    reportSubmittedAt: timestamp("report_submitted_at", {
+      withTimezone: true,
+    }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    ratedAt: timestamp("rated_at", { withTimezone: true }),
+    issueOpenedAt: timestamp("issue_opened_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -136,7 +153,32 @@ export const requests = pgTable(
       "requests_rating_range",
       sql`${table.rating} IS NULL OR (${table.rating} >= 1 AND ${table.rating} <= 5)`,
     ),
+    index("requests_client_id_idx").on(table.clientId),
+    index("requests_specialist_id_idx").on(table.specialistId),
+    index("requests_status_idx").on(table.status),
   ],
+);
+
+// Append-only audit trail of request lifecycle changes, written in the same
+// transaction as the change itself.
+export const requestEvents = pgTable(
+  "request_events",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    requestId: integer("request_id")
+      .notNull()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    actorId: integer("actor_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    type: text("type").notNull(),
+    fromStatus: requestStatusEnum("from_status"),
+    toStatus: requestStatusEnum("to_status"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("request_events_request_id_idx").on(table.requestId)],
 );
 
 export const subscriptions = pgTable("subscriptions", {
@@ -224,6 +266,8 @@ export type SpecialistProfileSelect = typeof specialistProfiles.$inferSelect;
 export type SpecialistProfileInsert = typeof specialistProfiles.$inferInsert;
 export type RequestSelect = typeof requests.$inferSelect;
 export type RequestInsert = typeof requests.$inferInsert;
+export type RequestEventSelect = typeof requestEvents.$inferSelect;
+export type RequestEventInsert = typeof requestEvents.$inferInsert;
 export type SubscriptionSelect = typeof subscriptions.$inferSelect;
 export type SubscriptionInsert = typeof subscriptions.$inferInsert;
 export type TariffSelect = typeof tariffs.$inferSelect;

@@ -4,18 +4,22 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
+import {
+  RequestError,
+  cancelRequest,
+  confirmCompletion,
+  createRequest,
+  getRequest,
+  rateRequest,
+  startWork,
+  submitReport,
+} from "@/domain/requests";
+import type { RequestErrorCode } from "@/domain/requests";
+import type { Actor } from "@/domain/authorization";
+import { getActor } from "@/features/auth/server/actor";
 import { getServerSession } from "@/features/auth/server/session";
 import { UserRole, UserStatus } from "@/features/auth/types";
-import {
-  canClaim,
-  canConfirmCompletion,
-  canFlagIssue,
-  canRate,
-  canResolveIssue,
-  isValidRating,
-  nextExecutionStep,
-  requiresCompletionReport,
-} from "../request-rules";
+import { canClaim, canFlagIssue, canResolveIssue } from "../request-rules";
 import { RequestPriority, RequestStatus } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
@@ -46,6 +50,37 @@ function revalidateWorkspaceRequests(): void {
   revalidatePath("/admin");
 }
 
+const DEFAULT_ERRORS: Record<RequestErrorCode, string> = {
+  UNAUTHENTICATED: "Неоторизиран достъп.",
+  FORBIDDEN: "Нямате право да извършите това действие.",
+  NOT_FOUND: "Заявката не е намерена.",
+  INVALID_INPUT: "Невалидни данни.",
+  INVALID_STATE: "Действието не е възможно на този етап от заявката.",
+};
+
+// Runs a domain call as the signed-in actor and maps its outcome to the
+// action result shape; domain rejections become Bulgarian messages.
+async function runAsActor(
+  run: (actor: Actor | null) => Promise<ServiceRequest | void>,
+  messages: Partial<Record<RequestErrorCode, string>> = {},
+): Promise<ServiceRequestActionResult> {
+  try {
+    const request = await run(await getActor());
+    revalidateWorkspaceRequests();
+    return request
+      ? { success: true, mode: "db", request }
+      : { success: true, mode: "db" };
+  } catch (error) {
+    if (error instanceof RequestError) {
+      return {
+        success: false,
+        error: messages[error.code] ?? DEFAULT_ERRORS[error.code],
+      };
+    }
+    throw error;
+  }
+}
+
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
@@ -58,75 +93,36 @@ export async function createServiceRequestAction(
     return { success: true, mode: "demo" };
   }
 
-  const address = input.address.trim();
-  const description = input.description.trim();
-  const service = input.service.trim();
-
-  if (!address || description.length < 5 || !service) {
-    return {
-      success: false,
-      error:
-        "Моля, въведете коректен адрес, услуга и описание с поне 5 символа.",
-    };
-  }
-
-  if (typeof input.price !== "number" || input.price <= 0) {
-    return {
-      success: false,
-      error: "Невалидна цена за избраната услуга.",
-    };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
-  }
-
-  const now = new Date();
-
-  const [inserted] = await db
-    .insert(requests)
-    .values({
-      clientId: user.id,
-      specialistId: null,
-      title: service,
-      description,
-      category: String(input.category),
-      address,
-      priority: input.priority ?? RequestPriority.Standard,
-      status: RequestStatus.Created,
-      price: Math.round(input.price),
-      clientPhone: user.phone || "0888000000",
-    })
-    .returning({ id: requests.id });
-
-  const requestId = inserted.id;
-
-  revalidateWorkspaceRequests();
-
-  const createdRequest: ServiceRequest = {
-    id: requestId,
-    category: input.category,
-    service,
-    address,
-    date: input.date || now.toISOString().split("T")[0],
-    time:
-      input.time ||
-      now.toLocaleTimeString("bg-BG", { hour: "2-digit", minute: "2-digit" }),
-    price: Math.round(input.price),
-    status: RequestStatus.Created,
-    description,
-    plan: input.plan,
-  };
-
-  return {
-    success: true,
-    mode: "db",
-    request: createdRequest,
-  };
+  return runAsActor(
+    async (actor) => {
+      const created = await createRequest(actor, {
+        category: input.category,
+        service: input.service,
+        description: input.description,
+        address: input.address,
+        price: input.price,
+        priority: input.priority,
+        scheduledDate: input.date ?? "",
+        scheduledTime: input.time ?? "",
+      });
+      return {
+        id: created.id,
+        category: input.category,
+        service: created.title,
+        address: created.address,
+        date: created.scheduledDate ?? "",
+        time: created.scheduledTime ?? "",
+        price: created.price,
+        status: created.status,
+        description: created.description,
+        plan: input.plan,
+      };
+    },
+    {
+      INVALID_INPUT:
+        "Моля, въведете коректен адрес, услуга, описание с поне 5 символа, дата и час и валидна цена.",
+    },
+  );
 }
 
 export async function assignSpecialistAction(
@@ -206,57 +202,16 @@ export async function startWorkAction(
   if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
-
-  const user = await getServerSession();
-  if (!user) {
-    return { success: false, error: "Неоторизиран достъп." };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return { success: false, error: "Грешка при свързване с базата данни." };
-  }
-
-  const [existing] = await db
-    .select()
-    .from(requests)
-    .where(eq(requests.id, requestId));
-  if (!existing) {
-    return { success: false, error: "Заявката не е намерена." };
-  }
-  if (existing.cancelled) {
-    return { success: false, error: "Заявката е отказана." };
-  }
-
-  const currentStatus = existing.status;
-  // 2-step execution: unassigned work is claimed, accepted work jumps
-  // straight to "В процес" once the specialist starts.
-  const nextStatus =
-    currentStatus === RequestStatus.Created ||
-    currentStatus === RequestStatus.Accepted
-      ? nextExecutionStep(currentStatus)
-      : currentStatus;
-
-  await db
-    .update(requests)
-    .set({
-      status: nextStatus,
-      ...(currentStatus === RequestStatus.Created && !existing.specialistId
-        ? { specialistId: user.id }
-        : {}),
-      updatedAt: new Date(),
-    })
-    .where(eq(requests.id, requestId));
-
-  revalidatePath("/specialist");
-  revalidatePath("/requests");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-  revalidatePath("/admin");
-
-  return { success: true, mode: "db" };
+  return runAsActor(
+    async (actor) => {
+      await startWork(actor, requestId);
+    },
+    { INVALID_STATE: "Заявката не може да бъде започната на този етап." },
+  );
 }
 
+// The specialist's work completion report. The client's later confirmation
+// goes through the "complete" transition.
 export async function completeWorkAction(
   requestId: number,
   report?: string,
@@ -264,66 +219,15 @@ export async function completeWorkAction(
   if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
-
-  const user = await getServerSession();
-  if (!user) {
-    return { success: false, error: "Неоторизиран достъп." };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return { success: false, error: "Грешка при свързване с базата данни." };
-  }
-
-  const [existing] = await db
-    .select()
-    .from(requests)
-    .where(eq(requests.id, requestId));
-  if (!existing) {
-    return { success: false, error: "Заявката не е намерена." };
-  }
-  if (existing.cancelled) {
-    return { success: false, error: "Заявката е отказана." };
-  }
-
-  const status = existing.status;
-  let nextStatus = existing.status;
-  let nextReport: string | undefined;
-
-  if (requiresCompletionReport(status)) {
-    if (!report?.trim()) {
-      return {
-        success: false,
-        error: "Отчетът е задължителен, за да завършите задачата.",
-      };
-    }
-    nextStatus = RequestStatus.AwaitingConfirmation;
-    nextReport = report.trim();
-  } else if (canConfirmCompletion({ status, cancelled: existing.cancelled })) {
-    nextStatus = RequestStatus.Completed;
-  } else {
-    return {
-      success: false,
-      error: "Задачата не е в етап, който може да бъде завършен.",
-    };
-  }
-
-  await db
-    .update(requests)
-    .set({
-      status: nextStatus,
-      ...(nextReport !== undefined ? { report: nextReport } : {}),
-      updatedAt: new Date(),
-    })
-    .where(eq(requests.id, requestId));
-
-  revalidatePath("/specialist");
-  revalidatePath("/requests");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-  revalidatePath("/admin");
-
-  return { success: true, mode: "db" };
+  return runAsActor(
+    async (actor) => {
+      await submitReport(actor, requestId, report ?? "");
+    },
+    {
+      INVALID_INPUT: "Отчетът е задължителен, за да завършите задачата.",
+      INVALID_STATE: "Задачата не е в етап, който може да бъде завършен.",
+    },
+  );
 }
 
 export async function cancelRequestAction(
@@ -332,55 +236,12 @@ export async function cancelRequestAction(
   if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
-
-  const user = await getServerSession();
-  if (!user) {
-    return { success: false, error: "Неоторизиран достъп." };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return { success: false, error: "Грешка при свързване с базата данни." };
-  }
-
-  const [existing] = await db
-    .select()
-    .from(requests)
-    .where(eq(requests.id, requestId));
-  if (!existing) {
-    return { success: false, error: "Заявката не е намерена." };
-  }
-
-  if (
-    user.role === UserRole.Specialist &&
-    (existing.status === RequestStatus.Created ||
-      existing.status === RequestStatus.Accepted)
-  ) {
-    await db
-      .update(requests)
-      .set({
-        specialistId: null,
-        status: RequestStatus.Created,
-        updatedAt: new Date(),
-      })
-      .where(eq(requests.id, requestId));
-  } else {
-    await db
-      .update(requests)
-      .set({
-        cancelled: true,
-        updatedAt: new Date(),
-      })
-      .where(eq(requests.id, requestId));
-  }
-
-  revalidatePath("/specialist");
-  revalidatePath("/requests");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-  revalidatePath("/admin");
-
-  return { success: true, mode: "db" };
+  return runAsActor(
+    async (actor) => {
+      await cancelRequest(actor, requestId);
+    },
+    { INVALID_STATE: "Заявката вече не може да бъде отказана." },
+  );
 }
 
 export async function transitionRequestServerAction(
@@ -410,51 +271,37 @@ export async function transitionRequestServerAction(
       return startWorkAction(requestId);
     }
     case "complete":
-      return completeWorkAction(requestId);
+      return runAsActor(
+        async (actor) => {
+          await confirmCompletion(actor, requestId);
+        },
+        { INVALID_STATE: "Няма завършена работа, която да потвърдите." },
+      );
     case "cancel":
-    case "decline":
       return cancelRequestAction(requestId);
-    case "rate": {
-      const db = getDb();
-      if (!db) return { success: false, error: "Няма връзка с базата данни." };
-      const [req] = await db
-        .select()
-        .from(requests)
-        .where(eq(requests.id, requestId));
-      if (!req) return { success: false, error: "Заявката не е намерена." };
-      if (!isValidRating(action.rating)) {
-        return {
-          success: false,
-          error: "Оценката трябва да е цяло число от 1 до 5.",
-        };
-      }
-      if (
-        !canRate(
-          {
-            status: req.status,
-            cancelled: req.cancelled,
-            rating: req.rating,
-          },
-          action.rating,
-        )
-      ) {
-        return {
-          success: false,
-          error: "Тази заявка не може да бъде оценена.",
-        };
-      }
-
-      await db
-        .update(requests)
-        .set({
-          rating: action.rating,
-          updatedAt: new Date(),
-        })
-        .where(eq(requests.id, requestId));
-
-      revalidateWorkspaceRequests();
-      return { success: true, mode: "db" };
-    }
+    case "decline":
+      // An unassigned request has nothing to hand back: declining it only
+      // dismisses it for this specialist.
+      return runAsActor(
+        async (actor) => {
+          const current = await getRequest(actor, requestId);
+          if (actor?.role === UserRole.Specialist && !current.specialistId) {
+            return;
+          }
+          await cancelRequest(actor, requestId);
+        },
+        { INVALID_STATE: "Заявката вече не може да бъде отказана." },
+      );
+    case "rate":
+      return runAsActor(
+        async (actor) => {
+          await rateRequest(actor, requestId, action.rating);
+        },
+        {
+          INVALID_INPUT: "Оценката трябва да е цяло число от 1 до 5.",
+          INVALID_STATE: "Тази заявка не може да бъде оценена.",
+        },
+      );
     case "issue": {
       const db = getDb();
       if (!db) return { success: false, error: "Няма връзка с базата данни." };
@@ -485,6 +332,7 @@ export async function transitionRequestServerAction(
         .update(requests)
         .set({
           issue: true,
+          issueOpenedAt: new Date(),
           updatedAt: new Date(),
         })
         .where(eq(requests.id, requestId));
