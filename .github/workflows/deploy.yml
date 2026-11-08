@@ -93,7 +93,7 @@ jobs:
             set -euo pipefail
             cd /opt/domora-app
 
-            # The server only needs compose.yaml and the Caddyfile from the repo.
+            # The server only needs compose.yaml and caddy/Caddyfile from the repo.
             git fetch origin
             git reset --hard "$DEPLOY_REF"
 
