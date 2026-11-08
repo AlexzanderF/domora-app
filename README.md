@@ -83,3 +83,12 @@ For production, replace `features/requests/demo-provider.tsx` with authenticated
 ## Hosting
 
 DOMORA runs as a single Next.js server (`npm run build` / `npm start`). The deploy runbook will be documented in a later change.
+
+The full stack (Postgres 16, one-shot migrations, web, Caddy) runs with Docker Compose:
+
+```bash
+cp .env.example .env   # fill in POSTGRES_PASSWORD at least
+docker compose up -d --build
+```
+
+Web starts only after migrations exit 0, and Postgres is bound to `127.0.0.1` only. Caddy serves plain HTTP on the server IP while `APP_DOMAIN=:80`.

@@ -1,3 +1,5 @@
+# APP_DOMAIN defaults to ":80" (plain HTTP on the server IP) for the beta stage.
+# Set it to a real domain once DNS is ready to get automatic HTTPS.
 {$APP_DOMAIN::80} {
-    reverse_proxy app:3000
+    reverse_proxy web:3000
 }
