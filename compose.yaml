@@ -1,0 +1,95 @@
+# DOMORA stack: db -> migrate (one-shot) -> web -> caddy.
+# One image (built from ./Dockerfile) is shared by web and migrate.
+# Usage: cp .env.example .env, fill in secrets, then `docker compose up -d --build`.
+
+x-db-url: &db-url postgresql://${POSTGRES_USER:-domora_user}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-domora}
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      # Loopback only: reach it from your machine through an SSH tunnel.
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-domora_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-domora}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-domora_user} -d ${POSTGRES_DB:-domora}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - domora-net
+
+  migrate:
+    image: ${DOMORA_IMAGE:-domora-app:local}
+    command: ["node", "migrate.mjs"]
+    # One-shot: a non-zero exit blocks web (and therefore caddy) from starting.
+    restart: "no"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: *db-url
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - domora-net
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOMORA_IMAGE:-domora-app:local}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_URL: *db-url
+      COOKIE_SECURE: ${COOKIE_SECURE:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - domora-net
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - domora-net
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  domora-net:
+    driver: bridge
