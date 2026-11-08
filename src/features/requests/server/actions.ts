@@ -1,9 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
-import { requests, users } from "@/db/schema";
+import { requests } from "@/db/schema";
+import {
+  assignSpecialist,
+  claimRequest,
+  declineRecommendation,
+  recommendRequest,
+} from "@/domain/dispatch";
 import {
   RequestError,
   cancelRequest,
@@ -18,8 +24,8 @@ import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
 import { getActor } from "@/features/auth/server/actor";
 import { getServerSession } from "@/features/auth/server/session";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { canClaim, canFlagIssue, canResolveIssue } from "../request-rules";
+import { UserRole } from "@/features/auth/types";
+import { canFlagIssue, canResolveIssue } from "../request-rules";
 import { RequestPriority, RequestStatus } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
@@ -131,69 +137,16 @@ export async function assignSpecialistAction(
   if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
-
-  const user = await getServerSession();
-  if (
-    !user ||
-    (user.role !== UserRole.Specialist && user.role !== UserRole.Admin)
-  ) {
-    return {
-      success: false,
-      error: "Само специалист или администратор може да приема заявки.",
-    };
-  }
-
-  if (user.role === UserRole.Specialist && user.status !== UserStatus.Active) {
-    return {
-      success: false,
-      error: "Профилът ви все още не е одобрен.",
-    };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
-  }
-
-  const [existing] = await db
-    .select()
-    .from(requests)
-    .where(eq(requests.id, requestId));
-  if (
-    !existing ||
-    !canClaim({
-      status: existing.status,
-      cancelled: existing.cancelled,
-      specialistId: existing.specialistId,
-    })
-  ) {
-    return { success: false, error: "Заявката вече е разпределена." };
-  }
-
-  await db
-    .update(requests)
-    .set({
-      specialistId: user.id,
-      status: RequestStatus.Accepted,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(requests.id, requestId),
-        eq(requests.status, RequestStatus.Created),
-      ),
-    );
-
-  revalidatePath("/specialist");
-  revalidatePath("/requests");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-  revalidatePath("/admin");
-
-  return { success: true, mode: "db" };
+  return runAsActor(
+    async (actor) => {
+      await claimRequest(actor, requestId);
+    },
+    {
+      FORBIDDEN:
+        "Не можете да приемете тази заявка. Профилът ви трябва да е одобрен, а категорията и районът — да съвпадат.",
+      INVALID_STATE: "Заявката вече е разпределена.",
+    },
+  );
 }
 
 export async function startWorkAction(
@@ -280,12 +233,15 @@ export async function transitionRequestServerAction(
     case "cancel":
       return cancelRequestAction(requestId);
     case "decline":
-      // An unassigned request has nothing to hand back: declining it only
-      // dismisses it for this specialist.
+      // A recommended job returns to the open pool; declining anything else
+      // unassigned only dismisses it for this specialist.
       return runAsActor(
         async (actor) => {
           const current = await getRequest(actor, requestId);
           if (actor?.role === UserRole.Specialist && !current.specialistId) {
+            if (current.recommendedSpecialistId === actor.id) {
+              await declineRecommendation(actor, requestId);
+            }
             return;
           }
           await cancelRequest(actor, requestId);
@@ -374,57 +330,11 @@ export async function transitionRequestServerAction(
   }
 }
 
-async function validateDispatchTarget(
-  requestId: number,
-  specialistId: number,
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== UserRole.Admin) {
-    return {
-      ok: false,
-      error: "Неоторизиран достъп. Изискват се администраторски права.",
-    };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return { ok: false, error: "Няма връзка с базата данни." };
-  }
-
-  const [req] = await db
-    .select()
-    .from(requests)
-    .where(eq(requests.id, requestId));
-  if (!req) {
-    return { ok: false, error: "Заявката не е намерена." };
-  }
-  if (
-    !canClaim({
-      status: req.status,
-      cancelled: req.cancelled,
-      specialistId: req.specialistId,
-    })
-  ) {
-    return { ok: false, error: "Заявката вече е разпределена." };
-  }
-
-  const [specialist] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, specialistId));
-  if (
-    !specialist ||
-    specialist.role !== UserRole.Specialist ||
-    specialist.status !== UserStatus.Active
-  ) {
-    return {
-      ok: false,
-      error: "Избраният специалист не е активен.",
-    };
-  }
-
-  return { ok: true };
-}
+const DISPATCH_ERRORS: Partial<Record<RequestErrorCode, string>> = {
+  FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
+  INVALID_INPUT: "Избраният специалист не е активен.",
+  INVALID_STATE: "Заявката вече е разпределена.",
+};
 
 export async function adminAssignSpecialistAction(
   requestId: number,
@@ -436,31 +346,11 @@ export async function adminAssignSpecialistAction(
       error: "Административният панел изисква база данни.",
     };
   }
-
-  const candidate = await validateDispatchTarget(requestId, specialistId);
-  if (!candidate.ok) {
-    return { success: false, error: candidate.error };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return { success: false, error: "Няма връзка с базата данни." };
-  }
-
-  await db
-    .update(requests)
-    .set({
-      specialistId,
-      status: RequestStatus.Accepted,
-      recommendedSpecialistId: null,
-      dispatchedByAdmin: true,
-      updatedAt: new Date(),
-    })
-    .where(eq(requests.id, requestId));
-
-  revalidateWorkspaceRequests();
-  revalidatePath("/specialist/opportunities");
-  return { success: true, mode: "db" };
+  const result = await runAsActor(async (actor) => {
+    await assignSpecialist(actor, requestId, specialistId);
+  }, DISPATCH_ERRORS);
+  if (result.success) revalidatePath("/specialist/opportunities");
+  return result;
 }
 
 export async function adminRecommendSpecialistAction(
@@ -473,26 +363,9 @@ export async function adminRecommendSpecialistAction(
       error: "Административният панел изисква база данни.",
     };
   }
-
-  const candidate = await validateDispatchTarget(requestId, specialistId);
-  if (!candidate.ok) {
-    return { success: false, error: candidate.error };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return { success: false, error: "Няма връзка с базата данни." };
-  }
-
-  await db
-    .update(requests)
-    .set({
-      recommendedSpecialistId: specialistId,
-      updatedAt: new Date(),
-    })
-    .where(eq(requests.id, requestId));
-
-  revalidateWorkspaceRequests();
-  revalidatePath("/specialist/opportunities");
-  return { success: true, mode: "db" };
+  const result = await runAsActor(async (actor) => {
+    await recommendRequest(actor, requestId, specialistId);
+  }, DISPATCH_ERRORS);
+  if (result.success) revalidatePath("/specialist/opportunities");
+  return result;
 }

@@ -1,25 +1,12 @@
-import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
+import { desc, eq, inArray, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import type { RequestSelect } from "@/db/schema";
-import { RequestStatus } from "../types";
+import { listOpportunities } from "@/domain/dispatch";
+import type { Actor } from "@/domain/authorization";
+import { UserStatus } from "@/features/auth/types";
 import type { CategoryId, ServiceRequest } from "../types";
-
-const CATEGORY_NAMES: Record<string, string> = {
-  "0": "0",
-  ВиК: "0",
-  "1": "1",
-  Електро: "1",
-  "2": "2",
-  Климатизация: "2",
-  "3": "3",
-  Ремонти: "3",
-  "4": "4",
-  Почистване: "4",
-  "5": "5",
-  Други: "5",
-};
 
 // The booked date and time window; rows that predate the columns fall back to
 // when they were created.
@@ -81,10 +68,10 @@ export async function findClientRequests(
   });
 }
 
+// The specialist's assigned requests plus the open jobs dispatch lets them
+// see (matching trade and area; none for Pending/Rejected specialists).
 export async function findSpecialistRequests(
-  specialistId: number,
-  category?: string,
-  area?: string,
+  actor: Actor,
 ): Promise<ServiceRequest[] | null> {
   if (!isDbConfigured) {
     return null;
@@ -93,23 +80,15 @@ export async function findSpecialistRequests(
   const db = getDb();
   if (!db) return null;
 
-  const assignedCondition = eq(requests.specialistId, specialistId);
-  const conditions = [
-    isNull(requests.specialistId),
-    eq(requests.status, RequestStatus.Created),
-  ];
-
-  if (category) {
-    const catCode = CATEGORY_NAMES[category] ?? category;
-    conditions.push(eq(requests.category, catCode));
-  }
-
-  if (area?.trim()) {
-    conditions.push(ilike(requests.address, `%${area.trim()}%`));
-  }
-
-  const availableCondition = and(...conditions);
-  const whereCondition = or(assignedCondition, availableCondition);
+  const specialistId = actor.id;
+  const opportunityIds = (await listOpportunities(actor)).map((r) => r.id);
+  const whereCondition =
+    actor.status === UserStatus.Active
+      ? or(
+          eq(requests.specialistId, specialistId),
+          inArray(requests.id, opportunityIds),
+        )
+      : sql`false`;
 
   const clients = alias(users, "clients");
 
