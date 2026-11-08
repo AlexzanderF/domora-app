@@ -1,8 +1,9 @@
 name: CI
+# Runs on pull requests, and is called by deploy.yml for pushes to main so that
+# CI, image build and deploy form one workflow chain.
 on:
   pull_request:
-  push:
-    branches: [main]
+  workflow_call:
 
 permissions:
   contents: read

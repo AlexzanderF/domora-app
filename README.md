@@ -92,3 +92,5 @@ docker compose up -d --build
 ```
 
 Web starts only after migrations exit 0, and Postgres is bound to `127.0.0.1` only. Caddy serves plain HTTP on the server IP while `APP_DOMAIN=:80`.
+
+Every merge to `main` runs CI, builds one image, pushes it to GHCR (tagged by commit SHA and `latest`) and deploys it over SSH using the `production` GitHub Environment; the server pulls the image and never builds. The deploy fails if `migrate` fails or `web` is unhealthy. To roll back, run the **Deploy** workflow manually from GitHub with a commit SHA (empty means latest). One-time server hardening (deploy user, `ufw` on 22/80/443, SSH lockdown) is scripted in `scripts/harden-server.sh`; reach Postgres through an SSH tunnel.
