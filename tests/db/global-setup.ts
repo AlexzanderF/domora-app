@@ -11,7 +11,7 @@ export default async function setup(): Promise<void> {
     await migrate(drizzle(pool), { migrationsFolder: "./drizzle" });
   } catch (error) {
     throw new Error(
-      `Cannot migrate the test database at ${TEST_DATABASE_URL}. Is it running? Try \`npm run test:db\`.`,
+      "Cannot migrate the test database. Is it running? Try `npm run test:db`.",
       { cause: error },
     );
   } finally {

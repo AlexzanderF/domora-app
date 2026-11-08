@@ -57,7 +57,7 @@ Route files and the shared layout are Server Components. Interactive controls ar
 
 ### DB-backed tests
 
-Files named `*.db.test.ts` run against a real Postgres, separately from `npm test`. `npm run test:db` starts a throwaway Postgres from `compose.test.yaml` (port 5433, data in tmpfs), applies the migrations, truncates every table before each test, and runs them; `npm run test:db:down` stops it. Set `TEST_DATABASE_URL` to use another database (its name must end in `_test`); CI does this with a Postgres service. Example: `src/features/admin/server/metrics.db.test.ts`.
+Files named `*.db.test.ts` run against a real Postgres, separately from `npm test`. `npm run test:db` (needs Docker running) starts a throwaway Postgres from `compose.test.yaml` (port 5433, data in tmpfs), applies the migrations, truncates every table before each test, and runs them; `npm run test:db:down` stops it. Set `TEST_DATABASE_URL` to use another database (its name must end in `_test`); CI does this with a Postgres service. Example: `src/features/admin/server/metrics.db.test.ts`.
 
 Before running browser tests for the first time:
 

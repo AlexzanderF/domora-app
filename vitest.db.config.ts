@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     include: ["src/**/*.db.test.ts"],
     environment: "node",
+    // Empty so a POSTGRES_PASSWORD from .env never overrides the test URL.
     env: { DATABASE_URL: TEST_DATABASE_URL, POSTGRES_PASSWORD: "" },
     globalSetup: ["tests/db/global-setup.ts"],
     setupFiles: ["tests/db/setup.ts"],
