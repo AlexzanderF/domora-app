@@ -1,0 +1,18 @@
+# Throwaway Postgres for DB-backed tests (`npm run test:db`). Separate from
+# compose.yaml so it needs no .env; data lives in tmpfs and vanishes on stop.
+services:
+  db-test:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_USER: domora_test
+      POSTGRES_PASSWORD: domora_test
+      POSTGRES_DB: domora_test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U domora_test -d domora_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
