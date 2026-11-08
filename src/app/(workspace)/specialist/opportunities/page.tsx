@@ -30,11 +30,11 @@ export default async function SpecialistOpportunitiesPage() {
 
   const allRequests =
     user?.role === UserRole.Specialist || user?.role === UserRole.Admin
-      ? await findSpecialistRequests(
-          user.id,
-          user.specialistProfile?.category,
-          user.specialistProfile?.area,
-        )
+      ? await findSpecialistRequests({
+          id: user.id,
+          role: user.role,
+          status: user.status,
+        })
       : null;
 
   const initialOpportunities = allRequests

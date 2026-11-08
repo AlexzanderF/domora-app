@@ -134,6 +134,11 @@ export const requests = pgTable(
       () => users.id,
       { onDelete: "set null" },
     ),
+    // Who recommended the request to recommendedSpecialistId, and when.
+    recommendedById: integer("recommended_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    recommendedAt: timestamp("recommended_at", { withTimezone: true }),
     dispatchedByAdmin: boolean("dispatched_by_admin").notNull().default(false),
     reportSubmittedAt: timestamp("report_submitted_at", {
       withTimezone: true,

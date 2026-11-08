@@ -77,11 +77,11 @@ export interface RequestDto {
   updatedAt: string;
 }
 
-type Tx = Parameters<Parameters<DomoraDatabase["transaction"]>[0]>[0];
+export type Tx = Parameters<Parameters<DomoraDatabase["transaction"]>[0]>[0];
 
 const iso = (date: Date | null): string | null => date?.toISOString() ?? null;
 
-function toDto(row: RequestSelect): RequestDto {
+export function toDto(row: RequestSelect): RequestDto {
   return {
     id: row.id,
     clientId: row.clientId,
@@ -112,22 +112,22 @@ function toDto(row: RequestSelect): RequestDto {
   };
 }
 
-function resourceOf(row: RequestSelect) {
+export function resourceOf(row: RequestSelect) {
   return { clientId: row.clientId, specialistId: row.specialistId };
 }
 
-function requireActor(actor: Actor | null): Actor {
+export function requireActor(actor: Actor | null): Actor {
   if (!actor) {
     throw new RequestError("UNAUTHENTICATED", "Sign-in is required.");
   }
   return actor;
 }
 
-function forbidden(): never {
+export function forbidden(): never {
   throw new RequestError("FORBIDDEN", "This actor may not do that.");
 }
 
-function invalidState(message: string): never {
+export function invalidState(message: string): never {
   throw new RequestError("INVALID_STATE", message);
 }
 
@@ -177,7 +177,7 @@ function validateBooking(input: CreateRequestInput) {
   return { title, description, address, scheduledTime, price };
 }
 
-async function recordEvent(
+export async function recordEvent(
   tx: Tx,
   event: {
     requestId: number;
