@@ -8,6 +8,7 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.claim",
   "request.work",
   "request.cancel",
+  "request.confirm",
   "request.rate",
   "request.assign",
 ];
@@ -55,8 +56,18 @@ type Allowed = Partial<Record<keyof typeof resources, readonly Action[]>>;
 // Anything not listed must be denied.
 const expectations: Record<keyof typeof actors, Allowed> = {
   client: {
-    ownedAndAssigned: ["request.view", "request.cancel", "request.rate"],
-    ownedOnly: ["request.view", "request.cancel", "request.rate"],
+    ownedAndAssigned: [
+      "request.view",
+      "request.cancel",
+      "request.confirm",
+      "request.rate",
+    ],
+    ownedOnly: [
+      "request.view",
+      "request.cancel",
+      "request.confirm",
+      "request.rate",
+    ],
   },
   activeSpecialist: {
     ownedAndAssigned: ["request.view", "request.work", "request.cancel"],

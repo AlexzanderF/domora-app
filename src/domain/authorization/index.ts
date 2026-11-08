@@ -13,6 +13,7 @@ export type Action =
   | "request.claim"
   | "request.work"
   | "request.cancel"
+  | "request.confirm"
   | "request.rate"
   | "request.assign";
 
@@ -52,6 +53,7 @@ function canClient(
   return (
     action === "request.view" ||
     action === "request.cancel" ||
+    action === "request.confirm" ||
     action === "request.rate"
   );
 }
