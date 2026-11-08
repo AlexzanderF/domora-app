@@ -55,10 +55,9 @@ A task is complete only when the primary gate passes cleanly:
 - **Feature Isolation**: Work on dedicated feature branches (e.g., `feature/<task-name>`). Avoid editing shared files (`globals.css`, `providers.tsx`) unless strictly necessary.
 - **Automated PR Creation**: When completing work on a feature branch, push to `origin` and open a PR against `main` with a clear summary of changes, problem addressed, and verification results.
 - **Test Authoring Guardrail**:
-  - Focus strictly on direct production implementation.
-  - Verify that existing tests pass, but **do not write, generate, or add new tests** (unit, integration, Playwright, or E2E) unless explicitly requested by the user.
-  - Do not create or edit files in `tests/e2e/`.
-  - When breaking down specs or tickets (via `/to-spec`, `/to-tickets`, etc.), do not include test writing or testing seams in the acceptance criteria or task breakdown.
+  - New unit and integration tests are allowed wherever they fit the work.
+  - Do not create or edit files in `tests/e2e/`, and do not write, generate, or add Playwright or E2E tests, unless explicitly requested by the user.
+  - When breaking down specs or tickets (via `/to-spec`, `/to-tickets`, etc.), test work and testing seams may be included in the acceptance criteria and task breakdown, except for E2E tests.
 
 ---
 
