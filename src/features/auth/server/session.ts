@@ -42,7 +42,7 @@ async function isSecureCookie(): Promise<boolean> {
 }
 
 export async function getServerSession(): Promise<User | null> {
-  if (process.env.NEXT_STATIC_EXPORT === "1" || !isDbConfigured) {
+  if (!isDbConfigured) {
     return null;
   }
 

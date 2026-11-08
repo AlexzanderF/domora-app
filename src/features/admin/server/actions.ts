@@ -24,7 +24,7 @@ export async function updateSpecialistStatusAction(
   userId: number,
   status: UserStatus,
 ): Promise<UpdateSpecialistStatusResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -70,7 +70,7 @@ export async function updateSpecialistStatusAction(
 export async function updateTariffsAction(
   input: Tariffs,
 ): Promise<UpdateTariffsResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 

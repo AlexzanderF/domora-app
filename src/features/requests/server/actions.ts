@@ -49,7 +49,7 @@ function revalidateWorkspaceRequests(): void {
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -132,7 +132,7 @@ export async function createServiceRequestAction(
 export async function assignSpecialistAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -203,7 +203,7 @@ export async function assignSpecialistAction(
 export async function startWorkAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -261,7 +261,7 @@ export async function completeWorkAction(
   requestId: number,
   report?: string,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -329,7 +329,7 @@ export async function completeWorkAction(
 export async function cancelRequestAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -387,7 +387,7 @@ export async function transitionRequestServerAction(
   requestId: number,
   action: RequestAction,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return { success: true, mode: "demo" };
   }
 
@@ -582,7 +582,7 @@ export async function adminAssignSpecialistAction(
   requestId: number,
   specialistId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Административният панел изисква база данни.",
@@ -619,7 +619,7 @@ export async function adminRecommendSpecialistAction(
   requestId: number,
   specialistId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Административният панел изисква база данни.",

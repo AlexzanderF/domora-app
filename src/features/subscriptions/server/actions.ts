@@ -23,7 +23,7 @@ export interface SubscriptionActionResult {
 export async function createSubscriptionAction(
   input: SubscribeInput,
 ): Promise<SubscriptionActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Абонаментите са временно недостъпни. Опитайте отново по-късно.",
@@ -101,7 +101,7 @@ export async function createSubscriptionAction(
 }
 
 export async function cancelSubscriptionAction(): Promise<SubscriptionActionResult> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return {
       success: false,
       error: "Абонаментите са временно недостъпни. Опитайте отново по-късно.",

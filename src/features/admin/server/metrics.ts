@@ -25,7 +25,7 @@ export interface AdminKpiMetrics {
 }
 
 export async function findAdminKpiMetrics(): Promise<AdminKpiMetrics | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 
@@ -105,7 +105,7 @@ export async function findAdminKpiMetrics(): Promise<AdminKpiMetrics | null> {
 }
 
 export async function findOperationalMetrics(): Promise<WorkspaceStatsData | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 
@@ -137,7 +137,7 @@ export async function findOperationalMetrics(): Promise<WorkspaceStatsData | nul
 export async function findAllRequestsForAdmin(): Promise<
   ServiceRequest[] | null
 > {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 
@@ -183,7 +183,7 @@ export async function findAllRequestsForAdmin(): Promise<
 }
 
 export async function findDatabaseTariffs(): Promise<Tariffs | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 

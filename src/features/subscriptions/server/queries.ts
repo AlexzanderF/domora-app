@@ -6,7 +6,7 @@ import type { Subscription } from "../types";
 export async function findUserSubscription(
   userId: number,
 ): Promise<Subscription | null> {
-  if (!isDbConfigured || process.env.NEXT_STATIC_EXPORT === "1") {
+  if (!isDbConfigured) {
     return null;
   }
 

@@ -26,9 +26,7 @@ if (!process.env.DATABASE_URL) {
   loadEnvFiles();
 }
 
-export const isDbConfigured = Boolean(
-  process.env.NEXT_STATIC_EXPORT !== "1" && process.env.DATABASE_URL?.trim(),
-);
+export const isDbConfigured = Boolean(process.env.DATABASE_URL?.trim());
 
 declare global {
   var __domora_pg_pool: pg.Pool | undefined;
@@ -92,7 +90,7 @@ export function requireDb(): DomoraDatabase {
   const instance = getDb();
   if (!instance) {
     throw new Error(
-      "Database is not configured or running in static export mode. Provide a valid DATABASE_URL to enable database connectivity.",
+      "Database is not configured. Provide a valid DATABASE_URL to enable database connectivity.",
     );
   }
   return instance;
