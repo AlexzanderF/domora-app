@@ -79,7 +79,7 @@ export function transitionRequest(
         : request;
     case "issue":
       return role === Role.Client && canFlagIssue(request)
-        ? { ...request, issue: true }
+        ? { ...request, issue: true, issueNote: action.note }
         : request;
     case "resolve":
       return role === Role.Admin && canResolveIssue(request)

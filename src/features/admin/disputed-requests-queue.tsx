@@ -6,15 +6,18 @@ import { transitionRequestServerAction } from "@/features/requests/server/action
 import { useToast } from "@/components/ui/toast-provider";
 import { categories, requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
+import type { ResolvedDispute } from "./server/queries";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./disputed-requests-queue.module.css";
 
 export interface DisputedRequestsQueueProps {
   initialDisputedRequests?: ServiceRequest[] | null;
+  resolvedDisputes?: ResolvedDispute[] | null;
 }
 
 export function DisputedRequestsQueue({
   initialDisputedRequests,
+  resolvedDisputes,
 }: DisputedRequestsQueueProps = {}) {
   const notify = useToast();
   const router = useRouter();
@@ -46,17 +49,22 @@ export function DisputedRequestsQueue({
     }
   };
 
+  const history = <ResolvedHistory disputes={resolvedDisputes ?? []} />;
+
   if (disputed.length === 0) {
     return (
-      <div className={styles.emptyState}>
-        <span className={styles.emptyIcon} aria-hidden="true">
-          ✅
-        </span>
-        <p className={styles.emptyTitle}>Няма активни сигнали за проблеми</p>
-        <p className={styles.emptyDescription}>
-          Всички оспорвания между клиенти и специалисти са разрешени.
-        </p>
-      </div>
+      <>
+        <div className={styles.emptyState}>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            ✅
+          </span>
+          <p className={styles.emptyTitle}>Няма активни сигнали за проблеми</p>
+          <p className={styles.emptyDescription}>
+            Всички оспорвания между клиенти и специалисти са разрешени.
+          </p>
+        </div>
+        {history}
+      </>
     );
   }
 
@@ -139,6 +147,40 @@ export function DisputedRequestsQueue({
           </article>
         );
       })}
+      {history}
     </div>
+  );
+}
+
+function ResolvedHistory({ disputes }: { disputes: ResolvedDispute[] }) {
+  if (disputes.length === 0) return null;
+  return (
+    <section
+      className={styles.history}
+      aria-label="История на решените сигнали"
+    >
+      <h3 className={styles.historyTitle}>История на решените сигнали</h3>
+      <ul className={styles.historyList}>
+        {disputes.map((dispute) => (
+          <li key={dispute.id} className={styles.historyItem}>
+            <strong>
+              #{dispute.requestId} · {dispute.service}
+            </strong>
+            <span className={styles.historyMeta}>
+              {dispute.clientName ?? "Клиент"}
+              {dispute.specialist ? ` → ${dispute.specialist}` : ""} · решен на{" "}
+              {dispute.resolvedAt.slice(0, 10)}
+              {dispute.resolvedByName ? ` от ${dispute.resolvedByName}` : ""}
+            </span>
+            <p className={styles.historyText}>Сигнал: {dispute.note}</p>
+            {dispute.resolutionNote && (
+              <p className={styles.historyText}>
+                Решение: {dispute.resolutionNote}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

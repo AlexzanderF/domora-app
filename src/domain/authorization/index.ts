@@ -15,7 +15,9 @@ export type Action =
   | "request.cancel"
   | "request.confirm"
   | "request.rate"
-  | "request.assign";
+  | "request.assign"
+  | "request.dispute"
+  | "request.resolve_dispute";
 
 export interface RequestResource {
   clientId: number;
@@ -31,7 +33,8 @@ export function can(
 ): boolean {
   switch (actor.role) {
     case UserRole.Admin:
-      return true;
+      // Disputes are raised by the request's client, never on their behalf.
+      return action !== "request.dispute";
     case UserRole.Client:
       return canClient(actor, action, resource);
     case UserRole.Specialist:
@@ -54,7 +57,8 @@ function canClient(
     action === "request.view" ||
     action === "request.cancel" ||
     action === "request.confirm" ||
-    action === "request.rate"
+    action === "request.rate" ||
+    action === "request.dispute"
   );
 }
 

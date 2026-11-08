@@ -138,6 +138,7 @@ export function DailyAgenda({
                 <p className={styles.disputeNotice}>
                   Клиентът е подал сигнал за проблем с извършената работа.
                   Прегледайте и коригирайте при нужда.
+                  {request.issueNote && <> Бележка: „{request.issueNote}“</>}
                 </p>
               )}
               <div className="actions">
