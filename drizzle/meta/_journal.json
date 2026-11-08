@@ -29,6 +29,13 @@
       "when": 1790504918468,
       "tag": "0003_strong_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794178828531,
+      "tag": "0004_hash_session_tokens",
+      "breakpoints": true
     }
   ]
 }

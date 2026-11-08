@@ -8,6 +8,7 @@ import {
   type UserSelect,
 } from "@/db/schema";
 import type { User, SpecialistProfile } from "../types";
+import { hashSessionToken } from "./token";
 
 export interface UserWithPassword extends User {
   passwordHash: string;
@@ -128,7 +129,12 @@ export async function findUserBySessionToken(
     .from(sessions)
     .innerJoin(users, eq(sessions.userId, users.id))
     .leftJoin(specialistProfiles, eq(users.id, specialistProfiles.userId))
-    .where(and(eq(sessions.token, token), gt(sessions.expiresAt, new Date())))
+    .where(
+      and(
+        eq(sessions.token, hashSessionToken(token)),
+        gt(sessions.expiresAt, new Date()),
+      ),
+    )
     .limit(1);
 
   if (rows.length === 0) return null;
