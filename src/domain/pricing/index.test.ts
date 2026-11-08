@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { initialTariffs } from "./demo-data";
-import { calculateQuote, quoteScope } from "./pricing";
-import { Plan } from "./types";
+import { Plan } from "@/features/requests/types";
+import {
+  calculateQuote,
+  defaultTariffs as initialTariffs,
+  quoteScope,
+  tariffsFromRows,
+} from "./index";
 
 describe("booking prices", () => {
   it("uses category tariffs for the first service and the fixed diagnostic price for the second", () => {
@@ -51,5 +55,42 @@ describe("booking prices", () => {
     expect(quoteScope(3, 0)).toContain("оглед / диагностика");
     expect(quoteScope(5, 0)).toContain("оглед / диагностика");
     expect(quoteScope(0, 0)).toContain("Труд");
+  });
+});
+
+describe("tariffsFromRows", () => {
+  const row = (category: string, standardRate: number) => ({
+    category,
+    standardRate,
+  });
+
+  it("falls back to the default tariffs when there are no rows", () => {
+    expect(tariffsFromRows([])).toEqual(initialTariffs);
+  });
+
+  it("maps category, home and entry rows over the defaults", () => {
+    const tariffs = tariffsFromRows([
+      row("0", 50),
+      row("4", 70),
+      row("home", 20),
+      row("entry", 22),
+    ]);
+    expect(tariffs.categories).toEqual({
+      ...initialTariffs.categories,
+      0: 50,
+      4: 70,
+    });
+    expect(tariffs.home).toBe(20);
+    expect(tariffs.entry).toBe(22);
+  });
+
+  it("reads the home rate stored in tenths of a lev", () => {
+    expect(tariffsFromRows([row("home", 25)]).home).toBe(2.5);
+  });
+
+  it("ignores unknown categories", () => {
+    expect(tariffsFromRows([row("9", 1), row("other", 1)])).toEqual(
+      initialTariffs,
+    );
   });
 });

@@ -5,13 +5,9 @@ import {
   SubscriptionStatus,
 } from "@/features/subscriptions/types";
 import type { Subscription } from "@/features/subscriptions/types";
-import { defaultPlanPrices } from "@/features/plans/pricing";
-import { defaultServicePrices } from "@/features/services/pricing";
+import { defaultTariffs } from "@/domain/pricing";
 
-export const initialTariffs: Tariffs = {
-  categories: { ...defaultServicePrices },
-  ...defaultPlanPrices,
-};
+export const initialTariffs: Tariffs = defaultTariffs;
 
 export function generateDemoId(): number {
   return Math.floor(Date.now() % 1_000_000_000);

@@ -6,7 +6,7 @@ import { useToast } from "@/components/ui/toast-provider";
 import { DatePicker } from "@/features/plans/date-picker";
 import { TimePicker } from "@/features/plans/time-picker";
 import { useDemo } from "@/features/requests/demo-provider";
-import { calculateQuote } from "@/features/requests/pricing";
+import { calculateQuote } from "@/domain/pricing";
 import { generateDemoId } from "@/features/requests/demo-data";
 import { Plan, RequestStatus } from "@/features/requests/types";
 import { localDate, money } from "@/lib/format";

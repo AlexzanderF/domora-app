@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/toast-provider";
 import { DatePicker } from "@/features/plans/date-picker";
 import { TimePicker } from "@/features/plans/time-picker";
 import { useDemo } from "@/features/requests/demo-provider";
-import { calculateQuote, quoteScope } from "@/features/requests/pricing";
+import { calculateQuote, quoteScope } from "@/domain/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
 import { generateDemoId } from "@/features/requests/demo-data";
 import { Plan, RequestStatus } from "@/features/requests/types";
