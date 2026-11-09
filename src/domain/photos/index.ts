@@ -120,18 +120,19 @@ async function prepare(files: readonly Uint8Array[]) {
   if (files.some((file) => file.byteLength > MAX_PHOTO_BYTES)) {
     throw new PhotoError("FILE_TOO_LARGE", "A photo is too large.");
   }
-  return Promise.all(
-    files.map(async (file) => {
-      const type = sniffImageType(file);
-      if (!type) {
-        throw new PhotoError(
-          "UNSUPPORTED_TYPE",
-          "Only JPEG, PNG and WebP photos are accepted.",
-        );
-      }
-      return { type, data: await reencode(file, type) };
-    }),
-  );
+  // One at a time: decoding all five in parallel would multiply peak memory.
+  const prepared: { type: PhotoType; data: Uint8Array }[] = [];
+  for (const file of files) {
+    const type = sniffImageType(file);
+    if (!type) {
+      throw new PhotoError(
+        "UNSUPPORTED_TYPE",
+        "Only JPEG, PNG and WebP photos are accepted.",
+      );
+    }
+    prepared.push({ type, data: await reencode(file, type) });
+  }
+  return prepared;
 }
 
 // Attaches photos to a request. Only the request's client may; the request

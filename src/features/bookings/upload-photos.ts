@@ -16,7 +16,12 @@ export async function uploadRequestPhotos(
     } | null;
     return {
       ok: false,
-      error: data?.error ?? "Снимките не можаха да бъдат качени.",
+      error:
+        data?.error ??
+        // The proxy refuses an oversized body before the app can answer.
+        (response.status === 413
+          ? "Снимките са твърде големи."
+          : "Снимките не можаха да бъдат качени."),
     };
   } catch {
     return { ok: false, error: "Снимките не можаха да бъдат качени." };

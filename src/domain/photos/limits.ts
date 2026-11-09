@@ -11,5 +11,5 @@ export const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 export type PhotoType = (typeof PHOTO_TYPES)[number];
 
 // Ceiling on the whole multipart body, photos plus form overhead. Keep in sync
-// with `request_body max_size` in caddy/Caddyfile.
+// with `request_body max_size` (16MiB) in caddy/Caddyfile.
 export const MAX_BODY_BYTES = 16 * 1024 * 1024;

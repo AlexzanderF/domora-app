@@ -22,6 +22,7 @@ export function PhotoPicker({
   onBusyChange: (busy: boolean) => void;
 }) {
   const [previews, setPreviews] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
   const notify = useToast();
   useEffect(
     () => () => previews.forEach((url) => URL.revokeObjectURL(url)),
@@ -33,6 +34,7 @@ export function PhotoPicker({
       notify(`Можете да изберете до ${MAX_PHOTOS_PER_REQUEST} снимки.`);
     }
     const accepted: File[] = [];
+    setBusy(true);
     onBusyChange(true);
     try {
       for (const file of selected.slice(0, MAX_PHOTOS_PER_REQUEST)) {
@@ -43,7 +45,9 @@ export function PhotoPicker({
         try {
           const photo = await downscaleImage(file);
           if (photo.size > MAX_PHOTO_BYTES) {
-            notify("Всяка снимка трябва да е до 5 MB.");
+            notify(
+              `Всяка снимка трябва да е до ${MAX_PHOTO_BYTES / 1024 / 1024} MB.`,
+            );
             continue;
           }
           accepted.push(photo);
@@ -52,6 +56,7 @@ export function PhotoPicker({
         }
       }
     } finally {
+      setBusy(false);
       onBusyChange(false);
     }
     setPreviews(accepted.map((file) => URL.createObjectURL(file)));
@@ -70,6 +75,7 @@ export function PhotoPicker({
           type="file"
           accept={PHOTO_TYPES.join(",")}
           multiple
+          disabled={busy}
           onChange={(event) => {
             void choose(Array.from(event.target.files ?? []));
           }}

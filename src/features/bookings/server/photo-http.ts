@@ -1,5 +1,12 @@
 import { PhotoError } from "@/domain/photos";
 import type { PhotoErrorCode } from "@/domain/photos";
+import {
+  MAX_PHOTOS_PER_REQUEST,
+  MAX_PHOTO_BYTES,
+  MAX_UPLOAD_BYTES,
+} from "@/domain/photos/limits";
+
+const mb = (bytes: number) => Math.round(bytes / (1024 * 1024));
 
 const RESPONSES: Record<PhotoErrorCode, { status: number; message: string }> = {
   UNAUTHENTICATED: {
@@ -14,15 +21,15 @@ const RESPONSES: Record<PhotoErrorCode, { status: number; message: string }> = {
   NO_FILES: { status: 400, message: "Изберете поне една снимка." },
   TOO_MANY_FILES: {
     status: 400,
-    message: "Можете да добавите най-много 5 снимки към една заявка.",
+    message: `Можете да добавите най-много ${MAX_PHOTOS_PER_REQUEST} снимки към една заявка.`,
   },
   FILE_TOO_LARGE: {
     status: 413,
-    message: "Всяка снимка трябва да е до 5 MB.",
+    message: `Всяка снимка трябва да е до ${mb(MAX_PHOTO_BYTES)} MB.`,
   },
   UPLOAD_TOO_LARGE: {
     status: 413,
-    message: "Снимките трябва да са общо до 15 MB.",
+    message: `Снимките трябва да са общо до ${mb(MAX_UPLOAD_BYTES)} MB.`,
   },
   UNSUPPORTED_TYPE: {
     status: 415,

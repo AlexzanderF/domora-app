@@ -1,10 +1,11 @@
 # APP_DOMAIN defaults to ":80" (plain HTTP on the server IP) for the beta stage.
 # Set it to a real domain once DNS is ready to get automatic HTTPS.
 {$APP_DOMAIN::80} {
-    # Largest accepted request body: the photo upload (15 MB of photos plus
-    # form overhead). Keep in sync with MAX_BODY_BYTES in src/domain/photos.
+    # Largest accepted request body: the photo upload (15 MiB of photos plus
+    # form overhead). MiB, not MB (which Caddy reads as 1,000,000 bytes), so it
+    # equals MAX_BODY_BYTES in src/domain/photos/limits.ts: keep them in sync.
     request_body {
-        max_size 16MB
+        max_size 16MiB
     }
     reverse_proxy web:3000
 }
