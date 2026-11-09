@@ -34,6 +34,7 @@ export const ROLE_NAVIGATION_MAP: Record<
     { href: "/admin/requests", label: "Заявки", icon: "▤" },
     { href: "/admin/specialists", label: "Специалисти", icon: "👥" },
     { href: "/admin/tariffs", label: "Тарифи", icon: "◈" },
+    { href: "/admin/notifications", label: "Известия", icon: "✉" },
   ],
 } as const;
 
