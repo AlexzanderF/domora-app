@@ -3,6 +3,7 @@ import { requestDisputes, requireDb, requests } from "@/db";
 import type { RequestDisputeSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import type { Actor } from "@/domain/authorization";
+import { enqueueEvent } from "@/domain/notifications";
 import {
   RequestError,
   forbidden,
@@ -130,6 +131,10 @@ export async function raiseDispute(
       fromStatus: row.status,
       toStatus: row.status,
     });
+    await enqueueEvent(tx, {
+      type: "request.dispute_raised",
+      payload: { requestId: row.id, disputeId: dispute.id },
+    });
     return toDisputeDto(dispute);
   });
 }
@@ -190,6 +195,10 @@ export async function resolveDispute(
       type: "request.dispute_resolved",
       fromStatus: row.status,
       toStatus: row.status,
+    });
+    await enqueueEvent(tx, {
+      type: "request.dispute_resolved",
+      payload: { requestId: row.id, resolutionNote: text },
     });
     return toDisputeDto(dispute);
   });
