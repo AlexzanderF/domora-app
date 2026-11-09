@@ -30,10 +30,14 @@ export function DisputedRequestsQueue({
   }, [initialDisputedRequests, resolvedIds]);
 
   const handleResolve = async (request: ServiceRequest) => {
+    // Cancel aborts; an empty answer resolves without a note.
+    const resolutionNote = window.prompt("Как е решен сигналът? (по желание)");
+    if (resolutionNote === null) return;
     try {
       setProcessingId(request.id);
       const res = await transitionRequestServerAction(request.id, {
         type: "resolve",
+        resolutionNote,
       });
       if (!res.success) {
         notify(res.error ?? "Възникна грешка при разрешаване на сигнала.");

@@ -273,10 +273,12 @@ export async function transitionRequestServerAction(
     case "resolve":
       return runAsActor(
         async (actor) => {
-          await resolveIssue(actor, requestId);
+          await resolveIssue(actor, requestId, action.resolutionNote);
         },
         {
           FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
+          INVALID_INPUT: "Бележката към решението е твърде дълга.",
+          NOT_FOUND: "Заявката не е намерена.",
           INVALID_STATE: "Няма активен сигнал по тази заявка.",
         },
       );
