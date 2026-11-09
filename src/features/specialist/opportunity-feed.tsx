@@ -13,7 +13,13 @@ import { assignSpecialistAction } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
 import { RequestPriority } from "@/domain/requests/types";
 import type { ServiceRequest } from "@/domain/requests/types";
-import styles from "./specialist-dashboard.module.css";
+import {
+  RequestActions,
+  RequestRow,
+  SpecialistSection,
+  actionButton,
+  rowText,
+} from "./section-parts";
 
 function isUrgent(request: ServiceRequest): boolean {
   return (
@@ -66,62 +72,62 @@ export function OpportunityFeed({
   }
 
   return (
-    <section className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <div>
-          <h2 className={styles.sectionTitle}>Нови възможности</h2>
-          <span className={styles.sectionBadge}>Достъпни заявки</span>
-        </div>
-        {viewAllHref && (
-          <Link href={viewAllHref} className={styles.sectionLink}>
+    <SpecialistSection
+      title="Нови възможности"
+      badge="Достъпни заявки"
+      action={
+        viewAllHref && (
+          <Link
+            href={viewAllHref}
+            className="text-[13px] font-semibold text-primary no-underline hover:underline"
+          >
             Към всички възможности →
           </Link>
-        )}
-      </div>
+        )
+      }
+    >
       {items.length === 0 ? (
         <EmptyState>Няма нови възможности в момента.</EmptyState>
       ) : (
         items.map((request) => (
-          <article
-            className="request"
+          <RequestRow
             key={request.id}
-            aria-label={request.service}
+            label={request.service}
+            icon={<ServiceIcon category={request.category} />}
+            amount={money(request.price)}
           >
-            <div className="tinyicon">
-              <ServiceIcon category={request.category} />
-            </div>
-            <div className="requestinfo">
-              <h3>{request.service}</h3>
-              <p>{request.address}</p>
-              <StatusBadge>
-                {categories[request.category].name}
-              </StatusBadge>{" "}
-              <StatusBadge tone={isUrgent(request) ? "pending" : "default"}>
-                {isUrgent(request) ? "Спешна" : "Стандартна"}
-              </StatusBadge>{" "}
-              {(specialistId === undefined
-                ? request.recommendedSpecialistId !== undefined
-                : request.recommendedSpecialistId === specialistId) && (
-                <span className={styles.recommendedBadge}>
-                  Препоръчана от администратор
-                </span>
-              )}
-              <div className="actions">
-                <Button
-                  disabled={acceptingId === request.id}
-                  onClick={() => void accept(request)}
-                >
-                  {acceptingId === request.id ? "Приемане…" : "Приеми"}
-                </Button>
-                <Button variant="secondary" onClick={() => dismiss(request)}>
-                  Пропусни
-                </Button>
-              </div>
-            </div>
-            <span className="amount">{money(request.price)}</span>
-          </article>
+            <h3>{request.service}</h3>
+            <p className={rowText}>{request.address}</p>
+            <StatusBadge>{categories[request.category].name}</StatusBadge>{" "}
+            <StatusBadge tone={isUrgent(request) ? "pending" : "default"}>
+              {isUrgent(request) ? "Спешна" : "Стандартна"}
+            </StatusBadge>{" "}
+            {(specialistId === undefined
+              ? request.recommendedSpecialistId !== undefined
+              : request.recommendedSpecialistId === specialistId) && (
+              <StatusBadge tone="pending">
+                Препоръчана от администратор
+              </StatusBadge>
+            )}
+            <RequestActions>
+              <Button
+                className={actionButton}
+                disabled={acceptingId === request.id}
+                onClick={() => void accept(request)}
+              >
+                {acceptingId === request.id ? "Приемане…" : "Приеми"}
+              </Button>
+              <Button
+                className={actionButton}
+                variant="secondary"
+                onClick={() => dismiss(request)}
+              >
+                Пропусни
+              </Button>
+            </RequestActions>
+          </RequestRow>
         ))
       )}
-    </section>
+    </SpecialistSection>
   );
 }
