@@ -40,6 +40,10 @@ export const requestStatusEnum = pgEnum("request_status", [
   "COMPLETED",
 ]);
 
+// Booking photos are the client's; report photos are the specialist's, on the
+// work completion report.
+export const photoKindEnum = pgEnum("photo_kind", ["BOOKING", "REPORT"]);
+
 export const subscriptionPlanEnum = pgEnum("subscription_plan", [
   "HOME",
   "ENTRY",
@@ -227,7 +231,8 @@ export const requestDisputes = pgTable(
   ],
 );
 
-// Photos a client attached to a request. The bytes live in the PhotoStore
+// Photos attached to a request: the client's at booking, the specialist's on
+// the work completion report (see `kind`). The bytes live in the PhotoStore
 // under `storageKey` (a random UUID filename); only this row says who may see
 // them, via the request.
 export const requestPhotos = pgTable(
@@ -237,6 +242,7 @@ export const requestPhotos = pgTable(
     requestId: integer("request_id")
       .notNull()
       .references(() => requests.id, { onDelete: "cascade" }),
+    kind: photoKindEnum("kind").notNull().default("BOOKING"),
     storageKey: text("storage_key").notNull().unique(),
     contentType: text("content_type").notNull(),
     sizeBytes: integer("size_bytes").notNull(),

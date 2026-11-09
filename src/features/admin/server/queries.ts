@@ -9,6 +9,7 @@ import {
 } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
 import { UserRole } from "@/features/auth/types";
+import { listReportPhotoIds } from "@/domain/photos";
 import { isUrgentPriority } from "@/features/requests/priority";
 import { RequestStatus } from "@/features/requests/types";
 import type { CategoryId, ServiceRequest } from "@/features/requests/types";
@@ -19,11 +20,10 @@ type AdminRequestRow = {
   client?: typeof users.$inferSelect | null;
 };
 
-function mapAdminRequestRow({
-  request,
-  specialist,
-  client,
-}: AdminRequestRow): ServiceRequest {
+function mapAdminRequestRow(
+  { request, specialist, client }: AdminRequestRow,
+  reportPhotoIds?: number[],
+): ServiceRequest {
   const rawCategory = Number(request.category);
   const category: CategoryId =
     rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
@@ -44,6 +44,7 @@ function mapAdminRequestRow({
     description: request.description,
     cancelled: request.cancelled,
     report: request.report ?? undefined,
+    reportPhotoIds,
     rating: request.rating ?? undefined,
     issue: request.issue || undefined,
     issueNote: request.issueNote ?? undefined,
@@ -125,8 +126,11 @@ export async function findDisputedRequestsForAdmin(): Promise<
     .leftJoin(clients, eq(requests.clientId, clients.id))
     .where(eq(requests.issue, true))
     .orderBy(desc(requests.updatedAt));
+  const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
 
-  return rows.map((row) => mapAdminRequestRow(row));
+  return rows.map((row) =>
+    mapAdminRequestRow(row, reportPhotos.get(row.request.id)),
+  );
 }
 
 export async function findUnassignedRequestsForAdmin(): Promise<

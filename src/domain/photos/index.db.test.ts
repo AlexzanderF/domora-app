@@ -4,9 +4,15 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { requestPhotos, requireDb } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { UserRole, UserStatus } from "@/features/auth/types";
+import { RequestStatus } from "@/features/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
 import { MAX_PHOTO_BYTES } from "./limits";
-import { addPhotos, getPhoto } from "./index";
+import {
+  addPhotos,
+  addReportPhotos,
+  getPhoto,
+  listReportPhotoIds,
+} from "./index";
 import type { PhotoStore } from "./store";
 
 class MemoryStore implements PhotoStore {
@@ -353,5 +359,162 @@ describe("getPhoto", () => {
     store.files.delete(row.storageKey);
 
     expect(await rejection(getPhoto(client, photoId, store))).toBe("NOT_FOUND");
+  });
+});
+
+describe("addReportPhotos", () => {
+  let reported: number;
+
+  beforeEach(async () => {
+    reported = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.AwaitingConfirmation,
+      report: "Кранът е сменен.",
+      reportSubmittedAt: new Date(),
+    });
+  });
+
+  it("stores report photos for the assigned specialist, tagged as report photos", async () => {
+    const result = await addReportPhotos(
+      specialist,
+      reported,
+      [await jpeg(), await png()],
+      store,
+    );
+
+    expect(result).toHaveLength(2);
+    const stored = await rows();
+    expect(stored.every((r) => r.kind === "REPORT")).toBe(true);
+    expect(stored.every((r) => r.uploadedById === specialist.id)).toBe(true);
+    expect(store.files.size).toBe(2);
+  });
+
+  it("rejects everyone but the assigned specialist, admins included", async () => {
+    for (const actor of [client, otherSpecialist, pendingSpecialist, admin]) {
+      expect(
+        await rejection(
+          addReportPhotos(actor, reported, [await jpeg()], store),
+        ),
+      ).toBe("FORBIDDEN");
+    }
+    expect(
+      await rejection(addReportPhotos(null, reported, [await jpeg()], store)),
+    ).toBe("UNAUTHENTICATED");
+    expect(await rows()).toHaveLength(0);
+  });
+
+  it("keeps booking photos from addPhotos client-only", async () => {
+    expect(
+      await rejection(addPhotos(specialist, reported, [await jpeg()], store)),
+    ).toBe("FORBIDDEN");
+  });
+
+  it("requires a submitted report", async () => {
+    const inProgress = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.InProgress,
+    });
+    expect(
+      await rejection(
+        addReportPhotos(specialist, inProgress, [await jpeg()], store),
+      ),
+    ).toBe("INVALID_STATE");
+  });
+
+  it("refuses once the client has confirmed the work", async () => {
+    const done = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Completed,
+      report: "Готово.",
+      reportSubmittedAt: new Date(),
+    });
+    expect(
+      await rejection(addReportPhotos(specialist, done, [await jpeg()], store)),
+    ).toBe("INVALID_STATE");
+  });
+
+  it("applies the same limits, counted separately from booking photos", async () => {
+    await addPhotos(client, reported, [await jpeg(), await jpeg()], store);
+
+    expect(
+      await rejection(
+        addReportPhotos(
+          specialist,
+          reported,
+          await Promise.all(Array.from({ length: 6 }, () => jpeg())),
+          store,
+        ),
+      ),
+    ).toBe("TOO_MANY_FILES");
+
+    await addReportPhotos(
+      specialist,
+      reported,
+      await Promise.all(Array.from({ length: 5 }, () => jpeg())),
+      store,
+    );
+    expect(
+      await rejection(
+        addReportPhotos(specialist, reported, [await jpeg()], store),
+      ),
+    ).toBe("TOO_MANY_FILES");
+  });
+
+  it("rejects non-images by their bytes", async () => {
+    expect(
+      await rejection(
+        addReportPhotos(
+          specialist,
+          reported,
+          [new TextEncoder().encode("hello")],
+          store,
+        ),
+      ),
+    ).toBe("UNSUPPORTED_TYPE");
+  });
+
+  it("lets the client, the specialist and admins view report photos", async () => {
+    const [photo] = await addReportPhotos(
+      specialist,
+      reported,
+      [await png()],
+      store,
+    );
+    for (const actor of [client, specialist, admin]) {
+      expect(await rejection(getPhoto(actor, photo.id, store))).toBeNull();
+    }
+    expect(await rejection(getPhoto(otherClient, photo.id, store))).toBe(
+      "FORBIDDEN",
+    );
+  });
+});
+
+describe("listReportPhotoIds", () => {
+  it("maps request ids to their report photo ids only", async () => {
+    const reported = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.AwaitingConfirmation,
+      report: "Готово.",
+      reportSubmittedAt: new Date(),
+    });
+    await addPhotos(client, reported, [await jpeg()], store);
+    const added = await addReportPhotos(
+      specialist,
+      reported,
+      [await png(), await webp()],
+      store,
+    );
+
+    const map = await listReportPhotoIds([reported, requestId]);
+    expect(map.get(reported)).toEqual(added.map((p) => p.id));
+    expect(map.has(requestId)).toBe(false);
+  });
+
+  it("returns an empty map for no requests", async () => {
+    expect((await listReportPhotoIds([])).size).toBe(0);
   });
 });

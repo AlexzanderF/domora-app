@@ -22,6 +22,8 @@ export type Action =
   // request.view, viewing is never open to specialists who merely see the job
   // as an opportunity.
   | "request.attach_photo"
+  // The specialist's own evidence on the work completion report.
+  | "request.attach_report_photo"
   | "request.view_photo";
 
 export interface RequestResource {
@@ -38,9 +40,13 @@ export function can(
 ): boolean {
   switch (actor.role) {
     case UserRole.Admin:
-      // Disputes and photos belong to the request's client, never added on
-      // their behalf.
-      return action !== "request.dispute" && action !== "request.attach_photo";
+      // Disputes and photos belong to the request's client or assigned
+      // specialist, never added on their behalf.
+      return (
+        action !== "request.dispute" &&
+        action !== "request.attach_photo" &&
+        action !== "request.attach_report_photo"
+      );
     case UserRole.Client:
       return canClient(actor, action, resource);
     case UserRole.Specialist:
@@ -84,6 +90,7 @@ function canSpecialist(
       return resource.specialistId === null;
     case "request.work":
     case "request.cancel":
+    case "request.attach_report_photo":
     case "request.view_photo":
       return assigned;
     default:

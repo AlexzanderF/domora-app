@@ -1,11 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { Readable } from "node:stream";
-import { count, eq } from "drizzle-orm";
+import { and, asc, count, eq, inArray } from "drizzle-orm";
 import sharp from "sharp";
 import { requestPhotos, requireDb, requests } from "@/db";
 import type { RequestPhotoSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import type { Actor } from "@/domain/authorization";
+import { RequestStatus } from "@/features/requests/types";
 import {
   MAX_PHOTOS_PER_REQUEST,
   MAX_PHOTO_BYTES,
@@ -26,6 +27,7 @@ export type PhotoErrorCode =
   | "UNAUTHENTICATED"
   | "FORBIDDEN"
   | "NOT_FOUND"
+  | "INVALID_STATE"
   | "NO_FILES"
   | "TOO_MANY_FILES"
   | "FILE_TOO_LARGE"
@@ -135,13 +137,42 @@ async function prepare(files: readonly Uint8Array[]) {
   return prepared;
 }
 
+type PhotoKind = RequestPhotoSelect["kind"];
+
+const ATTACH_ACTION = {
+  BOOKING: "request.attach_photo",
+  REPORT: "request.attach_report_photo",
+} as const;
+
 // Attaches photos to a request. Only the request's client may; the request
 // keeps at most MAX_PHOTOS_PER_REQUEST in total. All or nothing.
-export async function addPhotos(
-  actorOrNull: Actor | null,
+export function addPhotos(
+  actor: Actor | null,
   requestId: number,
   files: readonly Uint8Array[],
   store: PhotoStore = getPhotoStore(),
+): Promise<PhotoDto[]> {
+  return attach("BOOKING", actor, requestId, files, store);
+}
+
+// Attaches photos to the work completion report. Only the assigned
+// specialist may, once the report is submitted and until the client confirms;
+// the same limits apply, counted apart from the booking photos.
+export function addReportPhotos(
+  actor: Actor | null,
+  requestId: number,
+  files: readonly Uint8Array[],
+  store: PhotoStore = getPhotoStore(),
+): Promise<PhotoDto[]> {
+  return attach("REPORT", actor, requestId, files, store);
+}
+
+async function attach(
+  kind: PhotoKind,
+  actorOrNull: Actor | null,
+  requestId: number,
+  files: readonly Uint8Array[],
+  store: PhotoStore,
 ): Promise<PhotoDto[]> {
   const actor = requireActor(actorOrNull);
   const db = requireDb();
@@ -154,23 +185,44 @@ export async function addPhotos(
     .from(requests)
     .where(eq(requests.id, requestId));
   if (!request) throw new PhotoError("NOT_FOUND", "Request not found.");
-  if (!can(actor, "request.attach_photo", request)) throw forbidden();
-
+  if (!can(actor, ATTACH_ACTION[kind], request)) throw forbidden();
   const prepared = await prepare(files);
 
   const written: string[] = [];
   try {
     return await db.transaction(async (tx) => {
       // Serialises concurrent uploads so the count below cannot race.
-      await tx
-        .select({ id: requests.id })
+      const [locked] = await tx
+        .select({
+          status: requests.status,
+          cancelled: requests.cancelled,
+          reportSubmittedAt: requests.reportSubmittedAt,
+        })
         .from(requests)
         .where(eq(requests.id, requestId))
         .for("update");
+      // Checked under the lock so a concurrent confirmation or cancellation
+      // cannot slip between the check and the insert.
+      if (
+        kind === "REPORT" &&
+        (!locked.reportSubmittedAt ||
+          locked.cancelled ||
+          locked.status === RequestStatus.Completed)
+      ) {
+        throw new PhotoError(
+          "INVALID_STATE",
+          "Report photos need a submitted, unconfirmed report.",
+        );
+      }
       const [{ existing }] = await tx
         .select({ existing: count() })
         .from(requestPhotos)
-        .where(eq(requestPhotos.requestId, requestId));
+        .where(
+          and(
+            eq(requestPhotos.requestId, requestId),
+            eq(requestPhotos.kind, kind),
+          ),
+        );
       if (existing + prepared.length > MAX_PHOTOS_PER_REQUEST) {
         throw new PhotoError(
           "TOO_MANY_FILES",
@@ -187,6 +239,7 @@ export async function addPhotos(
           .insert(requestPhotos)
           .values({
             requestId,
+            kind,
             storageKey,
             contentType: type,
             sizeBytes: data.byteLength,
@@ -201,6 +254,30 @@ export async function addPhotos(
     await Promise.allSettled(written.map((key) => store.delete(key)));
     throw error;
   }
+}
+
+// Report photo ids per request, oldest first, for views that list requests the
+// caller was already authorised to see. The images themselves are served by
+// getPhoto, which checks the actor again.
+export async function listReportPhotoIds(
+  requestIds: readonly number[],
+): Promise<Map<number, number[]>> {
+  const byRequest = new Map<number, number[]>();
+  if (requestIds.length === 0) return byRequest;
+  const found = await requireDb()
+    .select({ id: requestPhotos.id, requestId: requestPhotos.requestId })
+    .from(requestPhotos)
+    .where(
+      and(
+        inArray(requestPhotos.requestId, [...requestIds]),
+        eq(requestPhotos.kind, "REPORT"),
+      ),
+    )
+    .orderBy(asc(requestPhotos.id));
+  for (const { id, requestId } of found) {
+    byRequest.set(requestId, [...(byRequest.get(requestId) ?? []), id]);
+  }
+  return byRequest;
 }
 
 export interface PhotoFile {

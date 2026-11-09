@@ -1,12 +1,29 @@
+type UploadResult = { ok: true } | { ok: false; error: string };
+
 // Browser-only: sends a booked request's photos to the upload Route Handler.
-export async function uploadRequestPhotos(
+export function uploadRequestPhotos(
   requestId: number,
   files: readonly File[],
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<UploadResult> {
+  return upload(`/api/requests/${requestId}/photos`, files);
+}
+
+// Browser-only: sends the specialist's work completion report photos.
+export function uploadReportPhotos(
+  requestId: number,
+  files: readonly File[],
+): Promise<UploadResult> {
+  return upload(`/api/requests/${requestId}/report-photos`, files);
+}
+
+async function upload(
+  url: string,
+  files: readonly File[],
+): Promise<UploadResult> {
   const body = new FormData();
   for (const file of files) body.append("photos", file);
   try {
-    const response = await fetch(`/api/requests/${requestId}/photos`, {
+    const response = await fetch(url, {
       method: "POST",
       body,
     });

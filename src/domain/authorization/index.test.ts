@@ -14,6 +14,7 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.dispute",
   "request.resolve_dispute",
   "request.attach_photo",
+  "request.attach_report_photo",
   "request.view_photo",
 ];
 
@@ -54,13 +55,16 @@ const resources: Record<string, RequestResource> = {
   assignedOnly: { clientId: OTHER_ID, specialistId: ACTOR_ID },
 };
 
-// Only the request's client raises a dispute or attaches photos; only an
-// admin resolves a dispute.
+// Only the request's client raises a dispute or attaches booking photos; only
+// its assigned specialist attaches report photos; only an admin resolves a
+// dispute.
+const NEVER_ADMIN: readonly Action[] = [
+  "request.dispute",
+  "request.attach_photo",
+  "request.attach_report_photo",
+];
 const ADMIN_ACTIONS = ALL_ACTIONS.filter(
-  (a) =>
-    a !== "request.create" &&
-    a !== "request.dispute" &&
-    a !== "request.attach_photo",
+  (a) => a !== "request.create" && !NEVER_ADMIN.includes(a),
 );
 
 type Allowed = Partial<Record<keyof typeof resources, readonly Action[]>>;
@@ -93,12 +97,14 @@ const expectations: Record<keyof typeof actors, Allowed> = {
       "request.view",
       "request.work",
       "request.cancel",
+      "request.attach_report_photo",
       "request.view_photo",
     ],
     assignedOnly: [
       "request.view",
       "request.work",
       "request.cancel",
+      "request.attach_report_photo",
       "request.view_photo",
     ],
     foreignUnassigned: ["request.view", "request.claim"],
@@ -145,9 +151,7 @@ describe("can() policy matrix", () => {
         for (const action of ALL_ACTIONS) {
           if (action === "request.create") continue;
           expect(can(actor, action)).toBe(
-            actorName === "admin" &&
-              action !== "request.dispute" &&
-              action !== "request.attach_photo",
+            actorName === "admin" && !NEVER_ADMIN.includes(action),
           );
         }
       });
