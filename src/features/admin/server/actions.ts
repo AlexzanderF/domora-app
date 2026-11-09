@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
-import { tariffs, users } from "@/db/schema";
+import { tariffs } from "@/db/schema";
 import { UserRole, UserStatus } from "@/features/auth/types";
 import { getServerSession } from "@/features/auth/server/session";
+import { getActor } from "@/features/auth/server/actor";
+import { IdentityError, setSpecialistStatus } from "@/domain/identity";
 import type { CategoryId, Tariffs } from "@/features/requests/types";
 
 export interface UpdateSpecialistStatusResult {
@@ -20,6 +21,18 @@ export interface UpdateTariffsResult {
   mode?: "db" | "demo";
 }
 
+function specialistStatusError(error: IdentityError): string {
+  switch (error.code) {
+    case "UNAUTHENTICATED":
+    case "FORBIDDEN":
+      return "Неоторизиран достъп. Изискват се администраторски права.";
+    case "NOT_FOUND":
+      return "Специалистът не е намерен.";
+    default:
+      return "Невалиден статус на специалист.";
+  }
+}
+
 export async function updateSpecialistStatusAction(
   userId: number,
   status: UserStatus,
@@ -28,36 +41,15 @@ export async function updateSpecialistStatusAction(
     return { success: true, mode: "demo" };
   }
 
-  const currentUser = await getServerSession();
-  if (!currentUser || currentUser.role !== UserRole.Admin) {
-    return {
-      success: false,
-      error: "Неоторизиран достъп. Изискват се администраторски права.",
-    };
+  const actor = await getActor();
+  try {
+    await setSpecialistStatus(actor, userId, status);
+  } catch (error) {
+    if (error instanceof IdentityError) {
+      return { success: false, error: specialistStatusError(error) };
+    }
+    throw error;
   }
-
-  if (status !== UserStatus.Active && status !== UserStatus.Rejected) {
-    return {
-      success: false,
-      error: "Невалиден статус на специалист.",
-    };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
-  }
-
-  await db
-    .update(users)
-    .set({
-      status,
-      updatedAt: new Date(),
-    })
-    .where(eq(users.id, userId));
 
   revalidatePath("/admin/specialists");
   revalidatePath("/admin");

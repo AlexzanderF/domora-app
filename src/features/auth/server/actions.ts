@@ -2,7 +2,8 @@
 
 import bcrypt from "bcryptjs";
 import { getDb, isDbConfigured } from "@/db";
-import { specialistProfiles, users } from "@/db/schema";
+import { users } from "@/db/schema";
+import { registerSpecialist } from "@/domain/identity";
 import { UserRole, UserStatus } from "../types";
 import type {
   ClientRegistrationInput,
@@ -192,38 +193,21 @@ export async function registerSpecialistAction(
     };
   }
 
-  const db = getDb();
-  if (!db) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
-  }
-
   const passwordHash = await bcrypt.hash(input.password, 10);
 
-  const [createdUser] = await db
-    .insert(users)
-    .values({
-      name: input.name.trim(),
-      email: input.email.trim().toLowerCase(),
-      phone: input.phone.trim(),
-      passwordHash,
-      role: UserRole.Specialist,
-      status: UserStatus.Pending,
-    })
-    .returning({ id: users.id });
-
-  const userId = createdUser.id;
-
-  await db.insert(specialistProfiles).values({
-    userId,
-    category: input.category,
-    area: input.area,
-    experienceYears: input.experienceYears,
-    bio: input.bio,
-    companyName: input.companyName?.trim() || null,
-    eik: input.eik?.trim() || null,
+  const userId = await registerSpecialist({
+    name: input.name,
+    email: input.email,
+    phone: input.phone,
+    passwordHash,
+    profile: {
+      category: input.category,
+      area: input.area,
+      experienceYears: input.experienceYears,
+      bio: input.bio,
+      companyName: input.companyName,
+      eik: input.eik,
+    },
   });
 
   await createSession(userId);

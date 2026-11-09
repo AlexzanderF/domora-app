@@ -99,3 +99,27 @@ docker compose up -d --build
 Web starts only after migrations exit 0, and Postgres is bound to `127.0.0.1` only. Caddy serves plain HTTP on the server IP while `APP_DOMAIN=:80`.
 
 Every merge to `main` runs CI, builds one image, pushes it to GHCR (tagged by commit SHA and `latest`) and deploys it over SSH using the `production` GitHub Environment; the server pulls the image and never builds. The deploy fails if `migrate` fails or `web` is unhealthy. To roll back, run the **Deploy** workflow manually from GitHub with a commit SHA (empty means latest). One-time server hardening (deploy user, `ufw` on 22/80/443, SSH lockdown) is scripted in `scripts/harden-server.sh`; reach Postgres through an SSH tunnel.
+
+## First admin and seed data
+
+`npm run db:seed` writes only what the environment allows:
+
+| Mode                                  | Reference data (tariffs) | First admin      | Demo users, subscriptions, requests      |
+| ------------------------------------- | ------------------------ | ---------------- | ---------------------------------------- |
+| Development, local database (default) | yes                      | if `ADMIN_*` set | yes                                      |
+| Development with `--reference-only`   | yes                      | if `ADMIN_*` set | no                                       |
+| `NODE_ENV=production`                 | yes                      | if `ADMIN_*` set | **never** (`--demo` exits with an error) |
+
+On a fresh server, after migrations have run, create the first admin and tariffs from a machine that can reach Postgres (open the SSH tunnel first, since Postgres is bound to `127.0.0.1`):
+
+```bash
+NODE_ENV=production \
+DATABASE_URL=postgresql://USER:PASSWORD@localhost:5432/DB \
+ADMIN_NAME="Име Фамилия" ADMIN_EMAIL=owner@example.com \
+ADMIN_PHONE=0888000000 ADMIN_PASSWORD='at-least-12-characters' \
+npm run db:seed
+```
+
+The run is safe to repeat: tariffs are upserted by category, and the admin is created only when no admin exists yet (an existing admin is never changed). Sign in at `/login`, then approve specialists at `/admin/specialists`.
+
+Specialists sign up as **Pending** and see the pending-approval screen. An admin's approve/reject applies on their very next request, with no re-login, because role and status are read from the database each time.
