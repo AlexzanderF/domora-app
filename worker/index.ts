@@ -1,6 +1,7 @@
 import { closeDbPool } from "@/db";
 import { processOutbox } from "@/domain/notifications";
 import { createNotifier } from "@/domain/notifications/notifier";
+import { sweepOrphanUploads } from "@/domain/photos/sweep";
 import { accountFlowHandlers } from "@/domain/notifications/account-flow";
 import { requestFlowHandlers } from "@/domain/notifications/request-flow";
 
@@ -8,6 +9,7 @@ import { requestFlowHandlers } from "@/domain/notifications/request-flow";
 // the outbox and delivers through the configured notifier.
 
 const POLL_INTERVAL_MS = 5_000;
+const SWEEP_INTERVAL_MS = 60 * 60 * 1000;
 
 async function main(): Promise<void> {
   const notifier = createNotifier(process.env.NOTIFIER_DRIVER, {
@@ -22,6 +24,7 @@ async function main(): Promise<void> {
   process.on("SIGINT", stop);
 
   console.log("[worker] started");
+  let lastSweep = 0;
   while (!stopping) {
     try {
       const result = await processOutbox({
@@ -33,6 +36,17 @@ async function main(): Promise<void> {
       }
     } catch (error) {
       console.error("[worker] tick failed:", error);
+    }
+    if (Date.now() - lastSweep >= SWEEP_INTERVAL_MS) {
+      // Marked before running so a failing sweep retries next hour, not every tick.
+      lastSweep = Date.now();
+      try {
+        const { deleted } = await sweepOrphanUploads();
+        if (deleted > 0)
+          console.log("[worker] orphan uploads removed", deleted);
+      } catch (error) {
+        console.error("[worker] orphan sweep failed:", error);
+      }
     }
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }

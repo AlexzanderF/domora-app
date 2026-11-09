@@ -33,6 +33,12 @@ class MemoryStore implements PhotoStore {
   async delete(key: string) {
     this.files.delete(key);
   }
+  async list() {
+    return [...this.files.keys()].map((key) => ({
+      key,
+      modifiedAt: new Date(),
+    }));
+  }
 }
 
 const jpeg = (width = 40, height = 30) =>
