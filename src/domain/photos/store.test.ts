@@ -72,4 +72,22 @@ describe("LocalPhotoStore", () => {
     const stream = await store.get("a1.jpg");
     expect((await read(stream!)).toString()).toBe("first");
   });
+
+  it("lists stored files with their modification time", async () => {
+    await store.put("a1.jpg", Buffer.from("x"));
+    const old = new Date("2026-01-01T00:00:00Z");
+    await fs.utimes(path.join(dir, "a1.jpg"), old, old);
+    await store.put("b2.png", Buffer.from("y"));
+
+    const listed = await store.list();
+
+    expect(listed.map((f) => f.key).sort()).toEqual(["a1.jpg", "b2.png"]);
+    expect(listed.find((f) => f.key === "a1.jpg")!.modifiedAt).toEqual(old);
+  });
+
+  it("lists nothing before the directory exists", async () => {
+    expect(await new LocalPhotoStore(path.join(dir, "nope")).list()).toEqual(
+      [],
+    );
+  });
 });

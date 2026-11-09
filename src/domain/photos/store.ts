@@ -11,6 +11,13 @@ export interface PhotoStore {
   get(key: string): Promise<Readable | null>;
   // Deleting a missing key is not an error.
   delete(key: string): Promise<void>;
+  // Every stored object with its last-modified time, for the orphan sweep.
+  list(): Promise<StoredPhoto[]>;
+}
+
+export interface StoredPhoto {
+  key: string;
+  modifiedAt: Date;
 }
 
 // Keys are generated server-side (UUID + extension); this only guards the
@@ -47,6 +54,29 @@ export class LocalPhotoStore implements PhotoStore {
 
   async delete(key: string): Promise<void> {
     await fs.rm(fileFor(this.root, key), { force: true });
+  }
+
+  async list(): Promise<StoredPhoto[]> {
+    let names: string[];
+    try {
+      names = await fs.readdir(this.root);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw error;
+    }
+    const found: StoredPhoto[] = [];
+    for (const key of names) {
+      // Anything that is not a key we could have written is not ours to list.
+      if (!SAFE_KEY.test(key) || key.includes("..")) continue;
+      try {
+        const stat = await fs.stat(path.join(this.root, key));
+        if (stat.isFile()) found.push({ key, modifiedAt: stat.mtime });
+      } catch (error) {
+        // Deleted between readdir and stat.
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+    }
+    return found;
   }
 }
 
