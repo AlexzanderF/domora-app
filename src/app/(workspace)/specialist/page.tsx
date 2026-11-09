@@ -56,14 +56,14 @@ export default async function SpecialistPage() {
         title="Задачите ви, подредени."
         description="Приемайте нови възможности и отчитайте извършената работа по текущите задачи."
       />
-      <DashboardSummary initialRequests={allRequests} />
+      <DashboardSummary initialRequests={allRequests ?? []} />
       <OpportunityFeed
-        initialOpportunities={initialOpportunities}
+        initialOpportunities={initialOpportunities ?? []}
         limit={5}
         viewAllHref="/specialist/opportunities"
         specialistId={user?.role === UserRole.Specialist ? user.id : undefined}
       />
-      <DailyAgenda initialAgenda={initialAgenda} />
+      <DailyAgenda initialAgenda={initialAgenda ?? []} />
     </>
   );
 }

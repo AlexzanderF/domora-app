@@ -3,7 +3,6 @@
 import type { User } from "@/features/auth/types";
 import type { Tariffs } from "@/features/requests/types";
 import { ToastProvider } from "@/components/ui/toast-provider";
-import { DemoProvider } from "@/features/requests/demo-provider";
 import { BookingProvider } from "@/features/bookings/booking-provider";
 import { BookingDialog } from "@/features/bookings/booking-dialog";
 import { BrowserBookingTool } from "@/features/bookings/browser-tool";
@@ -21,13 +20,11 @@ export function Providers({
   return (
     <ToastProvider>
       <AuthProvider initialUser={initialUser}>
-        <DemoProvider tariffs={tariffs}>
-          <BookingProvider>
-            {children}
-            <BookingDialog tariffs={tariffs} />
-            <BrowserBookingTool />
-          </BookingProvider>
-        </DemoProvider>
+        <BookingProvider>
+          {children}
+          <BookingDialog tariffs={tariffs} />
+          <BrowserBookingTool />
+        </BookingProvider>
       </AuthProvider>
     </ToastProvider>
   );

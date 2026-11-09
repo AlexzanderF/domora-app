@@ -1,19 +1,18 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-import { useDemo } from "@/features/requests/demo-provider";
 import type { Tariffs } from "@/features/requests/types";
 import { categories } from "@/features/services/catalog";
 import { updateTariffsAction } from "@/features/admin/server/actions";
 
 export interface TariffFormProps {
-  initialTariffs?: Tariffs | null;
+  initialTariffs: Tariffs;
 }
 
-export function TariffForm({ initialTariffs }: TariffFormProps = {}) {
-  const { tariffs: demoTariffs, updateTariffs } = useDemo();
-  const tariffs = initialTariffs ?? demoTariffs;
+export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
+  const router = useRouter();
   const notify = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,15 +33,14 @@ export function TariffForm({ initialTariffs }: TariffFormProps = {}) {
     setIsSubmitting(true);
     try {
       const result = await updateTariffsAction(next);
-      updateTariffs(next);
-      if (result.mode === "db" && result.success) {
-        notify("Тарифите са обновени успешно.");
-      } else {
-        notify("Демо тарифите са обновени.");
+      if (!result.success) {
+        notify(result.error ?? "Тарифите не можаха да бъдат обновени.");
+        return;
       }
+      notify("Тарифите са обновени успешно.");
+      router.refresh();
     } catch {
-      updateTariffs(next);
-      notify("Демо тарифите са обновени.");
+      notify("Тарифите не можаха да бъдат обновени. Опитайте отново.");
     } finally {
       setIsSubmitting(false);
     }
@@ -101,9 +99,9 @@ export function TariffForm({ initialTariffs }: TariffFormProps = {}) {
             className="primary"
             type="submit"
             disabled={isSubmitting}
-            aria-label="Запази демо тарифите"
+            aria-label="Запази тарифите"
           >
-            {isSubmitting ? "Запазване..." : "Запази демо тарифите"}
+            {isSubmitting ? "Запазване..." : "Запази тарифите"}
           </button>
         </form>
       </div>

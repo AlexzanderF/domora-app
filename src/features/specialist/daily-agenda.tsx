@@ -1,51 +1,47 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
-import { isActiveStage } from "@/features/requests/request-rules";
 import { useToast } from "@/components/ui/toast-provider";
-import { useDemo } from "@/features/requests/demo-provider";
 import {
   completeWorkAction,
   startWorkAction,
 } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
-import { RequestStatus, Role } from "@/features/requests/types";
+import { RequestStatus } from "@/features/requests/types";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
 export function DailyAgenda({
   initialAgenda,
 }: {
-  initialAgenda?: ServiceRequest[] | null;
+  initialAgenda: ServiceRequest[];
 }) {
-  const { requests: demoRequests, updateRequest } = useDemo();
+  const router = useRouter();
   const notify = useToast();
   const dialog = useRef<HTMLDialogElement>(null);
   const [reportTarget, setReportTarget] = useState<ServiceRequest | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  const items =
-    initialAgenda ??
-    demoRequests.filter(
-      (request) => !request.cancelled && isActiveStage(request.status),
-    );
+  const items = initialAgenda;
 
   async function startWork(request: ServiceRequest) {
     setBusyId(request.id);
-    updateRequest(request.id, { type: "advance" }, Role.Specialist);
     try {
       const result = await startWorkAction(request.id);
       if (!result.success) {
         notify(result.error ?? "Грешка при стартиране на задачата.");
         return;
       }
+      notify("Задачата е започната.");
+      router.refresh();
     } catch {
-      // Demo mode or network fallback
+      notify("Грешка при стартиране на задачата. Опитайте отново.");
+    } finally {
+      setBusyId(null);
     }
-    notify("Задачата е започната.");
-    setBusyId(null);
   }
 
   function openReportDialog(request: ServiceRequest) {
@@ -70,24 +66,20 @@ export function DailyAgenda({
     }
 
     setBusyId(reportTarget.id);
-    updateRequest(
-      reportTarget.id,
-      { type: "advance", report },
-      Role.Specialist,
-    );
     try {
       const result = await completeWorkAction(reportTarget.id, report);
       if (!result.success) {
         notify(result.error ?? "Грешка при завършване на задачата.");
-        setBusyId(null);
         return;
       }
+      notify("Отчетът е изпратен. Очаква потвърждение от клиента.");
+      closeReportDialog();
+      router.refresh();
     } catch {
-      // Demo mode or network fallback
+      notify("Грешка при завършване на задачата. Опитайте отново.");
+    } finally {
+      setBusyId(null);
     }
-    notify("Отчетът е изпратен. Очаква потвърждение от клиента.");
-    setBusyId(null);
-    closeReportDialog();
   }
 
   return (

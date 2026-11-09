@@ -51,7 +51,7 @@ export default async function SpecialistOpportunitiesPage() {
         description="Преглеждайте и приемайте налични заявки, съответстващи на вашия профил."
       />
       <OpportunityFeed
-        initialOpportunities={initialOpportunities}
+        initialOpportunities={initialOpportunities ?? []}
         specialistId={user?.role === UserRole.Specialist ? user.id : undefined}
       />
     </>

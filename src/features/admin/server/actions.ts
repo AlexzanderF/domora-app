@@ -12,13 +12,11 @@ import type { CategoryId, Tariffs } from "@/features/requests/types";
 export interface UpdateSpecialistStatusResult {
   success: boolean;
   error?: string;
-  mode?: "db" | "demo";
 }
 
 export interface UpdateTariffsResult {
   success: boolean;
   error?: string;
-  mode?: "db" | "demo";
 }
 
 function specialistStatusError(error: IdentityError): string {
@@ -38,7 +36,7 @@ export async function updateSpecialistStatusAction(
   status: UserStatus,
 ): Promise<UpdateSpecialistStatusResult> {
   if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
+    return { success: false, error: "Няма връзка с базата данни." };
   }
 
   const actor = await getActor();
@@ -56,19 +54,22 @@ export async function updateSpecialistStatusAction(
   revalidatePath("/pending-approval");
   revalidatePath("/specialist");
 
-  return { success: true, mode: "db" };
+  return { success: true };
 }
 
 export async function updateTariffsAction(
   input: Tariffs,
 ): Promise<UpdateTariffsResult> {
   if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
+    return { success: false, error: "Няма връзка с базата данни." };
   }
 
   const currentUser = await getServerSession();
   if (!currentUser || currentUser.role !== UserRole.Admin) {
-    return { success: true, mode: "demo" };
+    return {
+      success: false,
+      error: "Неоторизиран достъп. Изискват се администраторски права.",
+    };
   }
 
   const db = getDb();
@@ -159,5 +160,5 @@ export async function updateTariffsAction(
   revalidatePath("/plans");
   revalidatePath("/");
 
-  return { success: true, mode: "db" };
+  return { success: true };
 }

@@ -43,7 +43,6 @@ export interface CreateServiceRequestInput {
 export interface ServiceRequestActionResult {
   success: boolean;
   error?: string;
-  mode?: "db" | "demo";
   request?: ServiceRequest;
 }
 
@@ -72,9 +71,7 @@ async function runAsActor(
   try {
     const request = await run(await getActor());
     revalidateWorkspaceRequests();
-    return request
-      ? { success: true, mode: "db", request }
-      : { success: true, mode: "db" };
+    return request ? { success: true, request } : { success: true };
   } catch (error) {
     if (error instanceof RequestError) {
       return {
@@ -124,9 +121,6 @@ export async function createServiceRequestAction(
 export async function assignSpecialistAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await claimRequest(actor, requestId);
@@ -142,9 +136,6 @@ export async function assignSpecialistAction(
 export async function startWorkAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await startWork(actor, requestId);
@@ -159,9 +150,6 @@ export async function completeWorkAction(
   requestId: number,
   report?: string,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await submitReport(actor, requestId, report ?? "");
@@ -266,7 +254,7 @@ export async function transitionRequestServerAction(
         },
       );
     default:
-      return { success: true, mode: "db" };
+      return { success: true };
   }
 }
 

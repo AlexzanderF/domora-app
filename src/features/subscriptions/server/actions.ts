@@ -35,7 +35,6 @@ export interface StartSubscriptionInput extends SubscribeInput {
 export interface SubscriptionActionResult {
   success: boolean;
   error?: string;
-  mode?: "db";
   subscription?: Subscription;
 }
 
@@ -81,7 +80,7 @@ export async function createSubscriptionAction(
   try {
     const subscription = await createSubscription(await getActor(), input);
     revalidateSubscriptionPages();
-    return { success: true, mode: "db", subscription };
+    return { success: true, subscription };
   } catch (error) {
     return failure(error);
   }
@@ -107,7 +106,7 @@ export async function startSubscriptionAction(
       scheduledTime: firstVisit.time,
     });
     revalidateSubscriptionPages();
-    return { success: true, mode: "db", subscription };
+    return { success: true, subscription };
   } catch (error) {
     return failure(error);
   }
@@ -119,7 +118,7 @@ export async function cancelSubscriptionAction(): Promise<SubscriptionActionResu
   try {
     await cancelSubscription(await getActor());
     revalidateSubscriptionPages();
-    return { success: true, mode: "db" };
+    return { success: true };
   } catch (error) {
     return failure(error);
   }

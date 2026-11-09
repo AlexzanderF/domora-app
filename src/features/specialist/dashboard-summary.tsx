@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useDemo } from "@/features/requests/demo-provider";
 import { isActiveStage } from "@/features/requests/request-rules";
 import { localDate, money } from "@/lib/format";
 import { RequestStatus } from "@/features/requests/types";
@@ -27,12 +26,9 @@ function computeStats(requests: ServiceRequest[]) {
 export function DashboardSummary({
   initialRequests,
 }: {
-  initialRequests?: ServiceRequest[] | null;
+  initialRequests: ServiceRequest[];
 }) {
-  const { requests: demoRequests } = useDemo();
-  const { activeJobs, todaysEarnings } = computeStats(
-    initialRequests ?? demoRequests,
-  );
+  const { activeJobs, todaysEarnings } = computeStats(initialRequests);
 
   return (
     <div className={styles.summaryRow}>
