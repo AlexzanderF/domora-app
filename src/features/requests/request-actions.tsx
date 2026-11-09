@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { canAdvance, requiresCompletionReport } from "./request-rules";
@@ -49,8 +50,8 @@ export function RequestActions({
   return (
     <div className="actions">
       {role === Role.Client && canAdvance(request) && (
-        <button
-          className="secondary"
+        <Button
+          variant="secondary"
           onClick={() => {
             if (window.confirm("Да отменим ли тази заявка?")) {
               void perform({ type: "cancel" }, "Заявката е отказана.");
@@ -58,20 +59,20 @@ export function RequestActions({
           }}
         >
           Откажи заявката
-        </button>
+        </Button>
       )}
       {role !== Role.Client && canAdvance(request) && (
         <>
-          <button className="primary" onClick={advance}>
+          <Button onClick={advance}>
             {request.status === RequestStatus.Created
               ? "Приеми заявката"
               : request.status === RequestStatus.InProgress
                 ? "Добави отчет"
                 : "Следващ статус"}
-          </button>
+          </Button>
           {request.status === RequestStatus.Created && (
-            <button
-              className="secondary"
+            <Button
+              variant="secondary"
               onClick={() =>
                 void perform(
                   { type: "decline" },
@@ -80,15 +81,14 @@ export function RequestActions({
               }
             >
               Откажи изпълнение
-            </button>
+            </Button>
           )}
         </>
       )}
       {role === Role.Client &&
         request.status === RequestStatus.AwaitingConfirmation && (
           <>
-            <button
-              className="primary"
+            <Button
               onClick={() =>
                 void perform(
                   { type: "complete" },
@@ -97,9 +97,9 @@ export function RequestActions({
               }
             >
               Потвърди приключването
-            </button>
-            <button
-              className="secondary"
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => {
                 const note = window
                   .prompt("Опишете проблема с работата:")
@@ -112,7 +112,7 @@ export function RequestActions({
               }}
             >
               Има проблем
-            </button>
+            </Button>
           </>
         )}
       {role === Role.Client &&
@@ -138,7 +138,9 @@ export function RequestActions({
           </>
         )}
       {request.rating && (
-        <span className="muted">Оценка: {request.rating}/5 ★</span>
+        <span className="text-[14px] text-muted-foreground">
+          Оценка: {request.rating}/5 ★
+        </span>
       )}
     </div>
   );

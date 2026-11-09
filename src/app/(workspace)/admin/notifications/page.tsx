@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { FailedDeliveriesList } from "@/features/admin/failed-deliveries-list";
 import { findFailedDeliveries } from "@/features/admin/server/failed-deliveries";
 import { isDbConfigured } from "@/db";

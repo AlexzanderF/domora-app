@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { AdminKpiCards } from "@/features/admin/admin-kpi-cards";
 import { PendingSpecialistsQueue } from "@/features/admin/pending-specialists-queue";
 import { DisputedRequestsQueue } from "@/features/admin/disputed-requests-queue";

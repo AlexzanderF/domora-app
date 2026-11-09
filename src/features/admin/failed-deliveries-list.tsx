@@ -7,7 +7,11 @@ export function FailedDeliveriesList({
   deliveries: FailedDelivery[];
 }) {
   if (deliveries.length === 0) {
-    return <p className="muted">Няма неуспешни известия.</p>;
+    return (
+      <p className="text-[14px] text-muted-foreground">
+        Няма неуспешни известия.
+      </p>
+    );
   }
 
   return (
@@ -16,7 +20,9 @@ export function FailedDeliveriesList({
         <li key={d.id} className={styles.card}>
           <div className={styles.header}>
             <strong>{d.eventType}</strong>
-            <span className="muted">Опити: {d.attempts}</span>
+            <span className="text-[14px] text-muted-foreground">
+              Опити: {d.attempts}
+            </span>
           </div>
           <div>Получател: {d.recipient}</div>
           <div className={styles.error}>

@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast-provider";
 import type { Tariffs } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
@@ -51,8 +53,8 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
       <div className="sectionhead">
         <h2>Тарифи за услуги</h2>
       </div>
-      <div className="card">
-        <p className="muted">
+      <Card>
+        <p className="text-[14px] text-muted-foreground">
           Цените се прилагат за нови заявки. Съществуващите запазват одобрената
           цена.
         </p>
@@ -95,16 +97,15 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
               />
             </label>
           </div>
-          <button
-            className="primary"
+          <Button
             type="submit"
             disabled={isSubmitting}
             aria-label="Запази тарифите"
           >
             {isSubmitting ? "Запазване..." : "Запази тарифите"}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </>
   );
 }

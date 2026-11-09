@@ -1,5 +1,6 @@
 /* Tailwind v4 without preflight: the legacy CSS below still owns resets and
    element defaults until the contract ticket (ADR 0007). */
+@layer theme, base, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
@@ -78,11 +79,14 @@ body {
     "Segoe UI",
     sans-serif;
 }
-button,
-input,
-select,
-textarea {
-  font: inherit;
+/* In the base layer so Tailwind utilities (button font-weight, sizes) win. */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 }
 button,
 a,
@@ -327,36 +331,6 @@ h3 {
 p {
   margin: 8px 0 20px;
 }
-.muted {
-  color: var(--muted);
-  font-size: 14px;
-}
-.heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 25px;
-}
-.primary,
-.secondary {
-  border: 0;
-  padding: 12px 19px;
-  border-radius: 8px;
-  font-weight: 600;
-}
-.primary {
-  background: var(--green);
-  color: white;
-}
-.primary:hover {
-  background: #123e34;
-}
-.secondary {
-  border: 1px solid var(--line);
-  background: white;
-  color: var(--green);
-}
 .banner {
   background: var(--green);
   border-radius: 16px;
@@ -382,11 +356,6 @@ p {
 }
 .banner .eyebrow {
   color: var(--accent);
-}
-.banner .secondary {
-  background: var(--accent);
-  border: 0;
-  white-space: nowrap;
 }
 .sectionhead {
   display: flex;
@@ -434,12 +403,6 @@ p {
   grid-template-columns: 1.5fr 1fr;
   gap: 22px;
 }
-.card {
-  background: white;
-  border: 1px solid var(--line);
-  border-radius: 13px;
-  padding: 24px;
-}
 .request {
   display: flex;
   gap: 16px;
@@ -462,19 +425,6 @@ p {
   font-size: 14px;
   color: var(--muted);
   margin: 5px 0 10px;
-}
-.badge {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 600;
-  background: #eaf2ec;
-  color: var(--green);
-  padding: 4px 9px;
-  border-radius: 5px;
-}
-.badge.wait {
-  background: #fff0d5;
-  color: #8c6318;
 }
 .request .amount {
   font-size: 18px;
@@ -539,9 +489,6 @@ p {
   color: var(--green);
   margin-right: 12px;
 }
-.plancard .primary {
-  width: 100%;
-}
 .plancard .planprice {
   font-size: 30px;
   font-weight: 700;
@@ -566,10 +513,6 @@ p {
 .actions button {
   padding: 7px 12px;
   font-size: 14px;
-}
-.empty {
-  padding: 36px;
-  text-align: center;
 }
 .notice {
   border-left: 3px solid #9bc092;
@@ -676,21 +619,6 @@ textarea {
   object-fit: cover;
   border-radius: 6px;
   margin-bottom: 12px;
-}
-#toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #173b32;
-  color: white;
-  padding: 14px 22px;
-  border-radius: 10px;
-  box-shadow: 0 6px 24px #0002;
-  display: none;
-  z-index: 100;
-  max-width: 90vw;
-  font-size: 14px;
 }
 .priceinputs {
   display: grid;
@@ -809,21 +737,10 @@ textarea {
   h1 {
     font-size: 29px;
   }
-  .heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .heading .primary {
-    width: 100%;
-  }
   .banner {
     padding: 24px;
     display: block;
     margin-top: 16px;
-  }
-  .banner .secondary {
-    margin-top: 20px;
   }
   .services {
     gap: 8px;
@@ -838,20 +755,11 @@ textarea {
   .stats {
     gap: 10px;
   }
-  .stats .card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-  }
   .request {
     gap: 10px;
   }
   .request .amount {
     font-size: 16px;
-  }
-  .card {
-    padding: 20px;
   }
   .formgrid {
     grid-template-columns: 1fr;
@@ -879,12 +787,6 @@ textarea {
 }
 
 nav a {
-  text-decoration: none;
-}
-a.primary,
-a.secondary {
-  display: inline-block;
-  text-align: center;
   text-decoration: none;
 }
 a.textbutton {
@@ -915,11 +817,6 @@ a.textbutton {
 }
 .skip-link:focus {
   top: 16px;
-}
-@media (max-width: 700px) {
-  .banner .secondary {
-    white-space: normal;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   html {

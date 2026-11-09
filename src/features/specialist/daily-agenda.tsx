@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { PhotoPicker } from "@/features/bookings/photo-picker";
 import { uploadReportPhotos } from "@/features/bookings/upload-photos";
+import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
@@ -107,7 +110,7 @@ export function DailyAgenda({
         </div>
       </div>
       {items.length === 0 ? (
-        <div className="empty">Няма активни задачи за днес.</div>
+        <EmptyState>Няма активни задачи за днес.</EmptyState>
       ) : (
         items.map((request) => (
           <article
@@ -125,7 +128,7 @@ export function DailyAgenda({
                 <br />
                 {request.address}
               </p>
-              <span className="badge">{requestStages[request.status]}</span>
+              <StatusBadge>{requestStages[request.status]}</StatusBadge>
               {request.dispatchedByAdmin && (
                 <span className={styles.recommendedBadge}>
                   Разпределена от администратор
@@ -151,22 +154,20 @@ export function DailyAgenda({
               )}
               <div className="actions">
                 {request.status === RequestStatus.Accepted && (
-                  <button
-                    className="primary"
+                  <Button
                     disabled={busyId === request.id}
                     onClick={() => void startWork(request)}
                   >
                     {busyId === request.id ? "Стартиране…" : "Започни работа"}
-                  </button>
+                  </Button>
                 )}
                 {request.status === RequestStatus.InProgress && (
-                  <button
-                    className="primary"
+                  <Button
                     disabled={busyId === request.id}
                     onClick={() => openReportDialog(request)}
                   >
                     Завърши с доклад
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -212,13 +213,13 @@ export function DailyAgenda({
             onChange={setPhotos}
             onBusyChange={setPhotosBusy}
           />
-          <button
-            className="primary full"
+          <Button
+            className="w-full"
             type="submit"
             disabled={busyId === reportTarget?.id || photosBusy}
           >
             Изпрати отчет
-          </button>
+          </Button>
         </form>
       </dialog>
     </section>

@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { categories } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
@@ -76,7 +79,7 @@ export function OpportunityFeed({
         )}
       </div>
       {items.length === 0 ? (
-        <div className="empty">Няма нови възможности в момента.</div>
+        <EmptyState>Няма нови възможности в момента.</EmptyState>
       ) : (
         items.map((request) => (
           <article
@@ -90,12 +93,12 @@ export function OpportunityFeed({
             <div className="requestinfo">
               <h3>{request.service}</h3>
               <p>{request.address}</p>
-              <span className="badge">
+              <StatusBadge>
                 {categories[request.category].name}
-              </span>{" "}
-              <span className={`badge ${isUrgent(request) ? "wait" : ""}`}>
+              </StatusBadge>{" "}
+              <StatusBadge tone={isUrgent(request) ? "pending" : "default"}>
                 {isUrgent(request) ? "Спешна" : "Стандартна"}
-              </span>{" "}
+              </StatusBadge>{" "}
               {(specialistId === undefined
                 ? request.recommendedSpecialistId !== undefined
                 : request.recommendedSpecialistId === specialistId) && (
@@ -104,16 +107,15 @@ export function OpportunityFeed({
                 </span>
               )}
               <div className="actions">
-                <button
-                  className="primary"
+                <Button
                   disabled={acceptingId === request.id}
                   onClick={() => void accept(request)}
                 >
                   {acceptingId === request.id ? "Приемане…" : "Приеми"}
-                </button>
-                <button className="secondary" onClick={() => dismiss(request)}>
+                </Button>
+                <Button variant="secondary" onClick={() => dismiss(request)}>
                   Пропусни
-                </button>
+                </Button>
               </div>
             </div>
             <span className="amount">{money(request.price)}</span>
