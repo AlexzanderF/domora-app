@@ -17,7 +17,7 @@ export default async function ClientPlanPage() {
 
   if (canManageSubscriptions && user) {
     try {
-      initialSubscription = await findUserSubscription(user.id);
+      initialSubscription = await findUserSubscription(user);
     } catch {
       loadError =
         "Не успяхме да заредим данните за вашия абонамент. Опитайте отново по-късно.";

@@ -16,7 +16,7 @@ export default async function ClientDashboardPage() {
   const [initialRequests, initialSubscription] = user
     ? await Promise.all([
         findClientRequests(user.id),
-        findUserSubscription(user.id),
+        findUserSubscription(user),
       ])
     : [null, null];
 

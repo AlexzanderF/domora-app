@@ -2,6 +2,13 @@ import { desc, eq } from "drizzle-orm";
 import { requestEvents, requests, requireDb, users } from "@/db";
 import type { DomoraDatabase, RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
+import {
+  consumeVisit,
+  createSubscription,
+  refundVisit,
+} from "@/domain/subscriptions";
+import type { CreateSubscriptionInput } from "@/domain/subscriptions";
+import type { Subscription } from "@/features/subscriptions/types";
 import type { Action, Actor } from "@/domain/authorization";
 import { UserRole, UserStatus } from "@/features/auth/types";
 import {
@@ -45,6 +52,8 @@ export interface CreateRequestInput {
   // Preferred visit: a calendar day (YYYY-MM-DD) and the picked time window.
   scheduledDate: string;
   scheduledTime: string;
+  // Book against one of the client's own subscriptions, consuming a visit.
+  subscriptionId?: number;
 }
 
 // Serializable view of a request: timestamps are ISO strings, no Drizzle rows.
@@ -69,6 +78,7 @@ export interface RequestDto {
   issueNote: string | null;
   recommendedSpecialistId: number | null;
   dispatchedByAdmin: boolean;
+  subscriptionId: number | null;
   reportSubmittedAt: string | null;
   completedAt: string | null;
   ratedAt: string | null;
@@ -103,6 +113,7 @@ export function toDto(row: RequestSelect): RequestDto {
     issueNote: row.issueNote,
     recommendedSpecialistId: row.recommendedSpecialistId,
     dispatchedByAdmin: row.dispatchedByAdmin,
+    subscriptionId: row.subscriptionId,
     reportSubmittedAt: iso(row.reportSubmittedAt),
     completedAt: iso(row.completedAt),
     ratedAt: iso(row.ratedAt),
@@ -193,6 +204,8 @@ export async function recordEvent(
 interface Change {
   type: string;
   values: Partial<typeof requests.$inferInsert>;
+  // Extra writes that must commit or roll back with the change.
+  afterWrite?: (tx: Tx) => Promise<void>;
 }
 
 // Loads the request under a row lock, authorizes the actor against it, lets
@@ -215,6 +228,7 @@ async function mutate(
     if (!can(actor, action, resourceOf(row))) forbidden();
     const change = apply(row, actor);
     const updated = await update(tx, row.id, change.values);
+    await change.afterWrite?.(tx);
     await recordEvent(tx, {
       requestId: row.id,
       actorId: actor.id,
@@ -239,45 +253,82 @@ async function update(
   return row;
 }
 
+async function insertRequest(
+  tx: Tx,
+  actor: Actor,
+  input: CreateRequestInput,
+): Promise<RequestDto> {
+  const booking = validateBooking(input);
+  const [owner] = await tx
+    .select({ phone: users.phone })
+    .from(users)
+    .where(eq(users.id, actor.id));
+  if (!owner) forbidden();
+
+  if (input.subscriptionId !== undefined) {
+    const visit = await consumeVisit(tx, actor.id, input.subscriptionId);
+    if (visit === "NOT_FOUND") {
+      throw new RequestError("NOT_FOUND", "Subscription not found.");
+    }
+    if (visit === "UNAVAILABLE") {
+      invalidState(
+        "The subscription is inactive, expired or has no visits left.",
+      );
+    }
+  }
+
+  const [row] = await tx
+    .insert(requests)
+    .values({
+      clientId: actor.id,
+      title: booking.title,
+      description: booking.description,
+      category: String(input.category),
+      address: booking.address,
+      priority: input.priority ?? RequestPriority.Standard,
+      status: RequestStatus.Created,
+      price: booking.price,
+      clientPhone: owner.phone,
+      scheduledDate: input.scheduledDate,
+      scheduledTime: booking.scheduledTime,
+      subscriptionId: input.subscriptionId ?? null,
+    })
+    .returning();
+  await recordEvent(tx, {
+    requestId: row.id,
+    actorId: actor.id,
+    type: "request.created",
+    fromStatus: null,
+    toStatus: RequestStatus.Created,
+  });
+  return toDto(row);
+}
+
 export async function createRequest(
   actorOrNull: Actor | null,
   input: CreateRequestInput,
 ): Promise<RequestDto> {
   const actor = requireActor(actorOrNull);
   if (!can(actor, "request.create")) forbidden();
-  const booking = validateBooking(input);
+  return requireDb().transaction((tx) => insertRequest(tx, actor, input));
+}
 
+// Starts a subscription and books its first visit in one transaction, so a
+// rejected booking leaves no subscription behind.
+export async function startSubscription(
+  actorOrNull: Actor | null,
+  plan: CreateSubscriptionInput,
+  firstVisit: Omit<CreateRequestInput, "subscriptionId">,
+): Promise<{ subscription: Subscription; request: RequestDto }> {
+  const actor = requireActor(actorOrNull);
+  if (!can(actor, "request.create")) forbidden();
   return requireDb().transaction(async (tx) => {
-    const [owner] = await tx
-      .select({ phone: users.phone })
-      .from(users)
-      .where(eq(users.id, actor.id));
-    if (!owner) forbidden();
-
-    const [row] = await tx
-      .insert(requests)
-      .values({
-        clientId: actor.id,
-        title: booking.title,
-        description: booking.description,
-        category: String(input.category),
-        address: booking.address,
-        priority: input.priority ?? RequestPriority.Standard,
-        status: RequestStatus.Created,
-        price: booking.price,
-        clientPhone: owner.phone,
-        scheduledDate: input.scheduledDate,
-        scheduledTime: booking.scheduledTime,
-      })
-      .returning();
-    await recordEvent(tx, {
-      requestId: row.id,
-      actorId: actor.id,
-      type: "request.created",
-      fromStatus: null,
-      toStatus: RequestStatus.Created,
+    const subscription = await createSubscription(actor, plan, tx);
+    const request = await insertRequest(tx, actor, {
+      ...firstVisit,
+      subscriptionId: subscription.id,
     });
-    return toDto(row);
+    return { subscription, request };
   });
 }
 
@@ -426,6 +477,14 @@ export function cancelRequest(
     if (!canCancelAsClient(row)) {
       invalidState("This request can no longer be cancelled.");
     }
-    return { type: "request.cancelled", values: { cancelled: true } };
+    const { subscriptionId } = row;
+    return {
+      type: "request.cancelled",
+      values: { cancelled: true },
+      // A cancelled booking gives its subscription visit back.
+      afterWrite: subscriptionId
+        ? (tx) => refundVisit(tx, subscriptionId)
+        : undefined,
+    };
   });
 }

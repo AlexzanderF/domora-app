@@ -9,6 +9,8 @@ import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote } from "@/domain/pricing";
 import { generateDemoId } from "@/features/requests/demo-data";
 import { Plan, RequestStatus } from "@/features/requests/types";
+import { startSubscriptionAction } from "@/features/subscriptions/server/actions";
+import { SubscriptionPlan } from "@/features/subscriptions/types";
 import { localDate, money } from "@/lib/format";
 import styles from "./plans.module.css";
 
@@ -62,6 +64,7 @@ export function PlansConfigurator() {
   const [visits, setVisits] = useState(2);
   const [quantity, setQuantity] = useState(80);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
   const option = planOptions[plan];
   const validQuantity =
     Number.isInteger(quantity) && quantity >= 1 && quantity <= 1000;
@@ -76,7 +79,7 @@ export function PlansConfigurator() {
     setQuantity(planOptions[nextPlan].defaultQuantity);
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
@@ -95,15 +98,46 @@ export function PlansConfigurator() {
       nextErrors.quantity = `Въведете ${plan === Plan.Home ? "площ" : "брой етажи"} между 1 и 1000.`;
     }
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length || price === null) return;
+    if (Object.keys(nextErrors).length || price === null || saving) return;
+
+    const description =
+      notes || `${visits} посещения месечно за ${quantity} ${option.unit}.`;
+
+    setSaving(true);
+    try {
+      const result = await startSubscriptionAction({
+        planType:
+          plan === Plan.Home ? SubscriptionPlan.Home : SubscriptionPlan.Entry,
+        propertyAddress: address,
+        propertyArea: quantity,
+        visitsPerMonth: visits,
+        firstVisit: {
+          service: option.service,
+          description,
+          date,
+          time,
+          price: Math.max(1, Math.round(price / visits)),
+        },
+      });
+      if (!result.success) {
+        notify(result.error ?? "Абонаментът не можа да бъде създаден.");
+        return;
+      }
+      if (result.mode === "db") {
+        notify("Абонаментът е създаден успешно.");
+        router.push("/client/plan");
+        return;
+      }
+    } finally {
+      setSaving(false);
+    }
 
     addRequest({
       id: generateDemoId(),
       category: 4,
       service: option.service,
       address,
-      description:
-        notes || `${visits} посещения месечно за ${quantity} ${option.unit}.`,
+      description,
       date,
       time,
       price,
@@ -288,8 +322,8 @@ export function PlansConfigurator() {
               />
             </label>
           </div>
-          <button className={styles.submit} type="submit">
-            Изпрати заявка
+          <button className={styles.submit} type="submit" disabled={saving}>
+            {saving ? "Обработва се..." : "Заявете абонамент"}
           </button>
           <small className={styles.prototype}>
             Демо заявка без плащане. Графикът подлежи на потвърждение.

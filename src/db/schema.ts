@@ -141,6 +141,12 @@ export const requests = pgTable(
     }),
     recommendedAt: timestamp("recommended_at", { withTimezone: true }),
     dispatchedByAdmin: boolean("dispatched_by_admin").notNull().default(false),
+    // The subscription whose visit this request consumed, if it was booked
+    // against one.
+    subscriptionId: integer("subscription_id").references(
+      () => subscriptions.id,
+      { onDelete: "set null" },
+    ),
     reportSubmittedAt: timestamp("report_submitted_at", {
       withTimezone: true,
     }),
@@ -162,6 +168,7 @@ export const requests = pgTable(
     index("requests_client_id_idx").on(table.clientId),
     index("requests_specialist_id_idx").on(table.specialistId),
     index("requests_status_idx").on(table.status),
+    index("requests_subscription_id_idx").on(table.subscriptionId),
   ],
 );
 
@@ -219,25 +226,35 @@ export const requestDisputes = pgTable(
   ],
 );
 
-export const subscriptions = pgTable("subscriptions", {
-  id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-  userId: integer("user_id")
-    .notNull()
-    .unique()
-    .references(() => users.id, { onDelete: "cascade" }),
-  planType: subscriptionPlanEnum("plan_type").notNull(),
-  propertyAddress: text("property_address").notNull(),
-  propertyArea: integer("property_area").notNull(),
-  status: subscriptionStatusEnum("status").notNull().default("ACTIVE"),
-  visitsRemaining: integer("visits_remaining").notNull(),
-  validUntil: timestamp("valid_until", { withTimezone: true }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
-});
+// A client may keep several subscriptions over time (cancelled and expired
+// ones stay as history) but only one ACTIVE one.
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    planType: subscriptionPlanEnum("plan_type").notNull(),
+    propertyAddress: text("property_address").notNull(),
+    propertyArea: integer("property_area").notNull(),
+    status: subscriptionStatusEnum("status").notNull().default("ACTIVE"),
+    visitsRemaining: integer("visits_remaining").notNull(),
+    validUntil: timestamp("valid_until", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("subscriptions_user_id_idx").on(table.userId),
+    uniqueIndex("subscriptions_one_active_idx")
+      .on(table.userId)
+      .where(sql`${table.status} = 'ACTIVE'`),
+  ],
+);
 
 export const tariffs = pgTable("tariffs", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
@@ -254,7 +271,7 @@ export const tariffs = pgTable("tariffs", {
 export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   specialistProfile: one(specialistProfiles),
-  subscription: one(subscriptions),
+  subscriptions: many(subscriptions),
   clientRequests: many(requests, { relationName: "clientRequests" }),
   specialistRequests: many(requests, { relationName: "specialistRequests" }),
 }));
