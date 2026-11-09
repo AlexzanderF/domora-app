@@ -79,7 +79,7 @@ This is a working frontend foundation with **demo data**, not a completed produc
 
 - Requests and tariffs live in React memory and reset on refresh. They are not shared between users or tabs.
 - The client/specialist/admin selector is for demonstrations. `/admin` and `/specialist` are public demo pages, with no authentication or server authorization.
-- Photo selection produces local previews only; photos are not uploaded or saved.
+- A client can attach up to 5 photos (JPEG, PNG or WebP, 5 MB each, 15 MB per request) when booking. They are re-encoded on the server, which strips EXIF/GPS, stored on disk and served only through the authenticated `/api/photos/[id]` route to the request's client, its assigned specialist and admins. Photos are not yet shown in the UI.
 - Booking, completion, ratings and issue reports do not contact a real specialist. There are no payments or notifications.
 - The optional browser booking tool opens the form; it never submits a request.
 
@@ -96,7 +96,9 @@ cp .env.example .env   # fill in POSTGRES_PASSWORD at least
 docker compose up -d --build
 ```
 
-Web starts only after migrations exit 0, and Postgres is bound to `127.0.0.1` only. Caddy serves plain HTTP on the server IP while `APP_DOMAIN=:80`.
+Web starts only after migrations exit 0, and Postgres is bound to `127.0.0.1` only. Caddy serves plain HTTP on the server IP while `APP_DOMAIN=:80` and rejects request bodies over 16 MB (the photo upload limit).
+
+Client photos live in the `photos` Docker named volume (`/data/photos` in the `web` container, set by `PHOTO_STORAGE_DIR`). It survives redeploys and image rebuilds; never run `docker compose down -v` unless you mean to delete every photo. Locally (`npm run dev`) photos go to `.data/photos`.
 
 Every merge to `main` runs CI, builds one image, pushes it to GHCR (tagged by commit SHA and `latest`) and deploys it over SSH using the `production` GitHub Environment; the server pulls the image and never builds. The deploy fails if `migrate` fails or `web` is unhealthy. To roll back, run the **Deploy** workflow manually from GitHub with a commit SHA (empty means latest). One-time server hardening (deploy user, `ufw` on 22/80/443, SSH lockdown) is scripted in `scripts/harden-server.sh`; reach Postgres through an SSH tunnel.
 

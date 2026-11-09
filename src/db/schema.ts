@@ -227,6 +227,29 @@ export const requestDisputes = pgTable(
   ],
 );
 
+// Photos a client attached to a request. The bytes live in the PhotoStore
+// under `storageKey` (a random UUID filename); only this row says who may see
+// them, via the request.
+export const requestPhotos = pgTable(
+  "request_photos",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    requestId: integer("request_id")
+      .notNull()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    storageKey: text("storage_key").notNull().unique(),
+    contentType: text("content_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    uploadedById: integer("uploaded_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("request_photos_request_id_idx").on(table.requestId)],
+);
+
 // A client may keep several subscriptions over time (cancelled and expired
 // ones stay as history) but only one ACTIVE one.
 export const subscriptions = pgTable(
@@ -388,6 +411,7 @@ export type RequestInsert = typeof requests.$inferInsert;
 export type RequestEventSelect = typeof requestEvents.$inferSelect;
 export type RequestEventInsert = typeof requestEvents.$inferInsert;
 export type RequestDisputeSelect = typeof requestDisputes.$inferSelect;
+export type RequestPhotoSelect = typeof requestPhotos.$inferSelect;
 export type SubscriptionSelect = typeof subscriptions.$inferSelect;
 export type SubscriptionInsert = typeof subscriptions.$inferInsert;
 export type TariffSelect = typeof tariffs.$inferSelect;

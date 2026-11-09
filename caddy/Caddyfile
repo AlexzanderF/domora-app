@@ -1,5 +1,10 @@
 # APP_DOMAIN defaults to ":80" (plain HTTP on the server IP) for the beta stage.
 # Set it to a real domain once DNS is ready to get automatic HTTPS.
 {$APP_DOMAIN::80} {
+    # Largest accepted request body: the photo upload (15 MB of photos plus
+    # form overhead). Keep in sync with MAX_BODY_BYTES in src/domain/photos.
+    request_body {
+        max_size 16MB
+    }
     reverse_proxy web:3000
 }

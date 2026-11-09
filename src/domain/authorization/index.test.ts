@@ -13,6 +13,8 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.assign",
   "request.dispute",
   "request.resolve_dispute",
+  "request.attach_photo",
+  "request.view_photo",
 ];
 
 const ACTOR_ID = 7;
@@ -52,9 +54,13 @@ const resources: Record<string, RequestResource> = {
   assignedOnly: { clientId: OTHER_ID, specialistId: ACTOR_ID },
 };
 
-// Only the request's client raises a dispute; only an admin resolves one.
+// Only the request's client raises a dispute or attaches photos; only an
+// admin resolves a dispute.
 const ADMIN_ACTIONS = ALL_ACTIONS.filter(
-  (a) => a !== "request.create" && a !== "request.dispute",
+  (a) =>
+    a !== "request.create" &&
+    a !== "request.dispute" &&
+    a !== "request.attach_photo",
 );
 
 type Allowed = Partial<Record<keyof typeof resources, readonly Action[]>>;
@@ -69,6 +75,8 @@ const expectations: Record<keyof typeof actors, Allowed> = {
       "request.confirm",
       "request.rate",
       "request.dispute",
+      "request.attach_photo",
+      "request.view_photo",
     ],
     ownedOnly: [
       "request.view",
@@ -76,11 +84,23 @@ const expectations: Record<keyof typeof actors, Allowed> = {
       "request.confirm",
       "request.rate",
       "request.dispute",
+      "request.attach_photo",
+      "request.view_photo",
     ],
   },
   activeSpecialist: {
-    ownedAndAssigned: ["request.view", "request.work", "request.cancel"],
-    assignedOnly: ["request.view", "request.work", "request.cancel"],
+    ownedAndAssigned: [
+      "request.view",
+      "request.work",
+      "request.cancel",
+      "request.view_photo",
+    ],
+    assignedOnly: [
+      "request.view",
+      "request.work",
+      "request.cancel",
+      "request.view_photo",
+    ],
     foreignUnassigned: ["request.view", "request.claim"],
   },
   pendingSpecialist: {},
@@ -125,7 +145,9 @@ describe("can() policy matrix", () => {
         for (const action of ALL_ACTIONS) {
           if (action === "request.create") continue;
           expect(can(actor, action)).toBe(
-            actorName === "admin" && action !== "request.dispute",
+            actorName === "admin" &&
+              action !== "request.dispute" &&
+              action !== "request.attach_photo",
           );
         }
       });

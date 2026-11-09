@@ -3,38 +3,75 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/ui/toast-provider";
+import {
+  MAX_PHOTOS_PER_REQUEST,
+  MAX_PHOTO_BYTES,
+  PHOTO_TYPES,
+} from "@/domain/photos/limits";
+import { downscaleImage } from "./downscale-image";
 import styles from "./photo-picker.module.css";
 
-export function PhotoPicker() {
+// Lets the client choose up to 5 photos. Each is downscaled in the browser;
+// the processed files are handed to the form, which uploads them after the
+// request is saved.
+export function PhotoPicker({
+  onChange,
+  onBusyChange,
+}: {
+  onChange: (files: File[]) => void;
+  onBusyChange: (busy: boolean) => void;
+}) {
   const [previews, setPreviews] = useState<string[]>([]);
   const notify = useToast();
   useEffect(
     () => () => previews.forEach((url) => URL.revokeObjectURL(url)),
     [previews],
   );
+
+  async function choose(selected: File[]) {
+    if (selected.length > MAX_PHOTOS_PER_REQUEST) {
+      notify(`Можете да изберете до ${MAX_PHOTOS_PER_REQUEST} снимки.`);
+    }
+    const accepted: File[] = [];
+    onBusyChange(true);
+    try {
+      for (const file of selected.slice(0, MAX_PHOTOS_PER_REQUEST)) {
+        if (!(PHOTO_TYPES as readonly string[]).includes(file.type)) {
+          notify("Поддържат се само снимки във формат JPEG, PNG или WebP.");
+          continue;
+        }
+        try {
+          const photo = await downscaleImage(file);
+          if (photo.size > MAX_PHOTO_BYTES) {
+            notify("Всяка снимка трябва да е до 5 MB.");
+            continue;
+          }
+          accepted.push(photo);
+        } catch {
+          notify("Една от снимките не може да бъде прочетена.");
+        }
+      }
+    } finally {
+      onBusyChange(false);
+    }
+    setPreviews(accepted.map((file) => URL.createObjectURL(file)));
+    onChange(accepted);
+  }
+
   return (
     <>
       <label className={styles.field}>
         Снимки{" "}
-        <span className={styles.hint}>· по желание, само локален преглед</span>
+        <span className={styles.hint}>
+          · по желание, до {MAX_PHOTOS_PER_REQUEST}
+        </span>
         <input
           className={styles.input}
           type="file"
-          accept="image/*"
+          accept={PHOTO_TYPES.join(",")}
           multiple
           onChange={(event) => {
-            const files = Array.from(event.target.files ?? []);
-            if (files.length > 5) notify("Можете да изберете до 5 снимки.");
-            const validFiles = files.slice(0, 5).filter((file) => {
-              if (
-                file.type.startsWith("image/") &&
-                file.size <= 10 * 1024 * 1024
-              )
-                return true;
-              notify("Използвайте изображения до 10 MB.");
-              return false;
-            });
-            setPreviews(validFiles.map((file) => URL.createObjectURL(file)));
+            void choose(Array.from(event.target.files ?? []));
           }}
         />
       </label>
