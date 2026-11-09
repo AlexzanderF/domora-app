@@ -6,7 +6,7 @@ import styles from "@/features/plans/plans.module.css";
 export const metadata: Metadata = {
   title: "Абонаменти",
   description:
-    "Конфигурирайте абонаментна грижа за дома или общите части с ясен месечен график и цена.",
+    "Едно посещение от майстор месечно за дома или редовно почистване на общите части.",
 };
 
 export default async function PlansPage() {
@@ -15,10 +15,10 @@ export default async function PlansPage() {
     <main id="main" className={styles.page}>
       <header className={styles.intro}>
         <span>АБОНАМЕНТНА ГРИЖА</span>
-        <h1>Ритъм за по-подреден дом.</h1>
+        <h1>Грижа за дома. Спокойствие за вас.</h1>
         <p>
-          Изберете пространство и честота. Виждате точната месечна цена, преди
-          да изпратите заявката.
+          Майстор за дома или поддържан вход — изберете абонамента, който
+          отговаря на вашите нужди.
         </p>
       </header>
       <PlansConfigurator tariffs={tariffs} />

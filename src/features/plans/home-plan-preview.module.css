@@ -1,0 +1,112 @@
+.visit {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  border: 1px solid #cbdccf;
+  border-radius: 12px;
+  background: #edf4ef;
+  color: #175246;
+}
+
+.visit > strong {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+.visit h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+.visit p {
+  margin: 0;
+  color: #50645e;
+  font-size: 0.9rem;
+}
+.servicesTitle {
+  margin: 1.5rem 0 0.8rem;
+  font-size: 1rem;
+  color: #17372f;
+}
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.services li {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid #dce5df;
+  border-radius: 8px;
+  color: #29453e;
+  background: white;
+}
+.services li span {
+  margin-right: 0.5rem;
+  color: #287057;
+}
+.extra {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid #ccd9d1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.extra input {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: #175246;
+}
+.extra span {
+  display: grid;
+  gap: 0.2rem;
+  color: #29453e;
+}
+.extra small {
+  color: #687b75;
+  font-weight: 400;
+}
+.summaryVisits {
+  display: grid;
+  gap: 0.3rem;
+  margin: 1.4rem 0;
+  padding: 1.2rem;
+  border-radius: 8px;
+  background: #edf4ef;
+  color: #175246;
+}
+.summaryVisits strong {
+  font-size: 1.65rem;
+}
+.summaryVisits span {
+  font-size: 0.9rem;
+}
+.prices {
+  margin: 0 0 1.5rem;
+}
+.prices div {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #e1e8e3;
+}
+.prices dt {
+  color: #40564f;
+  font-size: 0.9rem;
+}
+.prices dd {
+  margin: 0;
+  color: #17372f;
+  font-weight: 700;
+}
+.unavailable {
+  width: 100%;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
