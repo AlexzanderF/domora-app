@@ -1,7 +1,7 @@
 import { Readable } from "node:stream";
 import { beforeEach, describe, expect, it } from "vitest";
 import { requestPhotos, requireDb } from "@/db";
-import { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
 import { ORPHAN_UPLOAD_MAX_AGE_MS, sweepOrphanUploads } from "./sweep";
 import type { PhotoStore } from "./store";

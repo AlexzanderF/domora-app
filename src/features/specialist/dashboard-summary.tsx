@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { isActiveStage } from "@/features/requests/request-rules";
 import { localDate, money } from "@/lib/format";
-import { RequestStatus } from "@/features/requests/types";
-import type { ServiceRequest } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
 function computeStats(requests: ServiceRequest[]) {

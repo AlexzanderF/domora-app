@@ -3,8 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
-import { UserStatus } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { formatCompany, formatExperience } from "./specialist-format";
 import styles from "./pending-specialists-queue.module.css";

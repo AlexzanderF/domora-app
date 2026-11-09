@@ -1,10 +1,10 @@
 import { and, count, desc, eq, gte, inArray, ne, or, sum } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
-import type { CategoryId, ServiceRequest } from "@/features/requests/types";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { RequestStatus } from "@/features/requests/types";
-import { RequestPriority } from "@/features/requests/types";
+import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import { RequestStatus } from "@/domain/requests/types";
+import { RequestPriority } from "@/domain/requests/types";
 
 export interface WorkspaceStatsData {
   total: number;

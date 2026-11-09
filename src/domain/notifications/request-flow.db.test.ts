@@ -15,8 +15,8 @@ import {
   startWork,
   submitReport,
 } from "@/domain/requests";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { RequestPriority } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import { RequestPriority } from "@/domain/requests/types";
 import { createActor, insertProfile } from "../../../tests/db/factories";
 import { processOutbox } from "./index";
 import type { Notifier, NotificationMessage } from "./notifier";

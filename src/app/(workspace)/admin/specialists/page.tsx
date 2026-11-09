@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { SpecialistsReview } from "@/features/admin/specialists-review";
 import { findSpecialistApplications } from "@/features/admin/server/queries";
-import { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 

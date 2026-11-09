@@ -6,15 +6,15 @@ import { useMemo, useState } from "react";
 import { useToast } from "@/components/ui/toast-provider";
 import { useBooking } from "@/features/bookings/booking-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
-import { RequestStatus } from "@/features/requests/types";
-import type { RequestAction, ServiceRequest } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
+import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
 import { ServiceIcon } from "@/features/services/service-icon";
 import {
   SubscriptionPlan,
   SubscriptionStatus,
-} from "@/features/subscriptions/types";
-import type { Subscription } from "@/features/subscriptions/types";
+} from "@/domain/subscriptions/types";
+import type { Subscription } from "@/domain/subscriptions/types";
 import { money } from "@/lib/format";
 import {
   getRecentCompletedRequests,

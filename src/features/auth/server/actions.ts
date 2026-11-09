@@ -10,12 +10,12 @@ import {
   requestPasswordReset,
   resetPassword,
 } from "@/domain/identity";
-import { UserRole, UserStatus } from "../types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
   User,
-} from "../types";
+} from "@/domain/identity/types";
 import {
   validateClientRegistration,
   validateEmail,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useBooking } from "@/features/bookings/booking-provider";
-import type { CategoryId } from "@/features/requests/types";
+import type { CategoryId } from "@/domain/requests/types";
 
 export function BookingCta({
   category,

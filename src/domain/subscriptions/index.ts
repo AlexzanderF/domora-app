@@ -2,12 +2,12 @@ import { and, desc, eq, gt, gte, sql } from "drizzle-orm";
 import { requireDb, subscriptions, users } from "@/db";
 import type { SubscriptionSelect } from "@/db";
 import type { Actor } from "@/domain/authorization";
-import { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
 import {
   SubscriptionPlan,
   SubscriptionStatus,
-} from "@/features/subscriptions/types";
-import type { Subscription } from "@/features/subscriptions/types";
+} from "@/domain/subscriptions/types";
+import type { Subscription } from "@/domain/subscriptions/types";
 
 // Framework-free (no next/*): plan and visit accounting. A client keeps one
 // ACTIVE subscription at a time; replaced and cancelled ones stay as history.

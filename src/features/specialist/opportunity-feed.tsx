@@ -8,8 +8,8 @@ import { categories } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
 import { assignSpecialistAction } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
-import { RequestPriority } from "@/features/requests/types";
-import type { ServiceRequest } from "@/features/requests/types";
+import { RequestPriority } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
 function isUrgent(request: ServiceRequest): boolean {

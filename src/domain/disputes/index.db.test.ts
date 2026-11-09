@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { requestEvents, requireDb, requests } from "@/db";
 import type { Actor } from "@/domain/authorization";
-import { UserRole } from "@/features/auth/types";
-import { RequestStatus } from "@/features/requests/types";
+import { UserRole } from "@/domain/identity/types";
+import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
 import { getDisputeHistory, raiseDispute, resolveDispute } from "./index";
 

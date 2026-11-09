@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { can, type Action, type Actor, type RequestResource } from "./index";
 
 const ALL_ACTIONS: readonly Action[] = [

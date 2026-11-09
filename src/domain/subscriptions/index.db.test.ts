@@ -8,8 +8,8 @@ import {
   startSubscription,
 } from "@/domain/requests";
 import type { CreateRequestInput } from "@/domain/requests";
-import { UserRole } from "@/features/auth/types";
-import { SubscriptionPlan } from "@/features/subscriptions/types";
+import { UserRole } from "@/domain/identity/types";
+import { SubscriptionPlan } from "@/domain/subscriptions/types";
 import { createActor } from "../../../tests/db/factories";
 import {
   cancelSubscription,

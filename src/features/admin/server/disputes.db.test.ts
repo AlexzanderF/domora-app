@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Actor } from "@/domain/authorization";
 import { raiseDispute, resolveDispute } from "@/domain/disputes";
-import { UserRole } from "@/features/auth/types";
-import { RequestStatus } from "@/features/requests/types";
+import { UserRole } from "@/domain/identity/types";
+import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../../tests/db/factories";
 import {
   findDisputedRequestsForAdmin,

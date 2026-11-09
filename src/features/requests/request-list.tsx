@@ -5,8 +5,8 @@ import { requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
 import { ReportPhotos } from "./report-photos";
 import { RequestActions } from "./request-actions";
-import { Plan, RequestStatus, Role } from "./types";
-import type { ServiceRequest } from "./types";
+import { Plan, RequestStatus, Role } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 
 export function RequestList({
   limit,

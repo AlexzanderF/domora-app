@@ -7,12 +7,12 @@ import {
   specialistProfiles,
   users,
 } from "@/db/schema";
-import type { User, SpecialistProfile } from "@/features/auth/types";
-import { UserRole } from "@/features/auth/types";
+import type { User, SpecialistProfile } from "@/domain/identity/types";
+import { UserRole } from "@/domain/identity/types";
 import { listReportPhotoIds } from "@/domain/photos";
 import { isUrgentPriority } from "@/features/requests/priority";
-import { RequestStatus } from "@/features/requests/types";
-import type { CategoryId, ServiceRequest } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
+import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 
 type AdminRequestRow = {
   request: typeof requests.$inferSelect;

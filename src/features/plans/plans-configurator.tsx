@@ -6,10 +6,10 @@ import { useToast } from "@/components/ui/toast-provider";
 import { DatePicker } from "@/features/plans/date-picker";
 import { TimePicker } from "@/features/plans/time-picker";
 import { calculateQuote } from "@/domain/pricing";
-import { Plan } from "@/features/requests/types";
-import type { Tariffs } from "@/features/requests/types";
+import { Plan } from "@/domain/requests/types";
+import type { Tariffs } from "@/domain/requests/types";
 import { startSubscriptionAction } from "@/features/subscriptions/server/actions";
-import { SubscriptionPlan } from "@/features/subscriptions/types";
+import { SubscriptionPlan } from "@/domain/subscriptions/types";
 import { localDate, money } from "@/lib/format";
 import styles from "./plans.module.css";
 

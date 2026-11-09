@@ -1,12 +1,12 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
-import { UserStatus } from "./types";
+import { UserStatus } from "@/domain/identity/types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
   User,
-} from "./types";
+} from "@/domain/identity/types";
 import {
   loginAction,
   logoutAction,
