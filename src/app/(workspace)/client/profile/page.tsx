@@ -33,7 +33,7 @@ export default async function ClientProfilePage() {
 
   const [subscription, requests] = user
     ? await Promise.all([
-        findUserSubscription(user.id),
+        findUserSubscription(user),
         findClientRequests(user.id),
       ])
     : [null, null];

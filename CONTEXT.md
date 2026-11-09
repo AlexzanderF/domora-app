@@ -28,6 +28,7 @@ _Avoid_: Membership, Tier, Package
 
 **Subscription**:
 An active contract record in the database linking a client and property to a subscription plan tier, tracking validity period, visits remaining, and status.
+A client holds at most one active Subscription; replaced or cancelled ones stay as history. Booking a Service Request against a Subscription consumes one visit.
 _Avoid_: Agreement, Account tier
 
 **Job Opportunity**:
