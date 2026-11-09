@@ -1,5 +1,5 @@
-# DOMORA stack: db -> migrate (one-shot) -> web -> caddy.
-# One image (built from ./Dockerfile) is shared by web and migrate.
+# DOMORA stack: db -> migrate (one-shot) -> web + worker -> caddy.
+# One image (built from ./Dockerfile) is shared by web, migrate and worker.
 # Usage: cp .env.example .env, fill in secrets, then `docker compose up -d --build`.
 
 x-db-url: &db-url postgresql://${POSTGRES_USER:-domora_user}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/${POSTGRES_DB:-domora}
@@ -64,6 +64,21 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+    networks:
+      - domora-net
+
+  worker:
+    image: ${DOMORA_IMAGE:-domora-app:local}
+    command: ["node", "worker.mjs"]
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: *db-url
+      # "console" logs instead of sending; the only driver for now.
+      NOTIFIER_DRIVER: ${NOTIFIER_DRIVER:-console}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
     networks:
       - domora-net
 

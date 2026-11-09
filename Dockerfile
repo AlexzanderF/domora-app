@@ -18,10 +18,13 @@ RUN npm run build
 # The migrate step runs plain JS so it needs no tsx/devDependencies at runtime.
 RUN npx esbuild src/db/migrate.ts --bundle --platform=node --format=esm \
     --packages=external --outfile=dist-migrate/migrate.mjs
+# The worker is bundled the same way (resolves the @/ alias, drops tsx at runtime).
+RUN npx esbuild worker/index.ts --bundle --platform=node --format=esm \
+    --packages=external --outfile=dist-worker/worker.mjs
 # Drop devDependencies so the runtime image only carries production packages.
 RUN npm prune --omit=dev
 
-# 3. Production runner, shared by web, migrate (and the future worker)
+# 3. Production runner, shared by web, migrate and worker
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -38,6 +41,7 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/dist-migrate/migrate.mjs ./migrate.mjs
+COPY --from=builder /app/dist-worker/worker.mjs ./worker.mjs
 
 USER nextjs
 
