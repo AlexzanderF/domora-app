@@ -1,11 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ResetLinkInvalid } from "./reset-link-invalid";
 import { resetPasswordAction } from "./server/actions";
 import { validatePassword } from "./validation";
-import styles from "./auth.module.css";
+import {
+  AuthAlert,
+  AuthField,
+  AuthForm,
+  AuthLabel,
+  AuthLink,
+  AuthSubtitle,
+  AuthTitle,
+  FieldError,
+  PasswordInput,
+  Required,
+  SubmitButton,
+  SwitchPrompt,
+} from "./auth-ui";
 
 type Outcome = "editing" | "done" | "invalidLink";
 
@@ -50,80 +62,54 @@ export function ResetPasswordForm({ token }: { token: string }) {
   if (outcome === "done") {
     return (
       <>
-        <h1 className={styles.title}>Паролата е сменена</h1>
-        <div className={styles.noticeBannerSuccess} role="status">
+        <AuthTitle>Паролата е сменена</AuthTitle>
+        <AuthAlert tone="success" role="status">
           Новата ви парола е запазена. Влезте в профила си с нея.
-        </div>
-        <p className={styles.switchPrompt}>
-          <Link href="/login" className={styles.link}>
-            Към вход
-          </Link>
-        </p>
+        </AuthAlert>
+        <SwitchPrompt>
+          <AuthLink href="/login">Към вход</AuthLink>
+        </SwitchPrompt>
       </>
     );
   }
 
   return (
     <>
-      <h1 className={styles.title}>Нова парола</h1>
-      <p className={styles.subtitle}>
+      <AuthTitle>Нова парола</AuthTitle>
+      <AuthSubtitle>
         Въведете новата парола за вашия профил в DOMORA.
-      </p>
+      </AuthSubtitle>
 
-      <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <div className={styles.field}>
-          <label htmlFor="password" className={styles.label}>
-            Нова парола <span className={styles.required}>*</span>
-          </label>
-          <div className={styles.passwordWrapper}>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) {
-                  setError(null);
-                }
-              }}
-              placeholder="Поне 6 символа"
-              className={
-                error ? styles.passwordInputError : styles.passwordInput
+      <AuthForm onSubmit={handleSubmit}>
+        <AuthField>
+          <AuthLabel htmlFor="password">
+            Нова парола <Required />
+          </AuthLabel>
+          <PasswordInput
+            id="password"
+            name="password"
+            autoComplete="new-password"
+            required
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) {
+                setError(null);
               }
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? "password-error" : undefined}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((shown) => !shown)}
-              className={styles.passwordToggle}
-              aria-label={showPassword ? "Скрий паролата" : "Покажи паролата"}
-            >
-              {showPassword ? "Скрий" : "Покажи"}
-            </button>
-          </div>
-          {error && (
-            <span
-              id="password-error"
-              className={styles.errorMessage}
-              role="alert"
-            >
-              {error}
-            </span>
-          )}
-        </div>
+            }}
+            placeholder="Поне 6 символа"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "password-error" : undefined}
+            showPassword={showPassword}
+            onToggle={() => setShowPassword((shown) => !shown)}
+          />
+          {error && <FieldError id="password-error">{error}</FieldError>}
+        </AuthField>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={styles.submitButton}
-        >
+        <SubmitButton type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Запазване..." : "Запази новата парола"}
-        </button>
-      </form>
+        </SubmitButton>
+      </AuthForm>
     </>
   );
 }
