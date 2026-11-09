@@ -43,30 +43,33 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
 
   if (activeUser) {
     return (
-      <div className="account">
-        <span className="avatar" aria-hidden="true">
+      <div className="flex items-center gap-2.5 text-foreground">
+        <span
+          className="inline-grid size-[34px] place-items-center rounded-full bg-[#e9efdc] font-semibold"
+          aria-hidden="true"
+        >
           {initial}
         </span>
         <span>{activeUser.name}</span>
         <StatusBadge>{roleLabel}</StatusBadge>
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={async () => {
             await logout();
             router.push("/login");
           }}
-          className="textbutton"
-          style={{ marginLeft: "8px", cursor: "pointer" }}
+          className="ml-2 rounded-none px-1.5 py-px text-[14px]"
           aria-label="Изход от профила"
         >
           Изход
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="account" style={{ gap: "10px" }}>
+    <div className="flex items-center gap-2.5 text-foreground">
       <Button asChild variant="secondary" className="px-4 py-2">
         <Link href="/login">Вход</Link>
       </Button>
