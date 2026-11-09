@@ -6,14 +6,14 @@ import {
   adminAssignSpecialistAction,
   adminRecommendSpecialistAction,
 } from "@/features/requests/server/actions";
-import { UserStatus } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { categories } from "@/features/services/catalog";
-import { RequestPriority } from "@/features/requests/types";
+import { RequestPriority } from "@/domain/requests/types";
 import { isUrgentPriority } from "@/features/requests/priority";
 import { money } from "@/lib/format";
-import type { ServiceRequest } from "@/features/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import styles from "./unassigned-requests-queue.module.css";
 
 export interface UnassignedRequestsQueueProps {

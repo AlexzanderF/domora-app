@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 
 export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
   const { user, status, logout } = useAuth();

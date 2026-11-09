@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { Sidebar } from "./sidebar";
 import { HeaderAccount } from "./header-account";
-import type { User } from "@/features/auth/types";
+import type { User } from "@/domain/identity/types";
 
 const SIDEBAR_STORAGE_KEY = "domora_sidebar_collapsed";
 

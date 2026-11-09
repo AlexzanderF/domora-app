@@ -15,7 +15,7 @@ import type {
   NotificationMessage,
 } from "@/domain/notifications/notifier";
 import { renderTemplate } from "@/domain/notifications/templates";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { hashSessionToken } from "@/features/auth/server/token";
 import { createActor } from "../../../tests/db/factories";
 import {

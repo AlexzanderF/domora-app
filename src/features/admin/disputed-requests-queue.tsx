@@ -8,7 +8,7 @@ import { categories, requestStages } from "@/features/services/catalog";
 import { ReportPhotos } from "@/features/requests/report-photos";
 import { money } from "@/lib/format";
 import type { ResolvedDispute } from "./server/queries";
-import type { ServiceRequest } from "@/features/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import styles from "./disputed-requests-queue.module.css";
 
 export interface DisputedRequestsQueueProps {

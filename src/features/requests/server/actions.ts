@@ -24,9 +24,14 @@ import {
 import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
 import { getActor } from "@/features/auth/server/actor";
-import { UserRole } from "@/features/auth/types";
-import { RequestPriority, RequestStatus } from "../types";
-import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
+import { UserRole } from "@/domain/identity/types";
+import { RequestPriority, RequestStatus } from "@/domain/requests/types";
+import type {
+  CategoryId,
+  Plan,
+  RequestAction,
+  ServiceRequest,
+} from "@/domain/requests/types";
 
 export interface CreateServiceRequestInput {
   category: CategoryId;

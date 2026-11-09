@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { sessions } from "@/db/schema";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "../constants";
-import type { User } from "../types";
+import type { User } from "@/domain/identity/types";
 import { findUserBySessionToken } from "./queries";
 import { hashSessionToken } from "./token";
 

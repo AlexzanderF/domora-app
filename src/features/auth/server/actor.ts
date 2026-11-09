@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { isDbConfigured } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { getRoleDashboardPath } from "../navigation";
-import { UserRole, UserStatus } from "../types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "./session";
 
 export async function getActor(): Promise<Actor | null> {

@@ -11,12 +11,12 @@ import {
   type ClientRegistrationErrors,
   type SpecialistRegistrationErrors,
 } from "./validation";
-import { Role } from "@/features/requests/types";
-import { UserStatus } from "./types";
+import { Role } from "@/domain/requests/types";
+import { UserStatus } from "@/domain/identity/types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
-} from "./types";
+} from "@/domain/identity/types";
 import styles from "./auth.module.css";
 
 interface AccountFieldsProps {

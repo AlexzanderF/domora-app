@@ -1,4 +1,4 @@
-import type { CategoryId } from "@/features/requests/types";
+import type { CategoryId } from "@/domain/requests/types";
 import { defaultTariffs } from "@/domain/pricing";
 import { categories } from "./catalog";
 

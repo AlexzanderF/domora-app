@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth-provider";
-import { UserRole, UserStatus } from "./types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import styles from "./auth.module.css";
 
 export function PendingApprovalCard() {

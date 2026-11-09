@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import { specialistProfiles, users } from "@/db";
 import { matchesProfile } from "@/domain/dispatch";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { RequestPriority } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import { RequestPriority } from "@/domain/requests/types";
 import type { EventHandler, EventHandlers, Tx } from "./index";
 import type { NotificationMessage } from "./notifier";
 import { adminEmails, emailOf, loadRequest, payloadOf } from "./recipients";

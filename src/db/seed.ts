@@ -5,12 +5,12 @@ import pg from "pg";
 import { bootstrapAdmin } from "@/domain/identity";
 import { closeDbPool, loadEnvFiles } from "./index";
 import { resolveSeedPlan } from "./seed-plan";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { RequestPriority, RequestStatus } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import { RequestPriority, RequestStatus } from "@/domain/requests/types";
 import {
   SubscriptionPlan,
   SubscriptionStatus,
-} from "@/features/subscriptions/types";
+} from "@/domain/subscriptions/types";
 import {
   requests,
   specialistProfiles,

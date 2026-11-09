@@ -1,8 +1,8 @@
 import { isDbConfigured } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { getCurrentSubscription } from "@/domain/subscriptions";
-import { UserRole } from "@/features/auth/types";
-import type { Subscription } from "../types";
+import { UserRole } from "@/domain/identity/types";
+import type { Subscription } from "@/domain/subscriptions/types";
 
 // The client's active subscription, else their latest one. Null without a
 // database or for anyone who is not a client.
