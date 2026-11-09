@@ -1,11 +1,11 @@
 .container {
-  min-height: 100vh;
+  min-height: calc(100vh - 78px);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   background: var(--paper);
-  padding: 32px 16px;
+  padding: 48px 16px;
 }
 
 .topBar {
