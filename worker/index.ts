@@ -1,6 +1,7 @@
 import { closeDbPool } from "@/db";
 import { processOutbox } from "@/domain/notifications";
 import { createNotifier } from "@/domain/notifications/notifier";
+import { requestFlowHandlers } from "@/domain/notifications/request-flow";
 
 // Long-running worker: same image as the web app, own Compose service. Polls
 // the outbox and delivers through the configured notifier.
@@ -19,7 +20,10 @@ async function main(): Promise<void> {
   console.log("[worker] started");
   while (!stopping) {
     try {
-      const result = await processOutbox({ notifier });
+      const result = await processOutbox({
+        notifier,
+        handlers: requestFlowHandlers,
+      });
       if (result.events + result.sent + result.retried + result.failed > 0) {
         console.log("[worker] tick", result);
       }

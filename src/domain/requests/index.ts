@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { requestEvents, requests, requireDb, users } from "@/db";
 import type { DomoraDatabase, RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
+import { enqueueEvent } from "@/domain/notifications";
 import {
   consumeVisit,
   createSubscription,
@@ -301,6 +302,10 @@ async function insertRequest(
     fromStatus: null,
     toStatus: RequestStatus.Created,
   });
+  await enqueueEvent(tx, {
+    type: "request.created",
+    payload: { requestId: row.id },
+  });
   return toDto(row);
 }
 
@@ -415,6 +420,11 @@ export function submitReport(
         report: text,
         reportSubmittedAt: new Date(),
       },
+      afterWrite: (tx) =>
+        enqueueEvent(tx, {
+          type: "request.report_submitted",
+          payload: { requestId: row.id },
+        }),
     };
   });
 }
