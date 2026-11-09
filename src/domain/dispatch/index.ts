@@ -2,6 +2,8 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { requireDb, requests, specialistProfiles, users } from "@/db";
 import type { RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
+import { enqueueEvent } from "@/domain/notifications";
+import type { OutboxEventInput } from "@/domain/notifications";
 import type { Actor } from "@/domain/authorization";
 import {
   RequestError,
@@ -40,7 +42,7 @@ interface Profile {
   area: string;
 }
 
-function matchesProfile(
+export function matchesProfile(
   request: Pick<RequestSelect, "category" | "address">,
   profile: Profile | undefined,
 ): boolean {
@@ -118,7 +120,12 @@ async function dispatchChange(
     row: RequestSelect,
     actor: Actor,
     tx: Tx,
-  ) => Promise<{ type: string; values: Partial<typeof requests.$inferInsert> }>,
+  ) => Promise<{
+    type: string;
+    values: Partial<typeof requests.$inferInsert>;
+    // Side effect to deliver once this change commits.
+    outbox?: OutboxEventInput;
+  }>,
 ): Promise<RequestDto> {
   const actor = requireActor(actorOrNull);
   return requireDb().transaction(async (tx) => {
@@ -145,9 +152,16 @@ async function dispatchChange(
       fromStatus: row.status,
       toStatus: updated.status,
     });
+    if (change.outbox) await enqueueEvent(tx, change.outbox);
     return toDto(updated);
   });
 }
+
+// Claiming and admin assignment both leave the request accepted.
+const acceptedEvent = (requestId: number): OutboxEventInput => ({
+  type: "request.accepted",
+  payload: { requestId },
+});
 
 const NO_RECOMMENDATION = {
   recommendedSpecialistId: null,
@@ -176,6 +190,7 @@ export function claimRequest(
         status: RequestStatus.Accepted,
         ...NO_RECOMMENDATION,
       },
+      outbox: acceptedEvent(row.id),
     };
   });
 }
@@ -217,6 +232,7 @@ export function assignSpecialist(
         dispatchedByAdmin: true,
         ...NO_RECOMMENDATION,
       },
+      outbox: acceptedEvent(row.id),
     };
   });
 }
@@ -236,6 +252,10 @@ export function recommendRequest(
         recommendedSpecialistId: specialistId,
         recommendedById: who.id,
         recommendedAt: new Date(),
+      },
+      outbox: {
+        type: "request.recommended",
+        payload: { requestId: row.id, specialistId },
       },
     };
   });
