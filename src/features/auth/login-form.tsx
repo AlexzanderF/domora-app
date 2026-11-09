@@ -1,12 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth-provider";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { validateLogin, type LoginErrors } from "./validation";
-import styles from "./auth.module.css";
+import { Button } from "@/components/ui/button";
+import {
+  AuthAlert,
+  AuthCheckbox,
+  AuthField,
+  AuthForm,
+  AuthInput,
+  AuthLabel,
+  AuthLink,
+  AuthSubtitle,
+  AuthTitle,
+  FieldError,
+  PasswordInput,
+  Required,
+  SubmitButton,
+  SwitchPrompt,
+} from "./auth-ui";
 
 function GoogleIcon() {
   return (
@@ -117,27 +132,23 @@ export function LoginForm() {
 
   return (
     <>
-      <h1 className={styles.title}>Вход в DOMORA</h1>
-      <p className={styles.subtitle}>
+      <AuthTitle>Вход в DOMORA</AuthTitle>
+      <AuthSubtitle>
         Влезте в профила си, за да управлявате вашите заявки и услуги.
-      </p>
+      </AuthSubtitle>
 
       {errorBanner && (
-        <div
-          className={styles.alertError}
-          role="alert"
-          style={{ marginBottom: "18px" }}
-        >
+        <AuthAlert tone="error" role="alert" className="mb-[18px]">
           {errorBanner}
-        </div>
+        </AuthAlert>
       )}
 
-      <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <div className={styles.field}>
-          <label htmlFor="identifier" className={styles.label}>
-            Имейл адрес или телефон <span className={styles.required}>*</span>
-          </label>
-          <input
+      <AuthForm onSubmit={handleSubmit}>
+        <AuthField>
+          <AuthLabel htmlFor="identifier">
+            Имейл адрес или телефон <Required />
+          </AuthLabel>
+          <AuthInput
             id="identifier"
             name="identifier"
             type="text"
@@ -152,126 +163,99 @@ export function LoginForm() {
               if (errorBanner) setErrorBanner(null);
             }}
             placeholder="ivan@example.bg или 0888 123 456"
-            className={errors.identifier ? styles.inputError : styles.input}
             aria-invalid={Boolean(errors.identifier)}
             aria-describedby={
               errors.identifier ? "identifier-error" : undefined
             }
           />
           {errors.identifier && (
-            <span
-              id="identifier-error"
-              className={styles.errorMessage}
-              role="alert"
-            >
-              {errors.identifier}
-            </span>
+            <FieldError id="identifier-error">{errors.identifier}</FieldError>
           )}
-        </div>
+        </AuthField>
 
-        <div className={styles.field}>
-          <label htmlFor="password" className={styles.label}>
-            Парола <span className={styles.required}>*</span>
-          </label>
-          <div className={styles.passwordWrapper}>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (errors.password) {
-                  setErrors((prev) => ({ ...prev, password: undefined }));
-                }
-                if (errorBanner) setErrorBanner(null);
-              }}
-              placeholder="Въведете парола"
-              className={
-                errors.password
-                  ? styles.passwordInputError
-                  : styles.passwordInput
+        <AuthField>
+          <AuthLabel htmlFor="password">
+            Парола <Required />
+          </AuthLabel>
+          <PasswordInput
+            id="password"
+            name="password"
+            autoComplete="current-password"
+            required
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errors.password) {
+                setErrors((prev) => ({ ...prev, password: undefined }));
               }
-              aria-invalid={Boolean(errors.password)}
-              aria-describedby={errors.password ? "password-error" : undefined}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className={styles.passwordToggle}
-              aria-label={showPassword ? "Скрий паролата" : "Покажи паролата"}
-            >
-              {showPassword ? "Скрий" : "Покажи"}
-            </button>
-          </div>
+              if (errorBanner) setErrorBanner(null);
+            }}
+            placeholder="Въведете парола"
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={errors.password ? "password-error" : undefined}
+            showPassword={showPassword}
+            onToggle={() => setShowPassword((prev) => !prev)}
+          />
           {errors.password && (
-            <span
-              id="password-error"
-              className={styles.errorMessage}
-              role="alert"
-            >
-              {errors.password}
-            </span>
+            <FieldError id="password-error">{errors.password}</FieldError>
           )}
-        </div>
+        </AuthField>
 
-        <div className={styles.formRowBetween}>
-          <label className={styles.rememberMeLabel}>
-            <input
-              type="checkbox"
+        <div className="mt-0.5 flex items-center justify-between gap-3">
+          <AuthLabel className="inline-flex! cursor-pointer items-center gap-2">
+            <AuthCheckbox
               id="rememberMe"
               name="rememberMe"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className={styles.checkbox}
             />
             <span>Запомни ме</span>
-          </label>
-          <Link href="/forgot-password" className={styles.forgotLink}>
+          </AuthLabel>
+          <AuthLink
+            href="/forgot-password"
+            className="text-[13px] whitespace-nowrap"
+          >
             Забравена парола?
-          </Link>
+          </AuthLink>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={styles.submitButton}
-        >
+        <SubmitButton type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Влизане..." : "Вход"}
-        </button>
-      </form>
+        </SubmitButton>
+      </AuthForm>
 
-      <div className={styles.divider}>
-        <span>или продължете с</span>
+      <div className="my-1.5 flex items-center text-center text-[13px] text-muted-foreground before:flex-1 before:border-b before:border-border before:content-[''] after:flex-1 after:border-b after:border-border after:content-['']">
+        <span className="px-3">или продължете с</span>
       </div>
 
-      <div className={styles.socialButtons}>
-        <button
-          type="button"
-          className={styles.socialButton}
-          aria-label="Вход с Google"
-        >
-          <GoogleIcon />
-          <span>Вход с Google</span>
-        </button>
-        <button
-          type="button"
-          className={styles.socialButton}
-          aria-label="Вход с Apple"
-        >
-          <AppleIcon />
-          <span>Вход с Apple</span>
-        </button>
+      <div className="grid w-full grid-cols-2 gap-2.5 max-[420px]:grid-cols-1">
+        <SocialButton label="Вход с Google" icon={<GoogleIcon />} />
+        <SocialButton label="Вход с Apple" icon={<AppleIcon />} />
       </div>
 
-      <p className={styles.switchPrompt}>
-        Нямате профил?{" "}
-        <Link href="/signup" className={styles.link}>
-          Регистрация
-        </Link>
-      </p>
+      <SwitchPrompt>
+        Нямате профил? <AuthLink href="/signup">Регистрация</AuthLink>
+      </SwitchPrompt>
     </>
+  );
+}
+
+function SocialButton({
+  label,
+  icon,
+}: {
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      className="inline-flex w-full items-center justify-center gap-2.5 px-3.5 py-2.5 text-[14px] text-foreground hover:border-[#c4d3ce] hover:bg-[#f8faf9] active:translate-y-px"
+      aria-label={label}
+    >
+      {icon}
+      <span>{label}</span>
+    </Button>
   );
 }

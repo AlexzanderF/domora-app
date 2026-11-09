@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { useAuth } from "./auth-provider";
 import {
-  SPECIALIST_CATEGORIES,
   validateClientRegistration,
   validateSpecialistRegistration,
   type ClientRegistrationErrors,
@@ -17,202 +16,52 @@ import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
 } from "@/domain/identity/types";
-import styles from "./auth.module.css";
+import {
+  AuthAlert,
+  AuthLink,
+  AuthSubtitle,
+  AuthTitle,
+  SwitchPrompt,
+} from "./auth-ui";
+import { ClientSignupForm } from "./signup/client-signup-form";
+import { SpecialistAccountStep } from "./signup/specialist-account-step";
+import { SpecialistProfileStep } from "./signup/specialist-profile-step";
+import { SpecialistStepIndicator } from "./signup/specialist-step-indicator";
 
-interface AccountFieldsProps {
-  idPrefix: string;
-  data: ClientRegistrationInput;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  errors: ClientRegistrationErrors;
-  showPassword: boolean;
-  onTogglePassword: () => void;
-  termsLabel: Role;
+const roleSwitchClass =
+  "cursor-pointer border-0 bg-transparent p-0 text-primary hover:underline";
+
+function RoleTab({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        "flex-1 cursor-pointer rounded-[7px] border-0 bg-transparent px-3.5 py-2.5 text-center text-[14px] font-semibold text-muted-foreground transition-all hover:text-foreground",
+        active &&
+          "bg-white text-primary shadow-[0_1px_4px_rgba(0,0,0,0.08)] hover:text-primary",
+      )}
+    >
+      {children}
+    </button>
+  );
 }
 
-function AccountFields({
-  idPrefix,
-  data,
-  onChange,
-  onCheckboxChange,
-  errors,
-  showPassword,
-  onTogglePassword,
-  termsLabel,
-}: AccountFieldsProps) {
+function RoleSwitchSection({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <div className={styles.field}>
-        <label htmlFor={`${idPrefix}-name`} className={styles.label}>
-          Име и фамилия <span className={styles.required}>*</span>
-        </label>
-        <input
-          id={`${idPrefix}-name`}
-          name="name"
-          type="text"
-          autoComplete="name"
-          required
-          value={data.name}
-          onChange={onChange}
-          placeholder={idPrefix === "client" ? "Иван Иванов" : "Димитър Петров"}
-          className={errors.name ? styles.inputError : styles.input}
-          aria-invalid={Boolean(errors.name)}
-          aria-describedby={errors.name ? `${idPrefix}-name-error` : undefined}
-        />
-        {errors.name && (
-          <span
-            id={`${idPrefix}-name-error`}
-            className={styles.errorMessage}
-            role="alert"
-          >
-            {errors.name}
-          </span>
-        )}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={`${idPrefix}-email`} className={styles.label}>
-          Имейл адрес <span className={styles.required}>*</span>
-        </label>
-        <input
-          id={`${idPrefix}-email`}
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={data.email}
-          onChange={onChange}
-          placeholder={
-            idPrefix === "client" ? "ivan@example.bg" : "dimitar@example.bg"
-          }
-          className={errors.email ? styles.inputError : styles.input}
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={
-            errors.email ? `${idPrefix}-email-error` : undefined
-          }
-        />
-        {errors.email && (
-          <span
-            id={`${idPrefix}-email-error`}
-            className={styles.errorMessage}
-            role="alert"
-          >
-            {errors.email}
-          </span>
-        )}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={`${idPrefix}-phone`} className={styles.label}>
-          Телефонен номер <span className={styles.required}>*</span>
-        </label>
-        <input
-          id={`${idPrefix}-phone`}
-          name="phone"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          required
-          value={data.phone}
-          onChange={onChange}
-          placeholder={idPrefix === "client" ? "0888 123 456" : "0888 765 432"}
-          className={errors.phone ? styles.inputError : styles.input}
-          aria-invalid={Boolean(errors.phone)}
-          aria-describedby={
-            errors.phone ? `${idPrefix}-phone-error` : undefined
-          }
-        />
-        {errors.phone && (
-          <span
-            id={`${idPrefix}-phone-error`}
-            className={styles.errorMessage}
-            role="alert"
-          >
-            {errors.phone}
-          </span>
-        )}
-      </div>
-
-      <div className={styles.field}>
-        <label htmlFor={`${idPrefix}-password`} className={styles.label}>
-          Парола <span className={styles.required}>*</span>
-        </label>
-        <div className={styles.passwordWrapper}>
-          <input
-            id={`${idPrefix}-password`}
-            name="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="new-password"
-            required
-            value={data.password}
-            onChange={onChange}
-            placeholder="Поне 6 символа"
-            className={
-              errors.password ? styles.passwordInputError : styles.passwordInput
-            }
-            aria-invalid={Boolean(errors.password)}
-            aria-describedby={
-              errors.password ? `${idPrefix}-password-error` : undefined
-            }
-          />
-          <button
-            type="button"
-            onClick={onTogglePassword}
-            className={styles.passwordToggle}
-            aria-label={showPassword ? "Скрий паролата" : "Покажи паролата"}
-          >
-            {showPassword ? "Скрий" : "Покажи"}
-          </button>
-        </div>
-        {errors.password && (
-          <span
-            id={`${idPrefix}-password-error`}
-            className={styles.errorMessage}
-            role="alert"
-          >
-            {errors.password}
-          </span>
-        )}
-      </div>
-
-      <div className={styles.checkboxField}>
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            id={`${idPrefix}-terms`}
-            name="termsAccepted"
-            checked={data.termsAccepted}
-            onChange={onCheckboxChange}
-            className={styles.checkbox}
-            aria-invalid={Boolean(errors.termsAccepted)}
-            aria-describedby={
-              errors.termsAccepted ? `${idPrefix}-terms-error` : undefined
-            }
-          />
-          <span>
-            Съгласен съм с{" "}
-            <Link href="/terms" className={styles.link}>
-              {termsLabel === Role.Client
-                ? "Общите условия"
-                : "Общите условия за партньори"}
-            </Link>{" "}
-            и{" "}
-            <Link href="/privacy" className={styles.link}>
-              Политиката за поверителност
-            </Link>
-          </span>
-        </label>
-        {errors.termsAccepted && (
-          <span
-            id={`${idPrefix}-terms-error`}
-            className={styles.errorMessage}
-            role="alert"
-          >
-            {errors.termsAccepted}
-          </span>
-        )}
-      </div>
-    </>
+    <div className="mt-6 border-t border-border pt-5 text-center text-[13px] leading-[1.4] text-muted-foreground">
+      <p>{children}</p>
+    </div>
   );
 }
 
@@ -434,428 +283,107 @@ export function SignupWizard() {
     <>
       {/* Role Switcher Tabs */}
       <div
-        className={styles.tabs}
+        className="mb-6 flex gap-1 rounded-[10px] border border-border bg-background p-1"
         role="tablist"
         aria-label="Избор на тип регистрация"
       >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={role === Role.Client}
+        <RoleTab
+          active={role === Role.Client}
           onClick={() => handleRoleChange(Role.Client)}
-          className={`${styles.tab} ${role === Role.Client ? styles.tabActive : ""}`}
         >
           Клиент
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={role === Role.Specialist}
+        </RoleTab>
+        <RoleTab
+          active={role === Role.Specialist}
           onClick={() => handleRoleChange(Role.Specialist)}
-          className={`${styles.tab} ${role === Role.Specialist ? styles.tabActive : ""}`}
         >
           Специалист
-        </button>
+        </RoleTab>
       </div>
 
       {generalError && (
-        <div
-          className={styles.alertError}
-          role="alert"
-          style={{ marginBottom: "18px" }}
-        >
+        <AuthAlert tone="error" role="alert" className="mb-[18px]">
           {generalError}
-        </div>
+        </AuthAlert>
       )}
 
-      {/* ===================== CLIENT REGISTRATION ===================== */}
       {role === Role.Client && (
         <>
-          <h1 className={styles.title}>Регистрация на клиент</h1>
-          <p className={styles.subtitle}>
-            Създайте профил за бързо и лесно управление на вашите домашни
-            услуги.
-          </p>
-
-          <form
+          <ClientSignupForm
+            data={step1Data}
+            errors={clientErrors}
+            isSubmitting={isSubmitting}
+            showPassword={showPassword}
+            onChange={handleStep1Change}
+            onCheckboxChange={handleStep1CheckboxChange}
+            onTogglePassword={() => setShowPassword((prev) => !prev)}
             onSubmit={handleClientSubmit}
-            className={styles.form}
-            noValidate
-          >
-            <AccountFields
-              idPrefix="client"
-              data={step1Data}
-              onChange={handleStep1Change}
-              onCheckboxChange={handleStep1CheckboxChange}
-              errors={clientErrors}
-              showPassword={showPassword}
-              onTogglePassword={() => setShowPassword((prev) => !prev)}
-              termsLabel={Role.Client}
-            />
+          />
 
+          <SwitchPrompt>
+            Вече имате профил? <AuthLink href="/login">Вход</AuthLink>
+          </SwitchPrompt>
+
+          <RoleSwitchSection>
+            Вие сте майстор или фирма за услуги?{" "}
             <button
-              type="submit"
-              disabled={isSubmitting}
-              className={styles.submitButton}
+              type="button"
+              onClick={() => handleRoleChange(Role.Specialist)}
+              className={roleSwitchClass}
             >
-              {isSubmitting ? "Регистрация..." : "Създай профил"}
+              Кандидатствайте като специалист
             </button>
-          </form>
-
-          <p className={styles.switchPrompt}>
-            Вече имате профил?{" "}
-            <Link href="/login" className={styles.link}>
-              Вход
-            </Link>
-          </p>
-
-          <div className={styles.specialistSection}>
-            <p>
-              Вие сте майстор или фирма за услуги?{" "}
-              <button
-                type="button"
-                onClick={() => handleRoleChange(Role.Specialist)}
-                className={styles.link}
-                style={{
-                  background: "none",
-                  border: 0,
-                  padding: 0,
-                  font: "inherit",
-                  cursor: "pointer",
-                }}
-              >
-                Кандидатствайте като специалист
-              </button>
-            </p>
-          </div>
+          </RoleSwitchSection>
         </>
       )}
 
-      {/* ===================== SPECIALIST ONBOARDING ===================== */}
       {role === Role.Specialist && (
         <>
-          <h1 className={styles.title}>Кандидатствайте като специалист</h1>
-          <p className={styles.subtitle}>
+          <AuthTitle>Кандидатствайте като специалист</AuthTitle>
+          <AuthSubtitle>
             Присъединете се към партньорската мрежа на DOMORA и получавайте
             заявки от проверени клиенти.
-          </p>
+          </AuthSubtitle>
 
-          {/* Step Indicator */}
-          <nav
-            aria-label="Стъпки на кандидатстване"
-            className={styles.stepIndicator}
-          >
-            <div className={styles.stepItem}>
-              <span
-                className={`${styles.stepBadge} ${
-                  specialistStep === 1
-                    ? styles.stepBadgeActive
-                    : styles.stepBadgeCompleted
-                }`}
-                aria-hidden="true"
-              >
-                {specialistStep > 1 ? "✓" : "1"}
-              </span>
-              <span
-                className={`${styles.stepTitle} ${
-                  specialistStep === 1 ? styles.stepTitleActive : ""
-                }`}
-                aria-current={specialistStep === 1 ? "step" : undefined}
-              >
-                Стъпка 1: Данни за профила
-              </span>
-            </div>
-            <div className={styles.stepItem}>
-              <span
-                className={`${styles.stepBadge} ${
-                  specialistStep === 2 ? styles.stepBadgeActive : ""
-                }`}
-                aria-hidden="true"
-              >
-                2
-              </span>
-              <span
-                className={`${styles.stepTitle} ${
-                  specialistStep === 2 ? styles.stepTitleActive : ""
-                }`}
-                aria-current={specialistStep === 2 ? "step" : undefined}
-              >
-                Стъпка 2: Професионална квалификация
-              </span>
-            </div>
-          </nav>
+          <SpecialistStepIndicator step={specialistStep} />
 
-          {/* STEP 1: Personal Details */}
           {specialistStep === 1 && (
-            <form className={styles.form} noValidate>
-              <AccountFields
-                idPrefix="spec"
-                data={step1Data}
-                onChange={handleStep1Change}
-                onCheckboxChange={handleStep1CheckboxChange}
-                errors={specialistErrors}
-                showPassword={showPassword}
-                onTogglePassword={() => setShowPassword((prev) => !prev)}
-                termsLabel={Role.Specialist}
-              />
-
-              <button
-                type="button"
-                onClick={handleSpecialistStep1Next}
-                className={styles.submitButton}
-              >
-                Продължи към стъпка 2 →
-              </button>
-            </form>
+            <SpecialistAccountStep
+              data={step1Data}
+              errors={specialistErrors}
+              showPassword={showPassword}
+              onChange={handleStep1Change}
+              onCheckboxChange={handleStep1CheckboxChange}
+              onTogglePassword={() => setShowPassword((prev) => !prev)}
+              onNext={handleSpecialistStep1Next}
+            />
           )}
 
-          {/* STEP 2: Professional Details */}
           {specialistStep === 2 && (
-            <form
+            <SpecialistProfileStep
+              data={step2Data}
+              errors={specialistErrors}
+              isSubmitting={isSubmitting}
+              onChange={handleStep2Change}
+              onBack={() => setSpecialistStep(1)}
               onSubmit={handleSpecialistSubmit}
-              className={styles.form}
-              noValidate
-            >
-              <div className={styles.field}>
-                <label htmlFor="category" className={styles.label}>
-                  Сфера на дейност <span className={styles.required}>*</span>
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  required
-                  value={step2Data.category}
-                  onChange={handleStep2Change}
-                  className={
-                    specialistErrors.category
-                      ? styles.selectError
-                      : styles.select
-                  }
-                  aria-invalid={Boolean(specialistErrors.category)}
-                  aria-describedby={
-                    specialistErrors.category ? "category-error" : undefined
-                  }
-                >
-                  <option value="">-- Изберете сфера на дейност --</option>
-                  {SPECIALIST_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-                {specialistErrors.category && (
-                  <span
-                    id="category-error"
-                    className={styles.errorMessage}
-                    role="alert"
-                  >
-                    {specialistErrors.category}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="area" className={styles.label}>
-                  Район на обслужване / Населено място{" "}
-                  <span className={styles.required}>*</span>
-                </label>
-                <input
-                  id="area"
-                  name="area"
-                  type="text"
-                  required
-                  value={step2Data.area}
-                  onChange={handleStep2Change}
-                  placeholder="напр. София и района, Пловдив..."
-                  className={
-                    specialistErrors.area ? styles.inputError : styles.input
-                  }
-                  aria-invalid={Boolean(specialistErrors.area)}
-                  aria-describedby={
-                    specialistErrors.area ? "area-error" : undefined
-                  }
-                />
-                {specialistErrors.area && (
-                  <span
-                    id="area-error"
-                    className={styles.errorMessage}
-                    role="alert"
-                  >
-                    {specialistErrors.area}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="experienceYears" className={styles.label}>
-                  Професионален опит (в години){" "}
-                  <span className={styles.required}>*</span>
-                </label>
-                <input
-                  id="experienceYears"
-                  name="experienceYears"
-                  type="number"
-                  min="0"
-                  max="60"
-                  step="1"
-                  required
-                  value={step2Data.experienceYears}
-                  onChange={handleStep2Change}
-                  placeholder="напр. 5"
-                  className={
-                    specialistErrors.experienceYears
-                      ? styles.inputError
-                      : styles.input
-                  }
-                  aria-invalid={Boolean(specialistErrors.experienceYears)}
-                  aria-describedby={
-                    specialistErrors.experienceYears
-                      ? "experience-error"
-                      : undefined
-                  }
-                />
-                {specialistErrors.experienceYears && (
-                  <span
-                    id="experience-error"
-                    className={styles.errorMessage}
-                    role="alert"
-                  >
-                    {specialistErrors.experienceYears}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="bio" className={styles.label}>
-                  Кратко представяне и извършвани услуги{" "}
-                  <span className={styles.required}>*</span>
-                </label>
-                <textarea
-                  id="bio"
-                  name="bio"
-                  rows={4}
-                  required
-                  value={step2Data.bio}
-                  onChange={handleStep2Change}
-                  placeholder="Опишете накратко квалификацията си, видовете ремонти/монтажи, с които работите, и оборудването..."
-                  className={
-                    specialistErrors.bio
-                      ? styles.textareaError
-                      : styles.textarea
-                  }
-                  aria-invalid={Boolean(specialistErrors.bio)}
-                  aria-describedby={
-                    specialistErrors.bio ? "bio-error" : undefined
-                  }
-                />
-                {specialistErrors.bio && (
-                  <span
-                    id="bio-error"
-                    className={styles.errorMessage}
-                    role="alert"
-                  >
-                    {specialistErrors.bio}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="companyName" className={styles.label}>
-                  Име на фирма{" "}
-                  <span style={{ color: "var(--muted)" }}>
-                    (незадължително)
-                  </span>
-                </label>
-                <input
-                  id="companyName"
-                  name="companyName"
-                  type="text"
-                  value={step2Data.companyName}
-                  onChange={handleStep2Change}
-                  placeholder="напр. Ремонти Про ЕООД"
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.field}>
-                <label htmlFor="eik" className={styles.label}>
-                  ЕИК / БУЛСТАТ{" "}
-                  <span style={{ color: "var(--muted)" }}>
-                    (незадължително)
-                  </span>
-                </label>
-                <input
-                  id="eik"
-                  name="eik"
-                  type="text"
-                  value={step2Data.eik}
-                  onChange={handleStep2Change}
-                  placeholder="напр. 204567891"
-                  className={
-                    specialistErrors.eik ? styles.inputError : styles.input
-                  }
-                  aria-invalid={Boolean(specialistErrors.eik)}
-                  aria-describedby={
-                    specialistErrors.eik ? "eik-error" : undefined
-                  }
-                />
-                {specialistErrors.eik && (
-                  <span
-                    id="eik-error"
-                    className={styles.errorMessage}
-                    role="alert"
-                  >
-                    {specialistErrors.eik}
-                  </span>
-                )}
-              </div>
-
-              <div className={styles.buttonGroup}>
-                <button
-                  type="button"
-                  onClick={() => setSpecialistStep(1)}
-                  className={styles.secondaryButton}
-                >
-                  ← Назад
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={styles.submitButton}
-                  style={{ marginTop: 0 }}
-                >
-                  {isSubmitting ? "Изпращане..." : "Изпрати за одобрение"}
-                </button>
-              </div>
-            </form>
+            />
           )}
 
-          <p className={styles.switchPrompt}>
-            Вече имате профил?{" "}
-            <Link href="/login" className={styles.link}>
-              Вход
-            </Link>
-          </p>
+          <SwitchPrompt>
+            Вече имате профил? <AuthLink href="/login">Вход</AuthLink>
+          </SwitchPrompt>
 
-          <div className={styles.specialistSection}>
-            <p>
-              Търсите майстор за дома си?{" "}
-              <button
-                type="button"
-                onClick={() => handleRoleChange(Role.Client)}
-                className={styles.link}
-                style={{
-                  background: "none",
-                  border: 0,
-                  padding: 0,
-                  font: "inherit",
-                  cursor: "pointer",
-                }}
-              >
-                Регистрирайте се като клиент
-              </button>
-            </p>
-          </div>
+          <RoleSwitchSection>
+            Търсите майстор за дома си?{" "}
+            <button
+              type="button"
+              onClick={() => handleRoleChange(Role.Client)}
+              className={roleSwitchClass}
+            >
+              Регистрирайте се като клиент
+            </button>
+          </RoleSwitchSection>
         </>
       )}
     </>
