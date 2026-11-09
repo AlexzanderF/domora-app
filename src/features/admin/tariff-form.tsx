@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast-provider";
 import type { Tariffs } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
@@ -50,7 +52,7 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
 
   return (
     <>
-      <div className="sectionhead">
+      <div className="mt-7 mb-[18px] flex items-center justify-between">
         <h2>Тарифи за услуги</h2>
       </div>
       <Card>
@@ -59,11 +61,11 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
           цена.
         </p>
         <form onSubmit={submit}>
-          <div className="priceinputs">
+          <div className="grid grid-cols-2 gap-4 max-[700px]:grid-cols-1">
             {categories.map((category) => (
-              <label key={category.id}>
+              <Label key={category.id} className="mb-3.5">
                 {category.name} · базова цена (€)
-                <input
+                <Input
                   type="number"
                   min="1"
                   max="10000"
@@ -71,11 +73,11 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
                   name={`rate${category.id}`}
                   defaultValue={tariffs.categories[category.id]}
                 />
-              </label>
+              </Label>
             ))}
-            <label>
+            <Label className="mb-3.5">
               За дома · €/м² месечно
-              <input
+              <Input
                 name="home"
                 type="number"
                 min="0.1"
@@ -84,10 +86,10 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
                 required
                 defaultValue={tariffs.home}
               />
-            </label>
-            <label>
+            </Label>
+            <Label className="mb-3.5">
               За входа · €/етаж месечно
-              <input
+              <Input
                 name="entry"
                 type="number"
                 min="1"
@@ -95,7 +97,7 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
                 required
                 defaultValue={tariffs.entry}
               />
-            </label>
+            </Label>
           </div>
           <Button
             type="submit"
