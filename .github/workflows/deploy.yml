@@ -81,6 +81,7 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'domora_user' }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'domora' }}
           APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+          SERVER_HOST: ${{ secrets.CONTABO_HOST }}
           # Optional; empty keeps the defaults (cookie auto-detect, console notifier).
           COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
           NOTIFIER_DRIVER: ${{ secrets.NOTIFIER_DRIVER }}
@@ -93,7 +94,7 @@ jobs:
           username: ${{ secrets.CONTABO_USER }}
           key: ${{ secrets.CONTABO_SSH_KEY }}
           port: ${{ secrets.CONTABO_PORT || 22 }}
-          envs: DOMORA_IMAGE,DEPLOY_REF,POSTGRES_PASSWORD,POSTGRES_USER,POSTGRES_DB,APP_DOMAIN,COOKIE_SECURE,NOTIFIER_DRIVER,RESEND_API_KEY,NOTIFIER_FROM,GHCR_USER,GHCR_TOKEN
+          envs: DOMORA_IMAGE,DEPLOY_REF,POSTGRES_PASSWORD,POSTGRES_USER,POSTGRES_DB,APP_DOMAIN,SERVER_HOST,COOKIE_SECURE,NOTIFIER_DRIVER,RESEND_API_KEY,NOTIFIER_FROM,GHCR_USER,GHCR_TOKEN
           script: |
             set -euo pipefail
             cd /opt/domora-app
@@ -111,6 +112,15 @@ jobs:
               APP_DOMAIN="http://${APP_DOMAIN}"
             fi
 
+            # Public address for links in emails (password reset).
+            if [[ "$APP_DOMAIN" == ":80" ]]; then
+              APP_URL="http://${SERVER_HOST}"
+            elif [[ "$APP_DOMAIN" == http://* ]]; then
+              APP_URL="$APP_DOMAIN"
+            else
+              APP_URL="https://${APP_DOMAIN}"
+            fi
+
             # CI is the source of truth: rewrite .env on every deploy.
             umask 077
             cat <<EOF > .env
@@ -118,6 +128,7 @@ jobs:
             POSTGRES_USER=${POSTGRES_USER}
             POSTGRES_DB=${POSTGRES_DB}
             APP_DOMAIN=${APP_DOMAIN}
+            APP_URL=${APP_URL}
             DOMORA_IMAGE=${DOMORA_IMAGE}
             COOKIE_SECURE=${COOKIE_SECURE:-}
             NOTIFIER_DRIVER=${NOTIFIER_DRIVER:-console}

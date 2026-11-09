@@ -82,7 +82,7 @@ DOMORA is a **private beta**: real data and real accounts, on one server, for a 
 
 Shipped:
 
-- **Accounts and access.** Clients, specialists and administrators sign in with a server-side session. Role and status are read from the database on every request, and each area (client, specialist, admin) is guarded on the server. Specialists sign up as Pending and can see or claim nothing until an administrator approves them.
+- **Accounts and access.** Clients, specialists and administrators sign in with a server-side session. Role and status are read from the database on every request, and each area (client, specialist, admin) is guarded on the server. Specialists sign up as Pending and can see or claim nothing until an administrator approves them. A forgotten password is reset through a one-time link sent by email, valid for 48 hours (at most 3 requests per hour); a reset signs the user out everywhere.
 - **Requests.** Bookings are stored in Postgres and priced from the tariffs in the database. The lifecycle (accept, start, completion report, confirm and rate) is enforced on the server for the right actor, and every change is recorded in an audit trail.
 - **Dispatch.** Active specialists see opportunities matching their trade and area; a request can be claimed by only one of them. Administrators can recommend a request to a specialist, and the recommendation records who made it and when, and the specialist can decline it. Administrators can act on any request and edit the tariffs.
 - **Disputes.** A client can raise an issue with a note on completed work; administrators triage and resolve it, and the history is kept after resolution.
@@ -94,7 +94,6 @@ Shipped:
 Not in the beta:
 
 - Payments. The beta is billed offline.
-- Password reset. The "forgotten password" form does not send an email or change a password yet.
 - SMS, push and in-app notifications; email verification, preferences and unsubscribe.
 - Live updates, a mobile app and a public API.
 - Login rate limiting and expiry sweeps for sessions.

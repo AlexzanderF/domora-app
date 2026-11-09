@@ -3,7 +3,12 @@
 import bcrypt from "bcryptjs";
 import { getDb, isDbConfigured } from "@/db";
 import { users } from "@/db/schema";
-import { registerSpecialist } from "@/domain/identity";
+import {
+  IdentityError,
+  registerSpecialist,
+  requestPasswordReset,
+  resetPassword,
+} from "@/domain/identity";
 import { UserRole, UserStatus } from "../types";
 import type {
   ClientRegistrationInput,
@@ -12,7 +17,9 @@ import type {
 } from "../types";
 import {
   validateClientRegistration,
+  validateEmail,
   validateLogin,
+  validatePassword,
   validateSpecialistRegistration,
 } from "../validation";
 import {
@@ -241,6 +248,52 @@ export async function refreshUserAction(): Promise<{
 export async function logoutAction(): Promise<{ success: boolean }> {
   if (isDbConfigured) {
     await deleteSession();
+  }
+  return { success: true };
+}
+
+// Succeeds whether or not the email has an account, so the form cannot be
+// used to find out which emails are registered.
+export async function requestPasswordResetAction(
+  email: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+  const validationError = validateEmail(email);
+  if (validationError) {
+    return { success: false, error: validationError };
+  }
+  if (!isDbConfigured) {
+    return { success: false, error: "Грешка при свързване с базата данни." };
+  }
+
+  await requestPasswordReset(email);
+  return { success: true };
+}
+
+export async function resetPasswordAction(
+  token: string,
+  password: string,
+): Promise<
+  { success: true } | { success: false; error: string; invalidLink?: true }
+> {
+  const validationError = validatePassword(password);
+  if (validationError) {
+    return { success: false, error: validationError };
+  }
+  if (!isDbConfigured) {
+    return { success: false, error: "Грешка при свързване с базата данни." };
+  }
+
+  try {
+    await resetPassword(token, await bcrypt.hash(password, 10));
+  } catch (error) {
+    if (error instanceof IdentityError && error.code === "INVALID_TOKEN") {
+      return {
+        success: false,
+        error: "Връзката е невалидна или е изтекла.",
+        invalidLink: true,
+      };
+    }
+    throw error;
   }
   return { success: true };
 }
