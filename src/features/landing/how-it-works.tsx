@@ -22,8 +22,6 @@ const steps = [
   },
 ];
 
-// `!` modifiers beat the legacy unlayered `h2`, `h3` and `p` element rules in
-// globals.css; drop them when the contract ticket removes those rules.
 export function HowItWorks() {
   return (
     <section
@@ -32,16 +30,16 @@ export function HowItWorks() {
       aria-labelledby="how-it-works-title"
     >
       <div className="mb-[1.65rem] max-w-[680px]">
-        <p className="mt-0! mb-[0.65rem]! text-xs font-extrabold tracking-[0.15em] text-primary">
+        <p className="mt-0 mb-[0.65rem] text-xs font-extrabold tracking-[0.15em] text-primary">
           ТРИ ЛЕСНИ СТЪПКИ
         </p>
         <h2
           id="how-it-works-title"
-          className="text-[clamp(2rem,4vw,3.25rem)]! tracking-[-0.035em]"
+          className="text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]"
         >
           Как работи DOMORA
         </h2>
-        <p className="mt-4! mb-0! text-[1.05rem] text-[#5f7069]">
+        <p className="mt-4 mb-0 text-[1.05rem] text-[#5f7069]">
           От първия избор до свършената работа — всичко е ясно, проследимо и
           подредено.
         </p>
@@ -65,10 +63,10 @@ export function HowItWorks() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="text-[1.15rem]! leading-[1.35] text-[#182e29]">
+              <h3 className="text-[1.15rem] leading-[1.35] text-[#182e29]">
                 {step.title}
               </h3>
-              <p className="mt-3! mb-0! text-[0.94rem] leading-[1.65] text-[#63736d]">
+              <p className="mt-3 mb-0 text-[0.94rem] leading-[1.65] text-[#63736d]">
                 {step.description}
               </p>
             </Card>

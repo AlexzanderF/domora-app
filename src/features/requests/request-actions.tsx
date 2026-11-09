@@ -48,7 +48,7 @@ export function RequestActions({
   }
 
   return (
-    <div className="actions">
+    <div className="mt-[13px] flex flex-wrap gap-2 [&_button]:px-3 [&_button]:py-[7px] [&_button]:text-[14px]">
       {role === Role.Client && canAdvance(request) && (
         <Button
           variant="secondary"
@@ -123,7 +123,7 @@ export function RequestActions({
             {[1, 2, 3, 4, 5].map((rating) => (
               <button
                 key={rating}
-                className="starbutton"
+                className="border-0 bg-transparent text-tone-aa761c"
                 aria-label={`${rating} звезди`}
                 onClick={() =>
                   void perform(

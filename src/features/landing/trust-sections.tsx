@@ -64,11 +64,9 @@ const questions = [
   },
 ];
 
-// `!` modifiers beat the legacy unlayered `h2`, `h3`, `p` and `footer` element
-// rules in globals.css; drop them when the contract ticket removes those rules.
 const eyebrow =
-  "mt-0! mb-[0.65rem]! text-xs font-extrabold tracking-[0.15em] text-primary";
-const sectionTitle = "text-[clamp(2rem,4vw,3.25rem)]! tracking-[-0.035em]";
+  "mt-0 mb-[0.65rem] text-xs font-extrabold tracking-[0.15em] text-primary";
+const sectionTitle = "text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]";
 
 export function TrustAndTestimonials() {
   return (
@@ -91,8 +89,8 @@ export function TrustAndTestimonials() {
                 <LandingIcon path={benefit.icon} className="size-[1.45rem]" />
               </span>
               <div>
-                <h3 className="text-base! leading-[1.4]">{benefit.title}</h3>
-                <p className="mt-[0.55rem]! mb-0! text-[0.88rem] text-[#63736d]">
+                <h3 className="text-base leading-[1.4]">{benefit.title}</h3>
+                <p className="mt-[0.55rem] mb-0 text-[0.88rem] text-[#63736d]">
                   {benefit.description}
                 </p>
               </div>
@@ -103,7 +101,7 @@ export function TrustAndTestimonials() {
 
       <div className="mt-[clamp(2.5rem,5vw,4rem)] mb-[1.4rem] max-w-[690px]">
         <p className={eyebrow}>ИСТОРИИ ОТ ДОМОВЕ, ЗА КОИТО СЕ ГРИЖИМ</p>
-        <h3 className="text-[clamp(1.7rem,3.5vw,2.7rem)]! tracking-[-0.03em]">
+        <h3 className="text-[clamp(1.7rem,3.5vw,2.7rem)] tracking-[-0.03em]">
           Доверие, изградено с добре свършена работа
         </h3>
       </div>
@@ -122,16 +120,16 @@ export function TrustAndTestimonials() {
             <blockquote className="mx-0 mt-4 mb-[1.35rem] flex-1 text-base leading-[1.7] text-[#f4f8f6]">
               „{testimonial.quote}“
             </blockquote>
-            <footer className="flex! items-center gap-3 justify-between! px-11! pt-[10px]! pb-[22px]! text-xs! text-muted-foreground!">
+            <footer className="flex items-center gap-3 justify-between px-11 pt-[10px] pb-[22px] text-xs text-muted-foreground">
               <span
-                className="grid size-11 place-items-center rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
+                className="grid size-11 place-items-center max-[700px]:mt-1.5 max-[700px]:block rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
                 aria-hidden="true"
               >
                 {testimonial.initials}
               </span>
               <div className="grid">
                 <strong>{testimonial.name}</strong>
-                <span className="text-[0.78rem] text-[#bdd0c9]">
+                <span className="text-[0.78rem] text-[#bdd0c9] max-[700px]:mt-1.5">
                   {testimonial.context}
                 </span>
               </div>
@@ -169,7 +167,7 @@ export function Faq() {
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-[1.05rem] text-[1.05rem] font-[750] text-[#182e29] after:grid after:size-7 after:shrink-0 after:place-items-center after:rounded-full after:bg-[#eaf2ec] after:text-primary after:content-['+'] group-open:after:content-['−'] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#84b998] [&::-webkit-details-marker]:hidden">
               {item.question}
             </summary>
-            <p className="m-0! max-w-[680px] pr-12 pb-[1.4rem] text-[#61726c]">
+            <p className="m-0 max-w-[680px] pr-12 pb-[1.4rem] text-[#61726c]">
               {item.answer}
             </p>
           </details>

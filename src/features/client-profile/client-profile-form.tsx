@@ -21,13 +21,13 @@ interface ClientProfileFormProps {
   propertyAddress: string;
 }
 
-const fieldClass = "mb-0! leading-[1.55]!";
+const fieldClass = "mb-0 leading-[1.55]";
 const invalidClass =
-  "leading-[1.55]! aria-invalid:border-[#c2410c]! aria-invalid:bg-[#fff7ed]!";
+  "leading-[1.55] aria-invalid:border-tone-c2410c aria-invalid:bg-tone-fff7ed";
 const errorTextClass =
-  "mt-[0.35rem] block text-[0.82rem] font-semibold text-[#9a3412]";
+  "mt-[0.35rem] block text-[0.82rem] font-semibold text-tone-9a3412";
 const noticeClass =
-  "m-0! rounded-[9px] border px-[0.95rem] py-[0.8rem] text-[0.9rem] font-semibold";
+  "m-0 rounded-[9px] border px-[0.95rem] py-[0.8rem] text-[0.9rem] font-semibold";
 
 export function ClientProfileForm({
   name,
@@ -86,7 +86,7 @@ export function ClientProfileForm({
             <span className="mb-[0.3rem] block text-[0.75rem] font-bold tracking-[0.12em] text-muted-foreground">
               КОНТАКТИ И ИМОТ
             </span>
-            <h2 className="text-[1.15rem]!">Редакция на профила</h2>
+            <h2 className="text-[1.15rem]">Редакция на профила</h2>
           </div>
         </div>
 
@@ -181,7 +181,7 @@ export function ClientProfileForm({
           <div className="min-w-0">
             {formError && (
               <p
-                className={`${noticeClass} border-[#fed7aa] bg-[#fff7ed] text-[#9a3412]`}
+                className={`${noticeClass} border-tone-fed7aa bg-tone-fff7ed text-tone-9a3412`}
                 role="alert"
               >
                 {formError}
@@ -189,7 +189,7 @@ export function ClientProfileForm({
             )}
             {formMessage && (
               <p
-                className={`${noticeClass} border-[#b3e7c5] bg-[#e6f7ec] text-[#176536]`}
+                className={`${noticeClass} border-tone-b3e7c5 bg-tone-e6f7ec text-tone-176536`}
                 role="status"
               >
                 {formMessage}

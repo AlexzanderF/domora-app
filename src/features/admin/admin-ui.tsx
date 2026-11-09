@@ -15,10 +15,8 @@ export function QueueEmpty({
       <span className="mb-2.5 text-2xl" aria-hidden="true">
         {icon}
       </span>
-      <p className="m-0! mb-1! text-sm font-semibold text-foreground">
-        {title}
-      </p>
-      <p className="m-0! max-w-[480px] text-[13px] leading-[1.45] text-muted-foreground">
+      <p className="m-0 mb-1 text-sm font-semibold text-foreground">{title}</p>
+      <p className="m-0 max-w-[480px] text-[13px] leading-[1.45] text-muted-foreground">
         {description}
       </p>
     </div>
@@ -48,7 +46,7 @@ export function DetailGrid({
   return (
     <div
       className={cn(
-        "grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 gap-y-2.5 rounded-lg border border-[#edf2ed] bg-white p-3.5 max-md:grid-cols-1",
+        "grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-x-4 gap-y-2.5 rounded-lg border border-tone-edf2ed bg-white p-3.5 max-md:grid-cols-1",
         className,
       )}
       {...props}
@@ -95,7 +93,7 @@ export function CategoryPill({
   return (
     <span
       className={cn(
-        "inline-block rounded-md border border-[#d8e4d9] bg-[#f0f4ef] px-2 py-[3px] text-xs font-semibold text-foreground",
+        "inline-block rounded-md border border-tone-d8e4d9 bg-tone-f0f4ef px-2 py-[3px] text-xs font-semibold text-foreground",
         className,
       )}
       {...props}
@@ -119,7 +117,7 @@ export function QueueSection({
     <section className="rounded-xl border border-border bg-white px-6 py-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[rgba(0,0,0,0.06)] pb-3.5">
         <div className="flex items-center gap-2.5">
-          <h2 className="m-0! text-[17px]! leading-normal font-bold text-[#0f172a]">
+          <h2 className="m-0 text-[17px] leading-[1.3] font-bold text-tone-0f172a">
             {title}
           </h2>
           <QueueTag>{tag}</QueueTag>
@@ -133,7 +131,7 @@ export function QueueSection({
 
 export function QueueTag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-md bg-[#f1f5f9] px-2 py-[3px] text-[11px] font-semibold text-[#475569]">
+    <span className="rounded-md bg-tone-f1f5f9 px-2 py-[3px] text-[11px] font-semibold text-tone-475569">
       {children}
     </span>
   );

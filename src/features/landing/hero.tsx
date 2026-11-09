@@ -7,8 +7,6 @@ const trustBadges = [
   "Застраховани услуги",
 ];
 
-// `!` modifiers beat the legacy unlayered `h1` and `p` element rules in
-// globals.css; drop them when the contract ticket removes those rules.
 export function Hero() {
   return (
     <section
@@ -16,16 +14,16 @@ export function Hero() {
       aria-labelledby="landing-hero-title"
     >
       <div className="relative z-[1] max-w-[720px]">
-        <p className="mt-0! mb-[0.85rem]! text-xs font-extrabold tracking-[0.16em] text-accent">
+        <p className="mt-0 mb-[0.85rem] text-xs font-extrabold tracking-[0.16em] text-accent">
           ГРИЖА ЗА ДОМА БЕЗ ИЗЛИШНИ ГРИЖИ
         </p>
         <h1
           id="landing-hero-title"
-          className="m-0! max-w-[700px] text-[clamp(2.35rem,4.5vw,4.75rem)]! leading-[1.03]! tracking-[-0.045em]! text-balance text-white max-[600px]:text-[clamp(2.1rem,11vw,3rem)]!"
+          className="m-0 max-w-[700px] text-[clamp(2.35rem,4.5vw,4.75rem)] leading-[1.03] tracking-[-0.045em] text-balance text-white max-[600px]:text-[clamp(2.1rem,11vw,3rem)]"
         >
           Спокойствие за вашия дом — надеждни домашни услуги и абонаменти
         </h1>
-        <p className="mt-4! mb-0! max-w-[610px] text-[clamp(1rem,1.4vw,1.2rem)] leading-[1.65] text-[#d9e8e3]">
+        <p className="mt-4 mb-0 max-w-[610px] text-[clamp(1rem,1.4vw,1.2rem)] leading-[1.65] text-[#d9e8e3]">
           Планирайте почистване, ремонти и редовна поддръжка с ясни цени и
           проверени специалисти на едно място.
         </p>

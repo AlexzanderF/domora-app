@@ -18,9 +18,9 @@ import {
 } from "./auth-ui";
 
 const badgeTones = {
-  pending: "border-[#fde68a] bg-[#fef3c7] text-[#92400e]",
-  active: "border-[#a7f3d0] bg-[#def7ec] text-[#03543f]",
-  rejected: "border-[#fecaca] bg-[#fdf2f2] text-[#991b1b]",
+  pending: "border-tone-fde68a bg-tone-fef3c7 text-tone-92400e",
+  active: "border-tone-a7f3d0 bg-tone-def7ec text-tone-03543f",
+  rejected: "border-tone-fecaca bg-tone-fdf2f2 text-tone-991b1b",
 };
 
 function ApprovalBadge({
@@ -50,7 +50,7 @@ function SummaryRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#eef2ef] py-2 text-[14px] last:border-b-0 last:pb-0">
+    <div className="flex items-center justify-between border-b border-tone-eef2ef py-2 text-[14px] last:border-b-0 last:pb-0">
       <span className="font-medium text-muted-foreground">{label}</span>
       <span className="max-w-[60%] text-right font-semibold [word-break:break-word] text-foreground">
         {children}
@@ -134,7 +134,7 @@ export function PendingApprovalCard() {
         </AuthSubtitle>
         <Button
           asChild
-          className="mt-1.5 inline-block w-full py-[13px] text-[16px] hover:bg-[#123e34]"
+          className="mt-1.5 inline-block w-full py-[13px] text-[16px] hover:bg-primary-hover"
         >
           <Link href="/login">Към вход</Link>
         </Button>
@@ -152,8 +152,8 @@ export function PendingApprovalCard() {
       <div className="mb-5 text-center">
         <div
           className={cn(
-            "mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-[#fef3c7] text-[28px] text-[#d97706]",
-            isRejected && "bg-[#fee2e2] text-[#b91c1c]",
+            "mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-tone-fef3c7 text-[28px] text-tone-d97706",
+            isRejected && "bg-tone-fee2e2 text-tone-b91c1c",
           )}
           aria-hidden="true"
         >
@@ -177,7 +177,7 @@ export function PendingApprovalCard() {
         </div>
       </div>
 
-      <AuthSubtitle className="text-center mb-5!">
+      <AuthSubtitle className="text-center mb-5">
         {isRejected
           ? "За съжаление вашата кандидатура като специалист в DOMORA не беше одобрена. За допълнителна информация или въпроси можете да се свържете с екипа ни."
           : isActive
@@ -199,8 +199,8 @@ export function PendingApprovalCard() {
       )}
 
       {/* Summary card of submitted details */}
-      <Card className="my-5 rounded-xl bg-[#fbfdfb] px-5 py-[18px] max-[700px]:px-5 max-[700px]:py-[18px]">
-        <h2 className="m-0! mb-3! text-[13px]! font-bold tracking-[0.5px] text-foreground uppercase">
+      <Card className="my-5 rounded-xl bg-tone-fbfdfb px-5 py-[18px] max-[700px]:px-5 max-[700px]:py-[18px]">
+        <h2 className="m-0 mb-3 text-[13px] font-bold tracking-[0.5px] text-foreground uppercase">
           Подадени данни за профила
         </h2>
 

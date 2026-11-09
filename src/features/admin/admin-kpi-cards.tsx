@@ -20,24 +20,24 @@ interface KpiCardProps {
 
 const tones = {
   urgent: {
-    bar: "bg-linear-to-r from-[#dc2626] to-[#f59e0b]",
-    icon: "bg-[rgba(220,38,38,0.1)] text-[#dc2626]",
-    tag: "bg-[rgba(220,38,38,0.12)] text-[#b91c1c]",
+    bar: "bg-linear-to-r from-tone-dc2626 to-tone-f59e0b",
+    icon: "bg-[rgba(220,38,38,0.1)] text-tone-dc2626",
+    tag: "bg-[rgba(220,38,38,0.12)] text-tone-b91c1c",
   },
   pending: {
-    bar: "bg-linear-to-r from-[#2563eb] to-[#38bdf8]",
-    icon: "bg-[rgba(37,99,235,0.1)] text-[#2563eb]",
-    tag: "bg-[rgba(37,99,235,0.12)] text-[#1d4ed8]",
+    bar: "bg-linear-to-r from-tone-2563eb to-tone-38bdf8",
+    icon: "bg-[rgba(37,99,235,0.1)] text-tone-2563eb",
+    tag: "bg-[rgba(37,99,235,0.12)] text-tone-1d4ed8",
   },
   active: {
-    bar: "bg-linear-to-r from-[#059669] to-[#34d399]",
-    icon: "bg-[rgba(5,150,105,0.1)] text-[#059669]",
-    tag: "bg-[rgba(5,150,105,0.12)] text-[#047857]",
+    bar: "bg-linear-to-r from-tone-059669 to-tone-34d399",
+    icon: "bg-[rgba(5,150,105,0.1)] text-tone-059669",
+    tag: "bg-[rgba(5,150,105,0.12)] text-tone-047857",
   },
   revenue: {
-    bar: "bg-linear-to-r from-[#7c3aed] to-[#a855f7]",
-    icon: "bg-[rgba(124,58,237,0.1)] text-[#7c3aed]",
-    tag: "bg-[rgba(124,58,237,0.12)] text-[#6d28d9]",
+    bar: "bg-linear-to-r from-tone-7c3aed to-tone-a855f7",
+    icon: "bg-[rgba(124,58,237,0.1)] text-tone-7c3aed",
+    tag: "bg-[rgba(124,58,237,0.12)] text-tone-6d28d9",
   },
 };
 
@@ -59,15 +59,15 @@ function KpiCard({ icon, tag, label, value, subtext, tone }: KpiCardProps) {
             {tag}
           </span>
         </div>
-        <div className="mb-1.5 text-[13px] leading-[1.35] font-medium text-[#64748b]">
+        <div className="mb-1.5 text-[13px] leading-[1.35] font-medium text-tone-64748b">
           {label}
         </div>
       </div>
       <div>
-        <strong className="mb-1.5 block text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-[#0f172a]">
+        <strong className="mb-1.5 block text-[28px] leading-[1.1] font-bold tracking-[-0.02em] text-tone-0f172a">
           {value}
         </strong>
-        <div className="text-xs leading-[1.3] text-[#64748b]">{subtext}</div>
+        <div className="text-xs leading-[1.3] text-tone-64748b">{subtext}</div>
       </div>
     </Card>
   );

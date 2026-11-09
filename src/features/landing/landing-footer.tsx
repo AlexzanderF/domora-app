@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-// `!` modifiers beat the legacy unlayered `footer` rule in globals.css; drop
-// them when the contract ticket removes that rule.
 const columnLink =
   "text-[#dce8e4] no-underline hover:text-white hover:underline hover:underline-offset-4";
 const columnTitle =
@@ -9,7 +7,7 @@ const columnTitle =
 
 export function LandingFooter() {
   return (
-    <footer className="block! bg-[#102f29] px-[max(1.5rem,calc((100%-1320px)/2))]! py-[clamp(3rem,7vw,5rem)]! text-[0.9rem]! text-white!">
+    <footer className="block bg-[#102f29] px-[max(1.5rem,calc((100%-1320px)/2))] py-[clamp(3rem,7vw,5rem)] text-[0.9rem] text-white">
       <div className="grid grid-cols-[1.5fr_repeat(3,1fr)] gap-[clamp(2rem,5vw,5rem)] max-[850px]:grid-cols-2 max-[560px]:grid-cols-1">
         <div>
           <Link
@@ -18,7 +16,7 @@ export function LandingFooter() {
           >
             DOMORA
           </Link>
-          <p className="mt-4! mb-0! max-w-[290px] text-[#b9cec7]">
+          <p className="mt-4 mb-0 max-w-[290px] text-[#b9cec7]">
             Надеждна грижа за дома, когато имате нужда от нея.
           </p>
         </div>
@@ -57,8 +55,10 @@ export function LandingFooter() {
         </div>
       </div>
       <div className="mt-12 flex justify-between gap-4 border-t border-white/15 pt-6 text-xs text-[#9db6ae] max-[560px]:flex-col">
-        <span>DOMORA © 2026</span>
-        <span>Грижа за дома с ясен стандарт.</span>
+        <span className="max-[700px]:mt-1.5">DOMORA © 2026</span>
+        <span className="max-[700px]:mt-1.5">
+          Грижа за дома с ясен стандарт.
+        </span>
       </div>
     </footer>
   );

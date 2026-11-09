@@ -33,14 +33,14 @@ export function RequestList({
       {items.map((request) => (
         <article
           id={`request-${request.id}`}
-          className="request"
+          className="flex items-start gap-4 border-b border-border py-[19px] first:pt-0 last:border-b-0 last:pb-0 max-[700px]:gap-2.5 [&_p]:mt-[5px] [&_p]:mb-2.5 [&_p]:text-[14px] [&_p]:text-muted-foreground"
           key={request.id}
           aria-label={request.service}
         >
-          <div className="tinyicon">
+          <div className="grid size-[42px] shrink-0 place-items-center rounded-[9px] bg-tone-f0f4ef [&_svg]:size-[22px] [&_svg]:stroke-primary">
             <ServiceIcon category={request.category} />
           </div>
-          <div className="requestinfo">
+          <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
             <h3>{request.service}</h3>
             <p>
               {request.date} · {request.time}
@@ -74,14 +74,14 @@ export function RequestList({
                 <ReportPhotos photoIds={request.reportPhotoIds} />
                 <RequestActions request={request} role={role} />
                 {request.issue && (
-                  <p className="notice">
+                  <p className="border-l-[3px] border-tone-9bc092 bg-tone-ebf1e8 px-4 py-3">
                     Подаден сигнал. Очаква преглед от DOMORA.
                   </p>
                 )}
               </>
             )}
           </div>
-          <span className="amount">
+          <span className="text-[18px] font-[650] whitespace-nowrap max-[700px]:text-[16px] [&_small]:block [&_small]:text-[12px] [&_small]:font-normal">
             {money(request.price)}
             {request.plan && <small> / мес.</small>}
           </span>

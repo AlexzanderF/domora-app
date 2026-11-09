@@ -60,17 +60,13 @@ const planOptions: Record<
 
 const quickVisits = [1, 2, 4] as const;
 
-// `!` modifiers beat the legacy unlayered `h2`, `h3`, `p`, `label`, `input`
-// and `textarea` rules in globals.css; drop them when the contract ticket
-// removes those rules.
 const section = "border-b border-[#dce5df] pb-10";
 const step = "text-[0.72rem] font-[850] tracking-[0.12em] text-[#517067]";
-const sectionTitle =
-  "mt-[0.35rem]! mb-[1.2rem]! text-[1.35rem]! text-[#17372f]";
+const sectionTitle = "mt-[0.35rem] mb-[1.2rem] text-[1.35rem] text-[#17372f]";
 const fieldLabel =
-  "m-0! grid! content-start gap-[0.38rem] text-[0.82rem]! leading-[1.55] font-bold! text-[#40564f]";
+  "m-0 grid content-start gap-[0.38rem] text-[0.82rem] leading-[1.55] font-bold text-[#40564f]";
 const fieldControl =
-  "mt-0! min-h-11 rounded-md! border-[#ccd9d1]! text-[0.92rem]! leading-[1.55] aria-invalid:border-[#b14545]!";
+  "mt-0 min-h-11 rounded-md border-[#ccd9d1] text-[0.92rem] leading-[1.55] aria-invalid:border-[#b14545]";
 const checkItem =
   "before:mr-[0.65rem] before:font-[850] before:text-[#287057] before:content-['✓']";
 const stepperButton =
@@ -175,7 +171,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
               </Button>
             ))}
           </div>
-          <p className="mt-3! mb-0! text-[0.9rem] text-[#687b75]">
+          <p className="mt-3 mb-0 text-[0.9rem] text-[#687b75]">
             {option.description}
           </p>
         </div>
@@ -237,7 +233,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             </div>
           </div>
           {discount && (
-            <p className="mt-[0.8rem]! mb-0! inline-block rounded-[5px] bg-[#dff0a2] px-[0.55rem] py-[0.35rem] text-[0.78rem] font-[800] text-[#315338]">
+            <p className="mt-[0.8rem] mb-0 inline-block rounded-[5px] bg-[#dff0a2] px-[0.55rem] py-[0.35rem] text-[0.78rem] font-[800] text-[#315338]">
               10% отстъпка за редовна грижа
             </p>
           )}
@@ -246,7 +242,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
         <div className={section}>
           <span className={step}>03</span>
           <h2 className={sectionTitle}>Размер на имота</h2>
-          <Label className="m-0! leading-[1.55] text-[#40564f]">
+          <Label className="m-0 leading-[1.55] text-[#40564f]">
             {option.quantityLabel}
             <span className="mt-[0.45rem] grid grid-cols-[1fr_auto] items-center overflow-hidden rounded-[7px] border border-[#ccd9d1] bg-white">
               <Input
@@ -254,7 +250,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                 min="1"
                 max="1000"
                 step="1"
-                className="m-0! h-[50px] rounded-none! border-0! px-[0.9rem]! py-0!"
+                className="m-0 h-[50px] rounded-none border-0 px-[0.9rem] py-0"
                 value={quantity}
                 aria-describedby={
                   errors.quantity ? "quantity-error" : undefined
@@ -267,14 +263,14 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             </span>
           </Label>
           {errors.quantity && (
-            <p id="quantity-error" className={cn(errorText, "mb-0!")}>
+            <p id="quantity-error" className={cn(errorText, "mb-0")}>
               {errors.quantity}
             </p>
           )}
         </div>
 
         <div className="border-l-[3px] border-[#98bd78] bg-[#edf3ea] p-6">
-          <h2 className="mt-0! mb-[1.2rem]! text-[1.35rem]! text-[#17372f]">
+          <h2 className="mt-0 mb-[1.2rem] text-[1.35rem] text-[#17372f]">
             Включено във всяко посещение
           </h2>
           <ul className="m-0 grid list-none gap-[0.6rem] p-0 text-[#425850]">
@@ -308,11 +304,11 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           </div>
           <h2
             id="summary-title"
-            className="mt-[0.45rem]! mb-0! text-[1.65rem]! text-[#153c33]"
+            className="mt-[0.45rem] mb-0 text-[1.65rem] text-[#153c33]"
           >
             {option.label}
           </h2>
-          <p className="mt-[0.3rem]! mb-[1.2rem]! text-[0.88rem] text-[#687b75]">
+          <p className="mt-[0.3rem] mb-[1.2rem] text-[0.88rem] text-[#687b75]">
             {visits} {visits === 1 ? "посещение" : "посещения"} месечно ·{" "}
             {quantity || "—"} {option.unit}
           </p>
@@ -325,7 +321,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             </strong>
             <span className="text-[#687b75]">/ месец</span>
           </div>
-          <p className="mt-[0.7rem]! mb-6! text-[0.76rem] text-[#687b75]">
+          <p className="mt-[0.7rem] mb-6 text-[0.76rem] text-[#687b75]">
             {money(tariffs[plan])} × {quantity || "—"} {option.unit} × {visits}{" "}
             посещения
             {discount && " × 0.90"}
@@ -340,7 +336,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
               <span className="text-[0.68rem] font-[800] text-[#668078]">
                 СТЪПКА 04
               </span>
-              <h3 className="text-[1.15rem]! text-[#17372f]">Заявете старт</h3>
+              <h3 className="text-[1.15rem] text-[#17372f]">Заявете старт</h3>
             </div>
             <div className="grid gap-[0.9rem]">
               <Field

@@ -83,19 +83,19 @@ export function PendingSpecialistsQueue({
         return (
           <article
             key={spec.id}
-            className="rounded-[10px] border border-border bg-[#fbfdfa] px-5 py-[18px]"
+            className="rounded-[10px] border border-border bg-tone-fbfdfa px-5 py-[18px]"
             aria-label={`Кандидатура на ${spec.name}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3.5 max-md:flex-col max-md:items-stretch">
               <div className="flex items-center gap-3">
                 <div
-                  className="grid size-10 shrink-0 place-items-center rounded-full bg-[#e9efdc] text-base font-bold text-primary"
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-tone-e9efdc text-base font-bold text-primary"
                   aria-hidden="true"
                 >
                   {initial}
                 </div>
                 <div className="flex flex-col gap-1">
-                  <h3 className="m-0! text-base! font-bold text-foreground">
+                  <h3 className="m-0 text-base font-bold text-foreground">
                     {spec.name}
                   </h3>
                   <div className="flex flex-wrap items-center gap-2">
@@ -128,7 +128,7 @@ export function PendingSpecialistsQueue({
                   variant="secondary"
                   onClick={() => handleDecision(spec, UserStatus.Rejected)}
                   disabled={isProcessing}
-                  className="border-[#fecaca] px-4 py-[7px] text-[13px] text-[#991b1b] hover:bg-[#fee2e2]"
+                  className="border-tone-fecaca px-4 py-[7px] text-[13px] text-tone-991b1b hover:bg-tone-fee2e2"
                 >
                   Откажи
                 </Button>
@@ -168,11 +168,11 @@ export function PendingSpecialistsQueue({
             </DetailGrid>
 
             {profile?.bio && (
-              <div className="mt-3.5 border-t border-[#edf2ed] pt-3">
+              <div className="mt-3.5 border-t border-tone-edf2ed pt-3">
                 <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-muted-foreground uppercase">
                   Професионално представяне (Био)
                 </span>
-                <p className="m-0 text-[13px] leading-normal text-foreground">
+                <p className="text-[13px] leading-normal text-foreground">
                   {profile.bio}
                 </p>
               </div>

@@ -18,7 +18,7 @@ export function FailedDeliveriesList({
       {deliveries.map((d) => (
         <li
           key={d.id}
-          className="flex flex-col gap-1.5 rounded-[10px] border border-border bg-[#fbfdfa] px-5 py-[18px]"
+          className="flex flex-col gap-1.5 rounded-[10px] border border-border bg-tone-fbfdfa px-5 py-[18px]"
         >
           <div className="flex flex-wrap justify-between gap-3.5">
             <strong>{d.eventType}</strong>

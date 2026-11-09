@@ -202,7 +202,7 @@ export function LoginForm() {
         </AuthField>
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
-          <AuthLabel className="inline-flex! cursor-pointer items-center gap-2">
+          <AuthLabel className="inline-flex cursor-pointer items-center gap-2">
             <AuthCheckbox
               id="rememberMe"
               name="rememberMe"
@@ -251,7 +251,7 @@ function SocialButton({
     <Button
       type="button"
       variant="secondary"
-      className="inline-flex w-full items-center justify-center gap-2.5 px-3.5 py-2.5 text-[14px] text-foreground hover:border-[#c4d3ce] hover:bg-[#f8faf9] active:translate-y-px"
+      className="inline-flex w-full items-center justify-center gap-2.5 px-3.5 py-2.5 text-[14px] text-foreground hover:border-tone-c4d3ce hover:bg-tone-f8faf9 active:translate-y-px"
       aria-label={label}
     >
       {icon}

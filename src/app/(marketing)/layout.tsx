@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/skip-link";
 import { PlansFooter } from "@/features/plans/plans-footer";
 import { PlansHeader } from "@/features/plans/plans-header";
 
@@ -6,9 +7,7 @@ export default function MarketingLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <>
-      <a href="#main" className="skip-link">
-        Към съдържанието
-      </a>
+      <SkipLink />
       <PlansHeader />
       {children}
       <PlansFooter />

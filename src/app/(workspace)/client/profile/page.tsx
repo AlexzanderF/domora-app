@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 const cardClass = "rounded-xl p-6 max-[700px]:p-[1.15rem]";
 const eyebrowClass =
   "mb-[0.3rem] block text-[0.75rem] font-bold tracking-[0.12em] text-muted-foreground";
-const headingClass = "text-[1.15rem]!";
+const headingClass = "text-[1.15rem]";
 const headerClass =
   "mb-5 flex items-start justify-between gap-4 max-[700px]:flex-col";
 const labelClass =
@@ -72,11 +72,11 @@ export default async function ClientProfilePage() {
         description="Преглеждайте контактните данни, имота и връзките към услугите си."
       />
       {!user ? (
-        <Card className="rounded-xl border-[#f0d6a7] bg-[#fff8ea] px-6 py-5 text-[#634716] max-[700px]:p-[1.15rem]">
-          <h2 className="mb-[0.35rem]! text-[1rem]!">
+        <Card className="rounded-xl border-tone-f0d6a7 bg-tone-fff8ea px-6 py-5 text-tone-634716 max-[700px]:p-[1.15rem]">
+          <h2 className="mb-[0.35rem] text-[1rem]">
             Профилът е временно недостъпен
           </h2>
-          <p className="m-0! text-[0.9rem]">
+          <p className="m-0 text-[0.9rem]">
             Не успяхме да заредим клиентски профил. Опитайте отново, когато
             връзката с базата данни е активна.
           </p>
@@ -96,7 +96,7 @@ export default async function ClientProfilePage() {
                     Данни за клиента
                   </h2>
                 </div>
-                <Badge className="rounded-full border border-[#c9e0d4] px-3 py-[0.35rem] text-[0.82rem] font-bold whitespace-nowrap">
+                <Badge className="rounded-full border border-tone-c9e0d4 px-3 py-[0.35rem] text-[0.82rem] font-bold whitespace-nowrap">
                   {getRoleLabel(user.role)}
                 </Badge>
               </div>
@@ -136,7 +136,7 @@ export default async function ClientProfilePage() {
                 Услуги към профила
               </h2>
             </div>
-            <p className="m-0! text-[0.92rem] text-muted-foreground">
+            <p className="m-0 text-[0.92rem] text-muted-foreground">
               Следете абонамента си и историята на заявките от профила си.
             </p>
             <div className="grid gap-[0.7rem]">

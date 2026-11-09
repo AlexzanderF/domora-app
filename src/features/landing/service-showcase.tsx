@@ -9,8 +9,6 @@ import { money } from "@/lib/format";
 const cardAction =
   "mt-[0.8rem] cursor-pointer border-0 bg-transparent p-0 font-[750] text-primary no-underline hover:underline hover:underline-offset-4";
 
-// `!` modifiers beat the legacy unlayered `h2`, `h3` and `p` element rules in
-// globals.css; drop them when the contract ticket removes those rules.
 export function ServiceShowcase() {
   return (
     <section
@@ -20,17 +18,17 @@ export function ServiceShowcase() {
     >
       <div className="mb-[1.65rem] flex items-end justify-between gap-8 max-[800px]:flex-col max-[800px]:items-start">
         <div>
-          <p className="mt-0! mb-[0.65rem]! text-xs font-extrabold tracking-[0.15em] text-primary">
+          <p className="mt-0 mb-[0.65rem] text-xs font-extrabold tracking-[0.15em] text-primary">
             ЗА ВСЕКИ ДОМ
           </p>
           <h2
             id="services-title"
-            className="text-[clamp(2rem,4vw,3.25rem)]! tracking-[-0.035em]"
+            className="text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]"
           >
             Услуги и абонаменти
           </h2>
         </div>
-        <p className="m-0! max-w-[500px] text-[#61726c]">
+        <p className="m-0 max-w-[500px] text-[#61726c]">
           Изберете еднократна помощ или постоянна грижа с предвидим график и
           цена.
         </p>
@@ -49,10 +47,8 @@ export function ServiceShowcase() {
               <span className="text-[0.72rem] font-extrabold tracking-[0.12em] text-[#718079] uppercase">
                 {highlight.category.name}
               </span>
-              <h3 className="mt-[0.45rem]! text-[1.25rem]!">
-                {highlight.title}
-              </h3>
-              <p className="mt-[0.65rem]! mb-4! flex-1 text-[0.94rem] text-[#63736d]">
+              <h3 className="mt-[0.45rem] text-[1.25rem]">{highlight.title}</h3>
+              <p className="mt-[0.65rem] mb-4 flex-1 text-[0.94rem] text-[#63736d]">
                 {highlight.description}
               </p>
               <strong className="text-[1.05rem] text-primary">
@@ -81,10 +77,10 @@ export function ServiceShowcase() {
           <span className="text-[0.7rem] font-[850] tracking-[0.14em]">
             ПО-МАЛКО ЗАДАЧИ. ПОВЕЧЕ ВРЕМЕ.
           </span>
-          <h3 className="mt-[0.4rem]! text-[clamp(1.35rem,3vw,2rem)]!">
+          <h3 className="mt-[0.4rem] text-[clamp(1.35rem,3vw,2rem)]">
             Спестете до 20% с месечен абонамент
           </h3>
-          <p className="mt-[0.65rem]! mb-0! max-w-[650px]">
+          <p className="mt-[0.65rem] mb-0 max-w-[650px]">
             Един график, познат екип и предвидима месечна цена — без ново
             търсене при всяко посещение.
           </p>
