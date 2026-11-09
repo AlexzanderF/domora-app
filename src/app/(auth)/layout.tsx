@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { LandingFooter } from "@/features/landing/landing-footer";
 import { LandingHeader } from "@/features/landing/landing-header";
-import styles from "./auth.module.css";
+import styles from "@/features/auth/auth.module.css";
 
 export const metadata: Metadata = {
   title: "Вход и регистрация | DOMORA",
