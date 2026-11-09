@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-import { useDemo } from "@/features/requests/demo-provider";
+import { useBooking } from "@/features/bookings/booking-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
-import { transitionRequest } from "@/features/requests/transitions";
-import { RequestStatus, Role } from "@/features/requests/types";
+import { RequestStatus } from "@/features/requests/types";
 import type { RequestAction, ServiceRequest } from "@/features/requests/types";
 import { categories } from "@/features/services/catalog";
 import { ServiceIcon } from "@/features/services/service-icon";
@@ -25,20 +25,16 @@ import {
 import styles from "./client-dashboard.module.css";
 
 export function ClientDashboard({
-  initialRequests,
-  initialSubscription,
-  isDbMode,
+  requests,
+  subscription,
 }: {
-  initialRequests: ServiceRequest[] | null;
-  initialSubscription: Subscription | null;
-  isDbMode: boolean;
+  requests: ServiceRequest[];
+  subscription: Subscription | null;
 }) {
-  const demo = useDemo();
+  const { openBooking } = useBooking();
+  const router = useRouter();
   const notify = useToast();
-  const [serverRequests, setServerRequests] = useState(initialRequests);
   const [ratingRequestId, setRatingRequestId] = useState<number | null>(null);
-  const requests = serverRequests ?? demo.requests;
-  const subscription = isDbMode ? initialSubscription : demo.subscription;
   const activeRequest = useMemo(
     () => selectActiveRequest(requests),
     [requests],
@@ -52,37 +48,23 @@ export function ClientDashboard({
     [requests],
   );
 
-  function updateLocally(id: number, action: RequestAction) {
-    if (serverRequests) {
-      setServerRequests(
-        (current) =>
-          current?.map((request) =>
-            request.id === id
-              ? transitionRequest(request, action, Role.Client)
-              : request,
-          ) ?? null,
-      );
-    } else {
-      demo.updateRequest(id, action, Role.Client);
-    }
-  }
-
   async function performAction(
     request: ServiceRequest,
     action: RequestAction,
     message: string,
   ) {
-    updateLocally(request.id, action);
     try {
       const result = await transitionRequestServerAction(request.id, action);
-      if (result.mode === "db" && !result.success) {
+      if (!result.success) {
         notify(result.error ?? "Действието не беше завършено.");
         return;
       }
     } catch {
-      // The optimistic demo state remains available without a configured database.
+      notify("Действието не беше завършено. Опитайте отново.");
+      return;
     }
     notify(message);
+    router.refresh();
   }
 
   return (
@@ -157,7 +139,7 @@ export function ClientDashboard({
             <button
               key={category.id}
               type="button"
-              onClick={() => demo.openBooking({ category: category.id })}
+              onClick={() => openBooking({ category: category.id })}
             >
               <span className={styles.categoryIcon}>
                 <ServiceIcon category={category.id} />

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/ui/page-heading";
 import { BookingButton } from "@/features/bookings/booking-button";
@@ -5,7 +6,6 @@ import { ClientDashboard } from "@/features/client-dashboard/client-dashboard";
 import { findClientRequests } from "@/features/requests/server/queries";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
-import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = { title: "Табло на клиента" };
 
@@ -13,12 +13,11 @@ export const dynamic = "force-dynamic";
 
 export default async function ClientDashboardPage() {
   const user = await getServerSession();
-  const [initialRequests, initialSubscription] = user
-    ? await Promise.all([
-        findClientRequests(user.id),
-        findUserSubscription(user),
-      ])
-    : [null, null];
+  if (!user) redirect("/api/auth/logout?next=/login");
+  const [initialRequests, initialSubscription] = await Promise.all([
+    findClientRequests(user.id),
+    findUserSubscription(user),
+  ]);
 
   return (
     <>
@@ -30,9 +29,8 @@ export default async function ClientDashboardPage() {
         <BookingButton />
       </PageHeading>
       <ClientDashboard
-        initialRequests={initialRequests}
-        initialSubscription={initialSubscription}
-        isDbMode={isDbConfigured && Boolean(user)}
+        requests={initialRequests ?? []}
+        subscription={initialSubscription}
       />
     </>
   );

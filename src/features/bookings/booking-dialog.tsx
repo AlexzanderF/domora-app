@@ -11,31 +11,41 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import { DatePicker } from "@/features/plans/date-picker";
 import { TimePicker } from "@/features/plans/time-picker";
-import { useDemo } from "@/features/requests/demo-provider";
+import { useBooking } from "./booking-provider";
 import { calculateQuote, quoteScope } from "@/domain/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
-import { generateDemoId } from "@/features/requests/demo-data";
-import { Plan, RequestStatus } from "@/features/requests/types";
-import type { BookingSelection, CategoryId } from "@/features/requests/types";
+import { Plan } from "@/features/requests/types";
+import type {
+  BookingSelection,
+  CategoryId,
+  Tariffs,
+} from "@/features/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";
 import styles from "./booking-dialog.module.css";
 
-export function BookingDialog() {
-  const { booking } = useDemo();
+export function BookingDialog({ tariffs }: { tariffs: Tariffs }) {
+  const { booking } = useBooking();
   return booking ? (
     <BookingForm
       key={`${booking.category}-${booking.plan ?? "service"}`}
       selection={booking}
+      tariffs={tariffs}
     />
   ) : null;
 }
 
-function BookingForm({ selection }: { selection: BookingSelection }) {
+function BookingForm({
+  selection,
+  tariffs,
+}: {
+  selection: BookingSelection;
+  tariffs: Tariffs;
+}) {
   const dialog = useRef<HTMLDialogElement>(null);
   const router = useRouter();
-  const { closeBooking, tariffs, addRequest } = useDemo();
+  const { closeBooking } = useBooking();
   const notify = useToast();
   const [category, setCategory] = useState<CategoryId>(selection.category);
   const [serviceIndex, setServiceIndex] = useState(0);
@@ -106,31 +116,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         plan,
       });
 
-      if (actionResult.mode === "demo") {
-        addRequest({
-          id: generateDemoId(),
-          category,
-          service: serviceName,
-          address,
-          description,
-          date: dateStr,
-          time: timeStr,
-          price,
-          status: RequestStatus.Created,
-          plan,
-        });
-        closeBooking();
-        router.push("/client/requests");
-        notify(
-          "Демо заявката е създадена. Не е изпратена до реален специалист.",
-        );
-        return;
-      }
-
       if (actionResult.success) {
-        if (actionResult.request) {
-          addRequest(actionResult.request);
-        }
         closeBooking();
         router.push("/client/requests");
         notify("Заявката е създадена успешно.");
@@ -141,22 +127,7 @@ function BookingForm({ selection }: { selection: BookingSelection }) {
         actionResult.error ?? "Възникна грешка при създаване на заявката.",
       );
     } catch {
-      // Fallback to demo in case of network issue
-      addRequest({
-        id: generateDemoId(),
-        category,
-        service: serviceName,
-        address,
-        description,
-        date: dateStr,
-        time: timeStr,
-        price,
-        status: RequestStatus.Created,
-        plan,
-      });
-      closeBooking();
-      router.push("/client/requests");
-      notify("Демо заявката е създадена. Не е изпратена до реален специалист.");
+      notify("Възникна грешка при създаване на заявката.");
     } finally {
       setIsSubmitting(false);
     }

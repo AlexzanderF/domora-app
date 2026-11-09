@@ -24,7 +24,6 @@ import {
 import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
 import { getActor } from "@/features/auth/server/actor";
-import { getServerSession } from "@/features/auth/server/session";
 import { UserRole } from "@/features/auth/types";
 import { RequestPriority, RequestStatus } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
@@ -90,15 +89,6 @@ async function runAsActor(
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
-
-  const user = await getServerSession();
-  if (!user) {
-    return { success: true, mode: "demo" };
-  }
-
   return runAsActor(
     async (actor) => {
       const created = await createRequest(actor, {
@@ -186,9 +176,6 @@ export async function completeWorkAction(
 export async function cancelRequestAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await cancelRequest(actor, requestId);
@@ -201,10 +188,6 @@ export async function transitionRequestServerAction(
   requestId: number,
   action: RequestAction,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
-
   switch (action.type) {
     case "advance": {
       const db = getDb();

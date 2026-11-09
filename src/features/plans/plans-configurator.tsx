@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import { DatePicker } from "@/features/plans/date-picker";
 import { TimePicker } from "@/features/plans/time-picker";
-import { useDemo } from "@/features/requests/demo-provider";
 import { calculateQuote } from "@/domain/pricing";
-import { generateDemoId } from "@/features/requests/demo-data";
-import { Plan, RequestStatus } from "@/features/requests/types";
+import { Plan } from "@/features/requests/types";
+import type { Tariffs } from "@/features/requests/types";
 import { startSubscriptionAction } from "@/features/subscriptions/server/actions";
 import { SubscriptionPlan } from "@/features/subscriptions/types";
 import { localDate, money } from "@/lib/format";
@@ -56,10 +55,9 @@ const planOptions: Record<
 
 const quickVisits = [1, 2, 4] as const;
 
-export function PlansConfigurator() {
+export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
   const router = useRouter();
   const notify = useToast();
-  const { tariffs, addRequest } = useDemo();
   const [plan, setPlan] = useState<Plan>(Plan.Home);
   const [visits, setVisits] = useState(2);
   const [quantity, setQuantity] = useState(80);
@@ -123,31 +121,11 @@ export function PlansConfigurator() {
         notify(result.error ?? "Абонаментът не можа да бъде създаден.");
         return;
       }
-      if (result.mode === "db") {
-        notify("Абонаментът е създаден успешно.");
-        router.push("/client/plan");
-        return;
-      }
+      notify("Абонаментът е създаден успешно.");
+      router.push("/client/plan");
     } finally {
       setSaving(false);
     }
-
-    addRequest({
-      id: generateDemoId(),
-      category: 4,
-      service: option.service,
-      address,
-      description,
-      date,
-      time,
-      price,
-      status: RequestStatus.Created,
-      plan,
-      visitsPerMonth: visits,
-      propertySize: quantity,
-    });
-    notify("Абонаментната заявка е създадена успешно.");
-    router.push("/client/requests");
   }
 
   return (

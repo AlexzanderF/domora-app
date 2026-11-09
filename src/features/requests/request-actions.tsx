@@ -1,7 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
-import { useDemo } from "./demo-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { canAdvance, requiresCompletionReport } from "./request-rules";
 import { RequestStatus, Role } from "./types";
@@ -14,21 +14,22 @@ export function RequestActions({
   request: ServiceRequest;
   role: Role;
 }) {
-  const { updateRequest } = useDemo();
+  const router = useRouter();
   const notify = useToast();
 
   const perform = async (action: RequestAction, message: string) => {
-    updateRequest(request.id, action, role);
     try {
       const res = await transitionRequestServerAction(request.id, action);
-      if (res.mode === "db" && !res.success) {
+      if (!res.success) {
         notify(res.error ?? "Грешка при изпълнение на действието.");
         return;
       }
     } catch {
-      // Demo mode or network fallback
+      notify("Грешка при изпълнение на действието. Опитайте отново.");
+      return;
     }
     notify(message);
+    router.refresh();
   };
 
   if (request.cancelled) return null;

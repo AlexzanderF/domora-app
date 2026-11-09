@@ -1,43 +1,15 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState } from "react";
-import {
-  generateDemoId,
-  initialRequests,
-  initialSubscription,
-  initialTariffs,
-} from "./demo-data";
+import { initialRequests, initialTariffs } from "./demo-data";
 import { transitionRequest } from "./transitions";
-import type {
-  BookingSelection,
-  RequestAction,
-  Role,
-  ServiceRequest,
-  Tariffs,
-} from "./types";
-import {
-  SubscriptionPlan,
-  SubscriptionStatus,
-} from "@/features/subscriptions/types";
-import type { Subscription } from "@/features/subscriptions/types";
+import type { RequestAction, Role, ServiceRequest, Tariffs } from "./types";
 
 interface DemoContextValue {
   requests: ServiceRequest[];
   tariffs: Tariffs;
-  booking: BookingSelection | null;
-  subscription: Subscription | null;
-  openBooking: (selection: BookingSelection) => void;
-  closeBooking: () => void;
-  addRequest: (request: ServiceRequest) => void;
   updateRequest: (id: number, action: RequestAction, role: Role) => void;
   updateTariffs: (tariffs: Tariffs) => void;
-  setSubscription: (subscription: Subscription | null) => void;
-  subscribePlan: (
-    planType: SubscriptionPlan,
-    propertyAddress?: string,
-    propertyArea?: number,
-  ) => void;
-  cancelSubscription: () => void;
 }
 
 const DemoContext = createContext<DemoContextValue | null>(null);
@@ -53,21 +25,7 @@ export function DemoProvider({
   const [requests, setRequests] = useState(initialRequests);
   const [tariffsOverride, updateTariffs] = useState<Tariffs | null>(null);
   const tariffs = tariffsOverride ?? serverTariffs;
-  const [booking, setBooking] = useState<BookingSelection | null>(null);
-  const [subscription, setSubscription] = useState<Subscription | null>(
-    initialSubscription,
-  );
 
-  const openBooking = useCallback(
-    (selection: BookingSelection) => setBooking(selection),
-    [],
-  );
-  const closeBooking = useCallback(() => setBooking(null), []);
-  const addRequest = useCallback(
-    (request: ServiceRequest) =>
-      setRequests((current) => [request, ...current]),
-    [],
-  );
   const updateRequest = useCallback(
     (id: number, action: RequestAction, role: Role) => {
       setRequests((current) =>
@@ -81,58 +39,13 @@ export function DemoProvider({
     [],
   );
 
-  const subscribePlan = useCallback(
-    (
-      planType: SubscriptionPlan,
-      propertyAddress: string = "София · ул. Примерна 12, ет. 3, ап. 8",
-      propertyArea: number = planType === SubscriptionPlan.Home ? 85 : 6,
-    ) => {
-      const newSub: Subscription = {
-        id: generateDemoId(),
-        userId: 1,
-        planType,
-        propertyAddress,
-        propertyArea,
-        status: SubscriptionStatus.Active,
-        visitsRemaining: planType === SubscriptionPlan.Home ? 2 : 4,
-        validUntil: new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setSubscription(newSub);
-    },
-    [],
-  );
-
-  const cancelSubscription = useCallback(() => {
-    setSubscription((curr) =>
-      curr
-        ? {
-            ...curr,
-            status: SubscriptionStatus.Cancelled,
-            updatedAt: new Date().toISOString(),
-          }
-        : null,
-    );
-  }, []);
-
   return (
     <DemoContext.Provider
       value={{
         requests,
         tariffs,
-        booking,
-        subscription,
-        openBooking,
-        closeBooking,
-        addRequest,
         updateRequest,
         updateTariffs,
-        setSubscription,
-        subscribePlan,
-        cancelSubscription,
       }}
     >
       {children}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useDemo } from "@/features/requests/demo-provider";
+import { useBooking } from "@/features/bookings/booking-provider";
 import { categories, isCategoryId } from "@/features/services/catalog";
 
 interface BrowserModelContext {
@@ -20,7 +20,7 @@ interface BrowserModelContext {
 
 // Progressive enhancement for browsers exposing the prototype's WebMCP API.
 export function BrowserBookingTool() {
-  const { openBooking } = useDemo();
+  const { openBooking } = useBooking();
   useEffect(() => {
     const context = (
       document as Document & { modelContext?: BrowserModelContext }
@@ -31,7 +31,7 @@ export function BrowserBookingTool() {
       void Promise.resolve(
         context.registerTool({
           name,
-          description: "Отваря формата за нова демо заявка; не изпраща заявка.",
+          description: "Отваря формата за нова заявка; не изпраща заявка.",
           inputSchema: {
             type: "object",
             properties: {

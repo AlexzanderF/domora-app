@@ -35,8 +35,7 @@ export interface StartSubscriptionInput extends SubscribeInput {
 export interface SubscriptionActionResult {
   success: boolean;
   error?: string;
-  // "demo" means there is no database or session; nothing was saved.
-  mode?: "db" | "demo";
+  mode?: "db";
   subscription?: Subscription;
 }
 
@@ -89,16 +88,14 @@ export async function createSubscriptionAction(
 }
 
 // The plans configurator: saves the subscription, then books the first visit
-// against it. Without a database or session it only reports demo mode, so the
-// configurator can fall back to its in-memory request.
+// against it.
 export async function startSubscriptionAction(
   input: StartSubscriptionInput,
 ): Promise<SubscriptionActionResult> {
-  if (!isDbConfigured) return { success: true, mode: "demo" };
-  const actor = await getActor();
-  if (!actor) return { success: true, mode: "demo" };
+  if (!isDbConfigured) return { success: false, error: UNAVAILABLE };
 
   try {
+    const actor = await getActor();
     const { firstVisit, ...plan } = input;
     const { subscription } = await startSubscription(actor, plan, {
       category: SUBSCRIPTION_CATEGORY,

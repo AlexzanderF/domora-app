@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PlansConfigurator } from "@/features/plans/plans-configurator";
+import { findTariffs } from "@/domain/pricing/tariffs";
 import styles from "@/features/plans/plans.module.css";
 
 export const metadata: Metadata = {
@@ -8,7 +9,8 @@ export const metadata: Metadata = {
     "Конфигурирайте абонаментна грижа за дома или общите части с ясен месечен график и цена.",
 };
 
-export default function PlansPage() {
+export default async function PlansPage() {
+  const tariffs = await findTariffs();
   return (
     <main id="main" className={styles.page}>
       <header className={styles.intro}>
@@ -19,7 +21,7 @@ export default function PlansPage() {
           да изпратите заявката.
         </p>
       </header>
-      <PlansConfigurator />
+      <PlansConfigurator tariffs={tariffs} />
     </main>
   );
 }
