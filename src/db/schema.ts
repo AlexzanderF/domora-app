@@ -5,6 +5,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -268,6 +269,69 @@ export const tariffs = pgTable("tariffs", {
     .notNull(),
 });
 
+export const notificationStatusEnum = pgEnum("notification_status", [
+  "PENDING",
+  "SENT",
+  "FAILED",
+]);
+
+// Versioned domain events, inserted in the same transaction as the state
+// change they describe. The worker fans each one out into deliveries once.
+export const outboxEvents = pgTable(
+  "outbox_events",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    type: text("type").notNull(),
+    version: integer("version").notNull().default(1),
+    payload: jsonb("payload").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    fannedOutAt: timestamp("fanned_out_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("outbox_events_pending_idx")
+      .on(table.id)
+      .where(sql`${table.fannedOutAt} IS NULL`),
+  ],
+);
+
+// One row per event + recipient + channel; the unique key is what stops a
+// re-run from sending the same notification twice.
+export const notificationDeliveries = pgTable(
+  "notification_deliveries",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    eventId: integer("event_id")
+      .notNull()
+      .references(() => outboxEvents.id, { onDelete: "cascade" }),
+    recipient: text("recipient").notNull(),
+    channel: text("channel").notNull().default("email"),
+    template: text("template").notNull(),
+    data: jsonb("data").notNull(),
+    status: notificationStatusEnum("status").notNull().default("PENDING"),
+    attempts: integer("attempts").notNull().default(0),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    lastError: text("last_error"),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("notification_deliveries_event_recipient_channel_idx").on(
+      table.eventId,
+      table.recipient,
+      table.channel,
+    ),
+    index("notification_deliveries_due_idx")
+      .on(table.nextAttemptAt)
+      .where(sql`${table.status} = 'PENDING'`),
+  ],
+);
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   specialistProfile: one(specialistProfiles),
@@ -328,3 +392,6 @@ export type SubscriptionSelect = typeof subscriptions.$inferSelect;
 export type SubscriptionInsert = typeof subscriptions.$inferInsert;
 export type TariffSelect = typeof tariffs.$inferSelect;
 export type TariffInsert = typeof tariffs.$inferInsert;
+export type OutboxEventSelect = typeof outboxEvents.$inferSelect;
+export type NotificationDeliverySelect =
+  typeof notificationDeliveries.$inferSelect;
