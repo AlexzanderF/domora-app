@@ -9,7 +9,15 @@ import { ReportPhotos } from "@/features/requests/report-photos";
 import { money } from "@/lib/format";
 import type { ResolvedDispute } from "./server/queries";
 import type { ServiceRequest } from "@/domain/requests/types";
-import styles from "./disputed-requests-queue.module.css";
+import { Button } from "@/components/ui/button";
+import {
+  CardHeaderRow,
+  CategoryPill,
+  DetailGrid,
+  DetailItem,
+  DetailValue,
+  QueueEmpty,
+} from "./admin-ui";
 
 export interface DisputedRequestsQueueProps {
   initialDisputedRequests?: ServiceRequest[] | null;
@@ -59,22 +67,18 @@ export function DisputedRequestsQueue({
   if (disputed.length === 0) {
     return (
       <>
-        <div className={styles.emptyState}>
-          <span className={styles.emptyIcon} aria-hidden="true">
-            ✅
-          </span>
-          <p className={styles.emptyTitle}>Няма активни сигнали за проблеми</p>
-          <p className={styles.emptyDescription}>
-            Всички оспорвания между клиенти и специалисти са разрешени.
-          </p>
-        </div>
+        <QueueEmpty
+          icon="✅"
+          title="Няма активни сигнали за проблеми"
+          description="Всички оспорвания между клиенти и специалисти са разрешени."
+        />
         {history}
       </>
     );
   }
 
   return (
-    <div className={styles.list}>
+    <div className="flex flex-col gap-3.5">
       {disputed.map((request) => {
         const categoryName =
           categories.find((c) => c.id === request.category)?.name ?? "Друго";
@@ -83,70 +87,68 @@ export function DisputedRequestsQueue({
         return (
           <article
             key={request.id}
-            className={styles.card}
+            className="rounded-[10px] border border-[#fde7c7] bg-[#fffaf5] px-5 py-[18px]"
             aria-label={request.service}
           >
-            <div className={styles.cardHeader}>
+            <CardHeaderRow className="max-md:flex-col max-md:items-stretch">
               <div>
-                <h3 className={styles.title}>{request.service}</h3>
-                <div className={styles.metaRow}>
-                  <span className={styles.categoryBadge}>{categoryName}</span>
-                  <span className={styles.dateText}>
+                <h3 className="m-0! mb-1.5! text-base! font-bold text-foreground">
+                  {request.service}
+                </h3>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <CategoryPill>{categoryName}</CategoryPill>
+                  <span className="text-xs text-muted-foreground">
                     {request.date} · {request.time}
                   </span>
                 </div>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => handleResolve(request)}
                 disabled={isProcessing}
-                className={styles.resolveButton}
+                className="px-4 py-[7px] text-[13px] whitespace-nowrap"
               >
                 Маркирай като решен
-              </button>
-            </div>
+              </Button>
+            </CardHeaderRow>
 
-            <div className={styles.detailsGrid}>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Назначен специалист</span>
-                <span className={styles.detailValue}>
+            <DetailGrid className="mt-4 border-[#f2e5cf]">
+              <DetailItem label="Назначен специалист">
+                <DetailValue>
                   {request.specialist || "Няма назначен специалист"}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Клиент</span>
-                <span className={styles.detailValue}>
+                </DetailValue>
+              </DetailItem>
+              <DetailItem label="Клиент">
+                <DetailValue>
                   {request.clientName || "—"}
                   {request.clientPhone ? ` · ${request.clientPhone}` : ""}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Статус на изпълнение</span>
-                <span className={styles.detailValue}>
-                  {requestStages[request.status]}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Стойност</span>
-                <span className={styles.detailValue}>
-                  {money(request.price)}
-                </span>
-              </div>
-            </div>
+                </DetailValue>
+              </DetailItem>
+              <DetailItem label="Статус на изпълнение">
+                <DetailValue>{requestStages[request.status]}</DetailValue>
+              </DetailItem>
+              <DetailItem label="Стойност">
+                <DetailValue>{money(request.price)}</DetailValue>
+              </DetailItem>
+            </DetailGrid>
 
-            <div className={styles.issueSection}>
-              <span className={styles.issueLabel}>
+            <div className="mt-3.5 border-t border-[#f2e5cf] pt-3">
+              <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-[#b45309] uppercase">
                 Описание на проблема (от клиента)
               </span>
-              <p className={styles.issueText}>
+              <p className="m-0! text-[13px] leading-normal text-foreground">
                 {request.issueNote ?? request.description}
               </p>
             </div>
 
             {request.report && (
-              <div className={styles.reportSection}>
-                <span className={styles.reportLabel}>Отчет от специалиста</span>
-                <p className={styles.reportText}>{request.report}</p>
+              <div className="mt-3.5 border-t border-[#f2e5cf] pt-3">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-[#b45309] uppercase">
+                  Отчет от специалиста
+                </span>
+                <p className="m-0! text-[13px] leading-normal text-foreground">
+                  {request.report}
+                </p>
                 <ReportPhotos photoIds={request.reportPhotoIds} />
               </div>
             )}
@@ -161,26 +163,30 @@ export function DisputedRequestsQueue({
 function ResolvedHistory({ disputes }: { disputes: ResolvedDispute[] }) {
   if (disputes.length === 0) return null;
   return (
-    <section
-      className={styles.history}
-      aria-label="История на решените сигнали"
-    >
-      <h3 className={styles.historyTitle}>История на решените сигнали</h3>
-      <ul className={styles.historyList}>
+    <section className="mt-[18px]" aria-label="История на решените сигнали">
+      <h3 className="m-0! mb-2.5! text-sm! font-bold text-foreground">
+        История на решените сигнали
+      </h3>
+      <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
         {disputes.map((dispute) => (
-          <li key={dispute.id} className={styles.historyItem}>
+          <li
+            key={dispute.id}
+            className="rounded-lg border border-[#d8e4d9] bg-[#f7faf7] px-3.5 py-3 text-[13px]"
+          >
             <strong>
               #{dispute.requestId} · {dispute.service}
             </strong>
-            <span className={styles.historyMeta}>
+            <span className="mt-0.5 block text-xs text-muted-foreground">
               {dispute.clientName ?? "Клиент"}
               {dispute.specialist ? ` → ${dispute.specialist}` : ""} · решен на{" "}
               {dispute.resolvedAt.slice(0, 10)}
               {dispute.resolvedByName ? ` от ${dispute.resolvedByName}` : ""}
             </span>
-            <p className={styles.historyText}>Сигнал: {dispute.note}</p>
+            <p className="m-0! mt-1.5! text-foreground">
+              Сигнал: {dispute.note}
+            </p>
             {dispute.resolutionNote && (
-              <p className={styles.historyText}>
+              <p className="m-0! mt-1.5! text-foreground">
                 Решение: {dispute.resolutionNote}
               </p>
             )}
