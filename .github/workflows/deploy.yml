@@ -81,6 +81,11 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'domora_user' }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'domora' }}
           APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
+          # Optional; empty keeps the defaults (cookie auto-detect, console notifier).
+          COOKIE_SECURE: ${{ secrets.COOKIE_SECURE }}
+          NOTIFIER_DRIVER: ${{ secrets.NOTIFIER_DRIVER }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NOTIFIER_FROM: ${{ secrets.NOTIFIER_FROM }}
           GHCR_USER: ${{ github.actor }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -88,7 +93,7 @@ jobs:
           username: ${{ secrets.CONTABO_USER }}
           key: ${{ secrets.CONTABO_SSH_KEY }}
           port: ${{ secrets.CONTABO_PORT || 22 }}
-          envs: DOMORA_IMAGE,DEPLOY_REF,POSTGRES_PASSWORD,POSTGRES_USER,POSTGRES_DB,APP_DOMAIN,GHCR_USER,GHCR_TOKEN
+          envs: DOMORA_IMAGE,DEPLOY_REF,POSTGRES_PASSWORD,POSTGRES_USER,POSTGRES_DB,APP_DOMAIN,COOKIE_SECURE,NOTIFIER_DRIVER,RESEND_API_KEY,NOTIFIER_FROM,GHCR_USER,GHCR_TOKEN
           script: |
             set -euo pipefail
             cd /opt/domora-app
@@ -114,6 +119,10 @@ jobs:
             POSTGRES_DB=${POSTGRES_DB}
             APP_DOMAIN=${APP_DOMAIN}
             DOMORA_IMAGE=${DOMORA_IMAGE}
+            COOKIE_SECURE=${COOKIE_SECURE:-}
+            NOTIFIER_DRIVER=${NOTIFIER_DRIVER:-console}
+            RESEND_API_KEY=${RESEND_API_KEY:-}
+            NOTIFIER_FROM="${NOTIFIER_FROM:-}"
             EOF
 
             # Pull the prebuilt image; never build on the server.
