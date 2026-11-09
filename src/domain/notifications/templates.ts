@@ -58,6 +58,31 @@ const templates: Record<string, TemplateFn> = {
     text: `Заявката „${data.title}“ на адрес ${data.address} е с приоритет „${priorityLabel(data.priority)}“ и все още няма специалист. Разпределете я в DOMORA.`,
     html: `<p>Заявката „${escapeHtml(data.title)}“ на адрес ${escapeHtml(data.address)} е с приоритет „${escapeHtml(priorityLabel(data.priority))}“ и все още няма специалист.</p><p>Разпределете я в DOMORA.</p>`,
   }),
+  "specialist-registered": (data) => ({
+    subject: "Нов специалист чака одобрение",
+    text: `${data.name} се регистрира като специалист и чака одобрение. Прегледайте профила в DOMORA.`,
+    html: `<p>${escapeHtml(data.name)} се регистрира като специалист и чака одобрение.</p><p>Прегледайте профила в DOMORA.</p>`,
+  }),
+  "specialist-approved": (data) => ({
+    subject: "Профилът ви е одобрен",
+    text: `Здравейте, ${data.name}! Профилът ви в DOMORA е одобрен. Вече можете да приемате заявки.`,
+    html: `<p>Здравейте, ${escapeHtml(data.name)}!</p><p>Профилът ви в DOMORA е одобрен. Вече можете да приемате заявки.</p>`,
+  }),
+  "specialist-rejected": (data) => ({
+    subject: "Профилът ви не е одобрен",
+    text: `Здравейте, ${data.name}! Профилът ви в DOMORA не беше одобрен. За повече информация се свържете с нас.`,
+    html: `<p>Здравейте, ${escapeHtml(data.name)}!</p><p>Профилът ви в DOMORA не беше одобрен. За повече информация се свържете с нас.</p>`,
+  }),
+  "dispute-raised": (data) => ({
+    subject: "Подаден е проблем по заявка",
+    text: `Клиентът съобщи проблем по заявката „${data.title}“: ${data.note}`,
+    html: `<p>Клиентът съобщи проблем по заявката „${escapeHtml(data.title)}“:</p><p>${escapeHtml(data.note)}</p>`,
+  }),
+  "dispute-resolved": (data) => ({
+    subject: "Проблемът по заявката е разрешен",
+    text: `Администратор разреши проблема по заявката „${data.title}“.${data.note ? ` Бележка: ${data.note}` : ""}`,
+    html: `<p>Администратор разреши проблема по заявката „${escapeHtml(data.title)}“.</p>${data.note ? `<p>Бележка: ${escapeHtml(data.note)}</p>` : ""}`,
+  }),
 };
 
 export function renderTemplate(

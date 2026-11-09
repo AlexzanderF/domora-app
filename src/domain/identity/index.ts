@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { requireDb, specialistProfiles, users } from "@/db";
 import type { Actor } from "@/domain/authorization";
+import { enqueueEvent } from "@/domain/notifications";
 import { UserRole, UserStatus } from "@/features/auth/types";
 
 // Framework-free (no next/*): who may use the platform. Specialists sign up as
@@ -61,6 +62,10 @@ export async function registerSpecialist(
       companyName: input.profile.companyName?.trim() || null,
       eik: input.profile.eik?.trim() || null,
     });
+    await enqueueEvent(tx, {
+      type: "specialist.registered",
+      payload: { userId: created.id },
+    });
     return created.id;
   });
 }
@@ -82,14 +87,29 @@ export async function setSpecialistStatus(
     throw new IdentityError("INVALID_INPUT", "Invalid specialist status.");
   }
 
-  const updated = await requireDb()
-    .update(users)
-    .set({ status, updatedAt: new Date() })
-    .where(and(eq(users.id, userId), eq(users.role, UserRole.Specialist)))
-    .returning({ id: users.id });
-  if (updated.length === 0) {
-    throw new IdentityError("NOT_FOUND", "Specialist not found.");
-  }
+  await requireDb().transaction(async (tx) => {
+    const [current] = await tx
+      .select({ status: users.status })
+      .from(users)
+      .where(and(eq(users.id, userId), eq(users.role, UserRole.Specialist)))
+      .for("update");
+    if (!current) {
+      throw new IdentityError("NOT_FOUND", "Specialist not found.");
+    }
+    // Repeating a decision changes nothing and tells nobody.
+    if (current.status === status) return;
+    await tx
+      .update(users)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+    await enqueueEvent(tx, {
+      type:
+        status === UserStatus.Active
+          ? "specialist.approved"
+          : "specialist.rejected",
+      payload: { userId },
+    });
+  });
 }
 
 export interface BootstrapAdminInput {

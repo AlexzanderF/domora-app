@@ -1,6 +1,7 @@
 import { closeDbPool } from "@/db";
 import { processOutbox } from "@/domain/notifications";
 import { createNotifier } from "@/domain/notifications/notifier";
+import { accountFlowHandlers } from "@/domain/notifications/account-flow";
 import { requestFlowHandlers } from "@/domain/notifications/request-flow";
 
 // Long-running worker: same image as the web app, own Compose service. Polls
@@ -22,7 +23,7 @@ async function main(): Promise<void> {
     try {
       const result = await processOutbox({
         notifier,
-        handlers: requestFlowHandlers,
+        handlers: { ...requestFlowHandlers, ...accountFlowHandlers },
       });
       if (result.events + result.sent + result.retried + result.failed > 0) {
         console.log("[worker] tick", result);
