@@ -4,6 +4,7 @@ import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
 import type { RequestSelect } from "@/db/schema";
 import { listOpportunities } from "@/domain/dispatch";
+import { listReportPhotoIds } from "@/domain/photos";
 import type { Actor } from "@/domain/authorization";
 import { UserStatus } from "@/features/auth/types";
 import type { CategoryId, ServiceRequest } from "../types";
@@ -42,6 +43,7 @@ export async function findClientRequests(
     .leftJoin(users, eq(requests.specialistId, users.id))
     .where(eq(requests.clientId, clientId))
     .orderBy(desc(requests.createdAt));
+  const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
 
   return rows.map(({ request, specialist }) => {
     const rawCategory = Number(request.category);
@@ -59,6 +61,7 @@ export async function findClientRequests(
       description: request.description,
       cancelled: request.cancelled,
       report: request.report ?? undefined,
+      reportPhotoIds: reportPhotos.get(request.id),
       rating: request.rating ?? undefined,
       issue: request.issue || undefined,
       issueNote: request.issueNote ?? undefined,
@@ -103,6 +106,7 @@ export async function findSpecialistRequests(
     .leftJoin(clients, eq(requests.clientId, clients.id))
     .where(whereCondition)
     .orderBy(desc(requests.createdAt));
+  const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
 
   return rows
     .map(({ request, specialist, client }) => {
@@ -122,6 +126,7 @@ export async function findSpecialistRequests(
         description: request.description,
         cancelled: request.cancelled,
         report: request.report ?? undefined,
+        reportPhotoIds: reportPhotos.get(request.id),
         rating: request.rating ?? undefined,
         issue: request.issue || undefined,
         issueNote: request.issueNote ?? undefined,

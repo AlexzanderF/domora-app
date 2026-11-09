@@ -78,6 +78,13 @@
       "when": 1794186228161,
       "tag": "0010_request_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794229963925,
+      "tag": "0011_request_photo_kind",
+      "breakpoints": true
     }
   ]
 }

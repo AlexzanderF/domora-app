@@ -49,6 +49,8 @@ export interface ServiceRequest {
   specialistPhone?: string;
   recommendedSpecialistId?: number;
   report?: string;
+  // Photos the specialist attached to the report, served by /api/photos/[id].
+  reportPhotoIds?: number[];
   cancelled?: boolean;
   issue?: boolean;
   issueNote?: string;

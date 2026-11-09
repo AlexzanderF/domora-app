@@ -3,6 +3,7 @@
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
+import { ReportPhotos } from "./report-photos";
 import { RequestActions } from "./request-actions";
 import { Plan, RequestStatus, Role } from "./types";
 import type { ServiceRequest } from "./types";
@@ -64,6 +65,7 @@ export function RequestList({
                   {request.specialist || "Очаква разпределяне към специалист"}
                 </p>
                 {request.report && <p>Отчет: {request.report}</p>}
+                <ReportPhotos photoIds={request.reportPhotoIds} />
                 <RequestActions request={request} role={role} />
                 {request.issue && (
                   <p className="notice">

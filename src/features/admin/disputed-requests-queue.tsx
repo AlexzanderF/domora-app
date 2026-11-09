@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { useToast } from "@/components/ui/toast-provider";
 import { categories, requestStages } from "@/features/services/catalog";
+import { ReportPhotos } from "@/features/requests/report-photos";
 import { money } from "@/lib/format";
 import type { ResolvedDispute } from "./server/queries";
 import type { ServiceRequest } from "@/features/requests/types";
@@ -146,6 +147,7 @@ export function DisputedRequestsQueue({
               <div className={styles.reportSection}>
                 <span className={styles.reportLabel}>Отчет от специалиста</span>
                 <p className={styles.reportText}>{request.report}</p>
+                <ReportPhotos photoIds={request.reportPhotoIds} />
               </div>
             )}
           </article>

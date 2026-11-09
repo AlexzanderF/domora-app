@@ -12,6 +12,7 @@ describe("photoErrorResponse", () => {
     ["UNAUTHENTICATED", 401, /Влезте/],
     ["FORBIDDEN", 403, /право/],
     ["NOT_FOUND", 404, /не е намерен/],
+    ["INVALID_STATE", 409, /отчета/],
     ["NO_FILES", 400, /поне една/],
     ["TOO_MANY_FILES", 400, /5 снимки/],
     ["FILE_TOO_LARGE", 413, /5 MB/],

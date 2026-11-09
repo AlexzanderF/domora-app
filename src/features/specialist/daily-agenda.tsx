@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
+import { PhotoPicker } from "@/features/bookings/photo-picker";
+import { uploadReportPhotos } from "@/features/bookings/upload-photos";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
@@ -24,6 +26,10 @@ export function DailyAgenda({
   const dialog = useRef<HTMLDialogElement>(null);
   const [reportTarget, setReportTarget] = useState<ServiceRequest | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photosBusy, setPhotosBusy] = useState(false);
+  // Remounts the picker so a previous report's previews do not linger.
+  const [pickerKey, setPickerKey] = useState(0);
 
   const items = initialAgenda;
 
@@ -52,11 +58,13 @@ export function DailyAgenda({
   function closeReportDialog() {
     dialog.current?.close();
     setReportTarget(null);
+    setPhotos([]);
+    setPickerKey((key) => key + 1);
   }
 
   async function submitReport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!reportTarget) return;
+    if (!reportTarget || photosBusy) return;
     const form = event.currentTarget;
     const data = new FormData(form);
     const report = String(data.get("report") ?? "").trim();
@@ -72,7 +80,15 @@ export function DailyAgenda({
         notify(result.error ?? "Грешка при завършване на задачата.");
         return;
       }
-      notify("Отчетът е изпратен. Очаква потвърждение от клиента.");
+      // The report is saved first; photos attach to it afterwards.
+      const uploaded = photos.length
+        ? await uploadReportPhotos(reportTarget.id, photos)
+        : null;
+      notify(
+        uploaded && !uploaded.ok
+          ? `Отчетът е изпратен, но снимките не бяха добавени. ${uploaded.error}`
+          : "Отчетът е изпратен. Очаква потвърждение от клиента.",
+      );
       closeReportDialog();
       router.refresh();
     } catch {
@@ -191,10 +207,15 @@ export function DailyAgenda({
               rows={4}
             />
           </label>
+          <PhotoPicker
+            key={pickerKey}
+            onChange={setPhotos}
+            onBusyChange={setPhotosBusy}
+          />
           <button
             className="primary full"
             type="submit"
-            disabled={busyId === reportTarget?.id}
+            disabled={busyId === reportTarget?.id || photosBusy}
           >
             Изпрати отчет
           </button>

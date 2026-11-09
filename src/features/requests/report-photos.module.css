@@ -1,0 +1,12 @@
+.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.photo {
+  border: 1px solid #ccd9d1;
+  border-radius: 6px;
+  object-fit: cover;
+}
