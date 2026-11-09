@@ -10,7 +10,10 @@ import { requestFlowHandlers } from "@/domain/notifications/request-flow";
 const POLL_INTERVAL_MS = 5_000;
 
 async function main(): Promise<void> {
-  const notifier = createNotifier(process.env.NOTIFIER_DRIVER);
+  const notifier = createNotifier(process.env.NOTIFIER_DRIVER, {
+    apiKey: process.env.RESEND_API_KEY,
+    from: process.env.NOTIFIER_FROM,
+  });
   let stopping = false;
   const stop = () => {
     stopping = true;

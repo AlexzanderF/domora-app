@@ -74,8 +74,10 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: *db-url
-      # "console" logs instead of sending; the only driver for now.
+      # "console" (default) logs instead of sending; "resend" sends email.
       NOTIFIER_DRIVER: ${NOTIFIER_DRIVER:-console}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      NOTIFIER_FROM: ${NOTIFIER_FROM:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
