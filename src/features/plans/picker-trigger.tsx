@@ -23,7 +23,7 @@ export function PickerTrigger({
       {...props}
     >
       {children}
-      <span className="text-[0.8rem] text-[#526b63]" aria-hidden="true">
+      <span className="text-[0.8rem] text-tone-526b63" aria-hidden="true">
         ▾
       </span>
     </Button>

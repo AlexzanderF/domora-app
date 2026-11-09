@@ -162,7 +162,7 @@ export function Faq() {
         {questions.map((item) => (
           <details
             key={item.question}
-            className="group border-t border-[#cedbd3] last:border-b"
+            className="group border-t border-tone-cedbd3 last:border-b"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-[1.05rem] text-[1.05rem] font-[750] text-[#182e29] after:grid after:size-7 after:shrink-0 after:place-items-center after:rounded-full after:bg-[#eaf2ec] after:text-primary after:content-['+'] group-open:after:content-['−'] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#84b998] [&::-webkit-details-marker]:hidden">
               {item.question}
