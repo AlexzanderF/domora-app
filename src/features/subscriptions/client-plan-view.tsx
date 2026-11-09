@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast-provider";
+import { cn } from "@/lib/utils";
 import {
   cancelSubscriptionAction,
   createSubscriptionAction,
@@ -11,7 +17,6 @@ import {
   SubscriptionStatus,
 } from "@/domain/subscriptions/types";
 import type { Subscription } from "@/domain/subscriptions/types";
-import styles from "./client-plan.module.css";
 
 interface ClientPlanViewProps {
   initialSubscription?: Subscription | null;
@@ -33,10 +38,74 @@ const STATUS_LABELS: Record<
   Subscription["status"],
   { label: string; className: string }
 > = {
-  ACTIVE: { label: "Активен", className: styles.statusActive },
-  CANCELLED: { label: "Прекратен", className: styles.statusCancelled },
-  EXPIRED: { label: "Изтекъл", className: styles.statusExpired },
+  ACTIVE: {
+    label: "Активен",
+    className: "border-[#b3e7c5] bg-[#e6f7ec] text-[#176536]",
+  },
+  CANCELLED: {
+    label: "Прекратен",
+    className: "border-[#d1d5db] bg-[#f3f4f6] text-[#4b5563]",
+  },
+  EXPIRED: {
+    label: "Изтекъл",
+    className: "border-[#fde68a] bg-[#fef3c7] text-[#92400e]",
+  },
 };
+
+const HOME_TIER_FEATURES = [
+  "Редовно почистване на подове, санитарни възли и кухня",
+  "Периодичен технически оглед на ВиК и електроинсталации",
+  "Детайлен доклад и снимков отчет след всяко посещение",
+  "15% постоянна отстъпка за всички извънредни ремонтни дейности",
+  "Приоритетен график и фиксирани доверени специалисти",
+];
+
+const ENTRY_TIER_FEATURES = [
+  "Хигиенизиране на стълбища, етажни площадки и входни врати",
+  "Инспекция на входен автомат, домофонни системи и осветление",
+  "Официален цифров отчет за домоуправителя и входа",
+  "Експресна реакция при аварии по общите тръби и инсталации",
+  "Прозрачни счетоводни документи за етажната собственост",
+];
+
+const planCardClass =
+  "flex flex-col rounded-[16px] p-8 shadow-[0_4px_18px_rgb(0_0_0/3%)] max-[700px]:p-8";
+const eyebrowClass = "font-extrabold tracking-[0.1em] text-muted-foreground";
+const formFieldClass =
+  "mb-0! grid! gap-[0.4rem] text-[0.84rem]! leading-[1.55]! font-bold! text-[#40564f]";
+const formInputClass =
+  "mt-0! min-h-11 rounded-[8px]! leading-[1.55]! border-[#ccd9d1]! text-[0.95rem]! disabled:bg-[#f4f6f5]! disabled:text-[#84918d]!";
+const unavailableClass =
+  "rounded-xl border-[#f0d6a7] bg-[#fff8ea] px-6 py-5 text-[#634716] max-[700px]:px-6 max-[700px]:py-5";
+
+function CheckIcon() {
+  return (
+    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#e6f7ec] text-[1.05rem] font-extrabold text-primary">
+      ✓
+    </span>
+  );
+}
+
+function CheckList({
+  items,
+  className,
+  itemClassName,
+}: {
+  items: string[];
+  className: string;
+  itemClassName: string;
+}) {
+  return (
+    <ul className={cn("m-0 list-none p-0", className)}>
+      {items.map((item) => (
+        <li key={item} className={cn("flex gap-[0.65rem]", itemClassName)}>
+          <CheckIcon />
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function formatDateBulgarian(dateString: string): string {
   try {
@@ -128,162 +197,168 @@ export function ClientPlanView({
 
   if (!canManageSubscriptions || loadError) {
     return (
-      <div className={styles.container}>
-        <div className={styles.unavailableState} role="status">
-          <h2>Абонаментите са временно недостъпни</h2>
-          <p>
+      <div className="flex w-full flex-col gap-7">
+        <Card role="status" className={unavailableClass}>
+          <h2 className="mb-[0.35rem]! text-[1rem]!">
+            Абонаментите са временно недостъпни
+          </h2>
+          <p className="m-0! text-[0.9rem] leading-normal">
             {loadError ??
               "Не успяхме да заредим данните за вашия абонамент. Опитайте отново по-късно или се свържете с екипа на DOMORA."}
           </p>
-        </div>
+        </Card>
       </div>
     );
   }
 
+  const isHome = subscription?.planType === SubscriptionPlan.Home;
+
   return (
-    <div className={styles.container}>
+    <div className="flex w-full flex-col gap-7">
       {isSubscribed && subscription ? (
         /* Subscribed Client View */
-        <div className={styles.planCard}>
-          <div className={styles.planCardHeader}>
-            <div className={styles.tierInfo}>
-              <span className={styles.planEyebrow}>АКТИВЕН АБОНАМЕНТ</span>
-              <h2 className={styles.planName}>
+        <Card className={cn(planCardClass, "gap-7")}>
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+            <div className="flex flex-col gap-[0.35rem]">
+              <span
+                className={cn(
+                  eyebrowClass,
+                  "text-[0.75rem] tracking-[0.12em] uppercase",
+                )}
+              >
+                АКТИВЕН АБОНАМЕНТ
+              </span>
+              <h2 className="text-[1.65rem]! font-extrabold text-foreground">
                 План &bdquo;{PLAN_NAMES[subscription.planType]}&ldquo;
               </h2>
-              <p className={styles.planDescription}>
+              <p className="m-0! text-[0.95rem] text-muted-foreground">
                 {PLAN_DESCRIPTIONS[subscription.planType]}
               </p>
             </div>
-            <div
-              className={`${styles.statusBadge} ${
-                STATUS_LABELS[subscription.status].className
-              }`}
+            <Badge
+              className={cn(
+                "inline-flex items-center gap-[0.4rem] rounded-full border px-[0.9rem] py-[0.4rem] text-[0.85rem] font-bold tracking-[0.02em]",
+                STATUS_LABELS[subscription.status].className,
+              )}
             >
-              <span className={styles.statusDot} />
+              <span className="size-2 rounded-full bg-current" />
               <span>{STATUS_LABELS[subscription.status].label}</span>
-            </div>
+            </Badge>
           </div>
 
           {/* Key Metrics Grid */}
-          <div className={styles.metricsGrid}>
-            <div className={styles.metricCard}>
-              <span className={styles.metricIcon}>📍</span>
-              <span className={styles.metricLabel}>Адрес на имота</span>
-              <span className={styles.metricValue}>
-                {subscription.propertyAddress}
-              </span>
-              <span className={styles.metricSubtext}>Основен обект</span>
-            </div>
-
-            <div className={styles.metricCard}>
-              <span className={styles.metricIcon}>📐</span>
-              <span className={styles.metricLabel}>
-                {subscription.planType === SubscriptionPlan.Home
-                  ? "Площ на имота"
-                  : "Брой етажи"}
-              </span>
-              <span className={styles.metricValue}>
-                {subscription.propertyArea}{" "}
-                {subscription.planType === SubscriptionPlan.Home
-                  ? "м²"
-                  : "етажа"}
-              </span>
-              <span className={styles.metricSubtext}>
-                Покрит обем по договор
-              </span>
-            </div>
-
-            <div className={styles.metricCard}>
-              <span className={styles.metricIcon}>🗓️</span>
-              <span className={styles.metricLabel}>Оставащи посещения</span>
-              <span className={styles.metricValue}>
-                {subscription.visitsRemaining} посещения
-              </span>
-              <span className={styles.metricSubtext}>за текущия период</span>
-            </div>
-
-            <div className={styles.metricCard}>
-              <span className={styles.metricIcon}>⏳</span>
-              <span className={styles.metricLabel}>Валиден до</span>
-              <span className={styles.metricValue}>
-                {formatDateBulgarian(subscription.validUntil)}
-              </span>
-              <span className={styles.metricSubtext}>
-                Автоматично подновяване
-              </span>
-            </div>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+            {[
+              {
+                icon: "📍",
+                label: "Адрес на имота",
+                value: subscription.propertyAddress,
+                subtext: "Основен обект",
+              },
+              {
+                icon: "📐",
+                label: isHome ? "Площ на имота" : "Брой етажи",
+                value: `${subscription.propertyArea} ${isHome ? "м²" : "етажа"}`,
+                subtext: "Покрит обем по договор",
+              },
+              {
+                icon: "🗓️",
+                label: "Оставащи посещения",
+                value: `${subscription.visitsRemaining} посещения`,
+                subtext: "за текущия период",
+              },
+              {
+                icon: "⏳",
+                label: "Валиден до",
+                value: formatDateBulgarian(subscription.validUntil),
+                subtext: "Автоматично подновяване",
+              },
+            ].map((metric) => (
+              <Card
+                key={metric.label}
+                className="flex flex-col gap-[0.35rem] rounded-xl bg-background p-5"
+              >
+                <span className="mb-1 text-[1.25rem]">{metric.icon}</span>
+                <span className="text-[0.78rem] font-semibold tracking-[0.05em] text-muted-foreground uppercase">
+                  {metric.label}
+                </span>
+                <span className="text-[1.15rem] font-bold text-foreground">
+                  {metric.value}
+                </span>
+                <span className="text-[0.8rem] text-muted-foreground">
+                  {metric.subtext}
+                </span>
+              </Card>
+            ))}
           </div>
 
           {/* Coverage and Benefits */}
-          <div className={styles.coverageSection}>
-            <h3 className={styles.sectionTitle}>
+          <div className="flex flex-col gap-[0.9rem]">
+            <h3 className="text-[1rem]! font-bold text-foreground">
               Включено във вашия абонамент
             </h3>
-            <ul className={styles.coverageList}>
-              <li className={styles.coverageItem}>
-                <span className={styles.checkIcon}>✓</span>
-                <span>
-                  {subscription.planType === SubscriptionPlan.Home
-                    ? "Периодично почистване на подове и повърхности"
-                    : "Редовно хигиенизиране на стълбища и вход"}
-                </span>
-              </li>
-              <li className={styles.coverageItem}>
-                <span className={styles.checkIcon}>✓</span>
-                <span>
-                  {subscription.planType === SubscriptionPlan.Home
-                    ? "Профилактика на ВиК и електроинсталации"
-                    : "Инспекция на осветление, автомати и входна врата"}
-                </span>
-              </li>
-              <li className={styles.coverageItem}>
-                <span className={styles.checkIcon}>✓</span>
-                <span>Подробен цифров отчет след всяка визита</span>
-              </li>
-              <li className={styles.coverageItem}>
-                <span className={styles.checkIcon}>✓</span>
-                <span>Приоритетно обслужване при извънредни аварии</span>
-              </li>
-            </ul>
+            <CheckList
+              className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3"
+              itemClassName="items-center text-[0.92rem] text-foreground"
+              items={[
+                isHome
+                  ? "Периодично почистване на подове и повърхности"
+                  : "Редовно хигиенизиране на стълбища и вход",
+                isHome
+                  ? "Профилактика на ВиК и електроинсталации"
+                  : "Инспекция на осветление, автомати и входна врата",
+                "Подробен цифров отчет след всяка визита",
+                "Приоритетно обслужване при извънредни аварии",
+              ]}
+            />
           </div>
 
           {/* Plan Actions */}
-          <div className={styles.planActions}>
-            <button
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+            <Button
               type="button"
-              className={styles.dangerOutlineButton}
+              variant="secondary"
+              className="rounded-[10px] border-[#fca5a5] bg-transparent px-[1.1rem] py-[0.65rem] text-[0.85rem] text-[#b91c1c] hover:border-[#ef4444] hover:bg-[#fef2f2] disabled:opacity-[0.58]"
               onClick={handleCancelSubscription}
               disabled={isProcessing}
             >
               {isProcessing ? "Обработва се..." : "Прекрати абонамент"}
-            </button>
+            </Button>
           </div>
-        </div>
+        </Card>
       ) : (
         /* Unsubscribed Client View */
         <>
-          <div className={styles.introBanner}>
-            <h2>Изберете абонаментен план за грижа и спокойствие</h2>
-            <p>
+          <div className="flex flex-col gap-2 rounded-[16px] border border-[#c9e0d4] bg-linear-to-br from-[#f0f7f4] to-[#e6f2ec] px-8 py-7">
+            <h2 className="text-[1.35rem]! font-extrabold text-primary">
+              Изберете абонаментен план за грижа и спокойствие
+            </h2>
+            <p className="m-0! max-w-[720px] text-[0.95rem] leading-normal text-[#29453e]">
               Абонаментите на DOMORA ви осигуряват редовна профилактика,
               поддръжка и фиксиран екип от проверени специалисти на
               преференциални цени без скрити такси.
             </p>
           </div>
-          <section
-            className={styles.subscribeForm}
+          <Card
+            role="region"
             aria-labelledby="subscription-property-title"
+            className="grid gap-4 rounded-[14px] max-[700px]:p-6"
           >
             <div>
-              <span className={styles.formEyebrow}>ДАННИ ЗА ИМОТА</span>
-              <h3 id="subscription-property-title">
+              <span className={cn(eyebrowClass, "text-[0.7rem]")}>
+                ДАННИ ЗА ИМОТА
+              </span>
+              <h3
+                id="subscription-property-title"
+                className="mt-[0.2rem]! text-[1.05rem]! text-foreground"
+              >
                 Попълнете адрес и размер преди избор на план
               </h3>
             </div>
-            <label className={styles.formField}>
+            <Label className={formFieldClass}>
               Адрес на имота
-              <input
+              <Input
+                className={formInputClass}
                 value={propertyAddress}
                 onChange={(event) => {
                   setPropertyAddress(event.target.value);
@@ -292,11 +367,12 @@ export function ClientPlanView({
                 placeholder="Град, улица, номер, вход"
                 disabled={isProcessing}
               />
-            </label>
-            <div className={styles.formGrid}>
-              <label className={styles.formField}>
+            </Label>
+            <div className="grid grid-cols-2 gap-4 max-[640px]:grid-cols-1">
+              <Label className={formFieldClass}>
                 Площ на дома (м²)
-                <input
+                <Input
+                  className={formInputClass}
                   type="number"
                   min="1"
                   max="1000"
@@ -309,10 +385,11 @@ export function ClientPlanView({
                   placeholder="напр. 85"
                   disabled={isProcessing}
                 />
-              </label>
-              <label className={styles.formField}>
+              </Label>
+              <Label className={formFieldClass}>
                 Брой етажи във входа
-                <input
+                <Input
+                  className={formInputClass}
                   type="number"
                   min="1"
                   max="1000"
@@ -325,130 +402,120 @@ export function ClientPlanView({
                   placeholder="напр. 6"
                   disabled={isProcessing}
                 />
-              </label>
+              </Label>
             </div>
-            {formError && <p className={styles.formError}>{formError}</p>}
-          </section>
+            {formError && (
+              <p className="m-0! text-[0.82rem] font-bold text-[#b14545]">
+                {formError}
+              </p>
+            )}
+          </Card>
 
-          <div className={styles.plansGrid}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
             {/* Plan Tier 1: Home */}
-            <div className={`${styles.tierCard} ${styles.tierFeatured}`}>
-              <span className={styles.featuredBadge}>Препоръчан</span>
-              <div className={styles.tierHeader}>
-                <h3 className={styles.tierTitle}>За дома</h3>
-                <p className={styles.tierSubtitle}>
-                  Идеален за апартаменти и еднофамилни къщи с редовна поддръжка.
-                </p>
-              </div>
-
-              <div className={styles.pricingBlock}>
-                <span className={styles.priceFrom}>от</span>
-                <span className={styles.priceNumber}>1.50</span>
-                <span className={styles.priceUnit}>лв. / м² месечно</span>
-              </div>
-
-              <ul className={styles.tierFeatures}>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Редовно почистване на подове, санитарни възли и кухня
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Периодичен технически оглед на ВиК и електроинсталации
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Детайлен доклад и снимков отчет след всяко посещение
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    15% постоянна отстъпка за всички извънредни ремонтни
-                    дейности
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Приоритетен график и фиксирани доверени специалисти
-                  </span>
-                </li>
-              </ul>
-
-              <button
+            <TierCard
+              featured
+              title="За дома"
+              subtitle="Идеален за апартаменти и еднофамилни къщи с редовна поддръжка."
+              price="1.50"
+              unit="лв. / м² месечно"
+              features={HOME_TIER_FEATURES}
+            >
+              <Button
                 type="button"
-                className={styles.subscribeCta}
+                className={tierCtaClass}
                 onClick={() => handleSubscribe(SubscriptionPlan.Home)}
                 disabled={isProcessing}
               >
                 {isProcessing ? "Зареждане..." : "Абонирай се за дома"}
-              </button>
-            </div>
+              </Button>
+            </TierCard>
 
             {/* Plan Tier 2: Entry */}
-            <div className={styles.tierCard}>
-              <div className={styles.tierHeader}>
-                <h3 className={styles.tierTitle}>За входа</h3>
-                <p className={styles.tierSubtitle}>
-                  Цялостно решение за етажна собственост и общи части на сгради.
-                </p>
-              </div>
-
-              <div className={styles.pricingBlock}>
-                <span className={styles.priceFrom}>от</span>
-                <span className={styles.priceNumber}>18.00</span>
-                <span className={styles.priceUnit}>лв. / етаж месечно</span>
-              </div>
-
-              <ul className={styles.tierFeatures}>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Хигиенизиране на стълбища, етажни площадки и входни врати
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Инспекция на входен автомат, домофонни системи и осветление
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>Официален цифров отчет за домоуправителя и входа</span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Експресна реакция при аварии по общите тръби и инсталации
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Прозрачни счетоводни документи за етажната собственост
-                  </span>
-                </li>
-              </ul>
-
-              <button
+            <TierCard
+              title="За входа"
+              subtitle="Цялостно решение за етажна собственост и общи части на сгради."
+              price="18.00"
+              unit="лв. / етаж месечно"
+              features={ENTRY_TIER_FEATURES}
+            >
+              <Button
                 type="button"
-                className={styles.subscribeCtaOutline}
+                variant="secondary"
+                className={cn(
+                  tierCtaClass,
+                  "border-2 border-primary bg-transparent hover:bg-primary hover:text-white",
+                )}
                 onClick={() => handleSubscribe(SubscriptionPlan.Entry)}
                 disabled={isProcessing}
               >
                 {isProcessing ? "Зареждане..." : "Абонирай се за входа"}
-              </button>
-            </div>
+              </Button>
+            </TierCard>
           </div>
         </>
       )}
     </div>
+  );
+}
+
+const tierCtaClass =
+  "w-full rounded-[10px] px-5 py-[0.85rem] text-[0.95rem] font-bold hover:bg-primary hover:opacity-90 disabled:opacity-[0.58]";
+
+function TierCard({
+  featured = false,
+  title,
+  subtitle,
+  price,
+  unit,
+  features,
+  children,
+}: {
+  featured?: boolean;
+  title: string;
+  subtitle: string;
+  price: string;
+  unit: string;
+  features: string[];
+  children: React.ReactNode;
+}) {
+  return (
+    <Card
+      className={cn(
+        planCardClass,
+        "relative gap-6 transition hover:border-[#84b998] hover:shadow-[0_8px_24px_rgb(0_0_0/6%)]",
+        featured && "border-primary shadow-[0_4px_20px_rgb(27_89_75/10%)]",
+      )}
+    >
+      {featured && (
+        <Badge className="absolute -top-3 right-6 rounded-full bg-accent px-3 py-1 text-[0.75rem] font-extrabold tracking-[0.05em] text-foreground uppercase">
+          Препоръчан
+        </Badge>
+      )}
+      <div className="flex flex-col gap-2">
+        <h3 className="text-[1.4rem]! font-extrabold text-foreground">
+          {title}
+        </h3>
+        <p className="m-0! text-[0.9rem] leading-[1.4] text-muted-foreground">
+          {subtitle}
+        </p>
+      </div>
+
+      <div className="flex items-baseline gap-[0.35rem] border-y border-border py-4">
+        <span className="text-[0.85rem] text-muted-foreground">от</span>
+        <span className="text-[2rem] leading-none font-[850] text-primary">
+          {price}
+        </span>
+        <span className="text-[0.85rem] text-muted-foreground">{unit}</span>
+      </div>
+
+      <CheckList
+        className="flex grow flex-col gap-3"
+        itemClassName="items-start text-[0.9rem] leading-[1.4] text-foreground"
+        items={features}
+      />
+
+      {children}
+    </Card>
   );
 }

@@ -436,41 +436,8 @@ textarea {
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-.quote {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: center;
-  padding: 18px;
-  background: #edf4e8;
-  border-radius: 9px;
-  margin: 16px 0;
-}
-.quote strong {
-  display: block;
-  font-size: 28px;
-}
-.quote small {
-  font-size: 13px;
-}
-.quote > span {
-  font-size: 14px;
-  max-width: 240px;
-}
 .full {
   width: 100%;
-}
-#previews {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-#previews img {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 12px;
 }
 .priceinputs {
   display: grid;
@@ -570,11 +537,6 @@ textarea {
   }
   dialog {
     padding: 22px;
-  }
-  .quote {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 5px;
   }
   footer:where(:not([data-workspace-shell] *)) {
     padding: 16px 20px;
