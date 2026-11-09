@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { PageHeading } from "@/components/ui/page-heading";
 import { isDbConfigured } from "@/db";
 import { getServerSession } from "@/features/auth/server/session";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { ClientProfileForm } from "@/features/client-profile/client-profile-form";
 import styles from "@/features/client-profile/client-profile.module.css";
 import { findClientRequests } from "@/features/requests/server/queries";

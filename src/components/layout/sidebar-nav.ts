@@ -1,5 +1,5 @@
-import { UserRole } from "@/features/auth/types";
-import { Role } from "@/features/requests/types";
+import { UserRole } from "@/domain/identity/types";
+import { Role } from "@/domain/requests/types";
 
 export type WorkspaceRole = Role;
 

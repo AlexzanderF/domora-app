@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { canAdvance, requiresCompletionReport } from "./request-rules";
-import { RequestStatus, Role } from "./types";
-import type { RequestAction, ServiceRequest } from "./types";
+import { RequestStatus, Role } from "@/domain/requests/types";
+import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 
 export function RequestActions({
   request,

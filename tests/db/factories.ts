@@ -1,7 +1,7 @@
 import { requireDb, requests, specialistProfiles, users } from "@/db";
 import type { RequestInsert } from "@/db";
 import type { Actor } from "@/domain/authorization";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 
 let counter = 0;
 

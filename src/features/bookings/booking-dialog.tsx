@@ -14,12 +14,12 @@ import { TimePicker } from "@/features/plans/time-picker";
 import { useBooking } from "./booking-provider";
 import { calculateQuote, quoteScope } from "@/domain/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
-import { Plan } from "@/features/requests/types";
+import { Plan } from "@/domain/requests/types";
 import type {
   BookingSelection,
   CategoryId,
   Tariffs,
-} from "@/features/requests/types";
+} from "@/domain/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";

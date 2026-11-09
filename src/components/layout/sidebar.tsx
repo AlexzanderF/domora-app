@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
-import type { User } from "@/features/auth/types";
+import type { User } from "@/domain/identity/types";
 import { getNavigationItems, resolveWorkspaceRole } from "./sidebar-nav";
 
 export function Sidebar({

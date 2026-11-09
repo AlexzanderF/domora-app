@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ServiceRequest } from "@/features/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import {
   getRecentCompletedRequests,
   getTrackerStageIndex,

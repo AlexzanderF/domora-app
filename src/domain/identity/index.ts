@@ -10,7 +10,7 @@ import {
 import type { Actor } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
 import { hashSessionToken } from "@/features/auth/server/token";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 
 // Framework-free (no next/*): who may use the platform. Specialists sign up as
 // Pending and an admin approves or rejects them. Status is read from the

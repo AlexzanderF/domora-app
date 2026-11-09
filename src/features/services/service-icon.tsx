@@ -1,5 +1,5 @@
 import { categories } from "./catalog";
-import type { CategoryId } from "@/features/requests/types";
+import type { CategoryId } from "@/domain/requests/types";
 
 export function ServiceIcon({ category }: { category: CategoryId }) {
   return (

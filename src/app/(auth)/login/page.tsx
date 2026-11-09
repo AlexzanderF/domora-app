@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/features/auth/login-form";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
 

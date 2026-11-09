@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { requireDb, sessions, users } from "@/db";
-import { UserRole, UserStatus } from "../types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { findUserBySessionToken } from "./queries";
 import { hashSessionToken } from "./token";
 

@@ -1,4 +1,4 @@
-import { RequestStatus } from "./types";
+import { RequestStatus } from "@/domain/requests/types";
 
 // Minimal structural input shared by the in-memory transition seam and the
 // database-backed server actions, so both enforce identical lifecycle rules.

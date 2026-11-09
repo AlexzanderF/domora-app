@@ -13,7 +13,7 @@ import {
   resourceOf,
 } from "@/domain/requests";
 import type { Tx } from "@/domain/requests";
-import { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
 import {
   MAX_DISPUTE_NOTE_LENGTH,
   canRaiseDispute,

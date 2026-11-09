@@ -10,7 +10,10 @@ import {
 } from "@/domain/subscriptions";
 import type { SubscriptionErrorCode } from "@/domain/subscriptions";
 import { getActor } from "@/features/auth/server/actor";
-import type { Subscription, SubscriptionPlan } from "../types";
+import type {
+  Subscription,
+  SubscriptionPlan,
+} from "@/domain/subscriptions/types";
 
 export interface SubscribeInput {
   planType: SubscriptionPlan;

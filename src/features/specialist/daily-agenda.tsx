@@ -12,8 +12,8 @@ import {
   startWorkAction,
 } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
-import { RequestStatus } from "@/features/requests/types";
-import type { ServiceRequest } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
 export function DailyAgenda({

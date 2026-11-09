@@ -1,5 +1,5 @@
-import { RequestStatus } from "@/features/requests/types";
-import type { ServiceRequest } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 
 export const trackerStages = [
   "Създадена",

@@ -6,7 +6,7 @@ import { requestPhotos, requireDb, requests } from "@/db";
 import type { RequestPhotoSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import type { Actor } from "@/domain/authorization";
-import { RequestStatus } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
 import {
   MAX_PHOTOS_PER_REQUEST,
   MAX_PHOTO_BYTES,

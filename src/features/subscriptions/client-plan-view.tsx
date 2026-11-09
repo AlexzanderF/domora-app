@@ -6,8 +6,11 @@ import {
   cancelSubscriptionAction,
   createSubscriptionAction,
 } from "./server/actions";
-import { SubscriptionPlan, SubscriptionStatus } from "./types";
-import type { Subscription } from "./types";
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from "@/domain/subscriptions/types";
+import type { Subscription } from "@/domain/subscriptions/types";
 import styles from "./client-plan.module.css";
 
 interface ClientPlanViewProps {

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { useToast } from "@/components/ui/toast-provider";
-import type { Tariffs } from "@/features/requests/types";
+import type { Tariffs } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
 import { updateTariffsAction } from "@/features/admin/server/actions";
 

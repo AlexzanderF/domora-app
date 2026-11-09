@@ -1,5 +1,5 @@
-import { Plan } from "@/features/requests/types";
-import type { CategoryId, Tariffs } from "@/features/requests/types";
+import { Plan } from "@/domain/requests/types";
+import type { CategoryId, Tariffs } from "@/domain/requests/types";
 
 export const defaultTariffs: Tariffs = {
   categories: { 0: 45, 1: 35, 2: 55, 3: 25, 4: 65, 5: 25 },
