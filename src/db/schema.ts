@@ -9,6 +9,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", [
@@ -186,6 +187,38 @@ export const requestEvents = pgTable(
   (table) => [index("request_events_request_id_idx").on(table.requestId)],
 );
 
+// Every issue a client raises on a request. Resolving stamps the row instead
+// of deleting it, so the full dispute history survives; the request's own
+// issue flag only mirrors whether one is currently open.
+export const requestDisputes = pgTable(
+  "request_disputes",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    requestId: integer("request_id")
+      .notNull()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    raisedById: integer("raised_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    note: text("note").notNull(),
+    raisedAt: timestamp("raised_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    resolvedById: integer("resolved_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    resolutionNote: text("resolution_note"),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("request_disputes_request_id_idx").on(table.requestId),
+    // At most one open dispute per request.
+    uniqueIndex("request_disputes_one_open_idx")
+      .on(table.requestId)
+      .where(sql`${table.resolvedAt} IS NULL`),
+  ],
+);
+
 export const subscriptions = pgTable("subscriptions", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   userId: integer("user_id")
@@ -273,6 +306,7 @@ export type RequestSelect = typeof requests.$inferSelect;
 export type RequestInsert = typeof requests.$inferInsert;
 export type RequestEventSelect = typeof requestEvents.$inferSelect;
 export type RequestEventInsert = typeof requestEvents.$inferInsert;
+export type RequestDisputeSelect = typeof requestDisputes.$inferSelect;
 export type SubscriptionSelect = typeof subscriptions.$inferSelect;
 export type SubscriptionInsert = typeof subscriptions.$inferInsert;
 export type TariffSelect = typeof tariffs.$inferSelect;

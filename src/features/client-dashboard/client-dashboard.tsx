@@ -113,13 +113,17 @@ export function ClientDashboard({
                 "Услугата е потвърдена. Оставете оценка.",
               );
             }}
-            onIssue={() =>
+            onIssue={() => {
+              const note = window
+                .prompt("Опишете проблема с работата:")
+                ?.trim();
+              if (!note) return;
               void performAction(
                 trackedRequest,
-                { type: "issue" },
+                { type: "dispute", note },
                 "Сигналът е изпратен за преглед.",
-              )
-            }
+              );
+            }}
             onRate={(rating) => {
               void performAction(
                 trackedRequest,

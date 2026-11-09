@@ -99,12 +99,16 @@ export function RequestActions({
             </button>
             <button
               className="secondary"
-              onClick={() =>
+              onClick={() => {
+                const note = window
+                  .prompt("Опишете проблема с работата:")
+                  ?.trim();
+                if (!note) return;
                 void perform(
-                  { type: "issue" },
+                  { type: "dispute", note },
                   "Сигналът е отбелязан за преглед.",
-                )
-              }
+                );
+              }}
             >
               Има проблем
             </button>

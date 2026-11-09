@@ -89,6 +89,6 @@ export type RequestAction =
   | { type: "admin-assign"; specialist: string }
   | { type: "admin-recommend"; specialistId: number }
   | { type: "complete" }
-  | { type: "issue" }
-  | { type: "resolve" }
+  | { type: "dispute"; note?: string }
+  | { type: "resolve-dispute"; resolutionNote?: string }
   | { type: "rate"; rating: number };

@@ -1,7 +1,12 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
-import { requests, specialistProfiles, users } from "@/db/schema";
+import {
+  requestDisputes,
+  requests,
+  specialistProfiles,
+  users,
+} from "@/db/schema";
 import type { User, SpecialistProfile } from "@/features/auth/types";
 import { UserRole } from "@/features/auth/types";
 import { isUrgentPriority } from "@/features/requests/priority";
@@ -159,4 +164,66 @@ export async function findUnassignedRequestsForAdmin(): Promise<
     const bUrgent = isUrgentPriority(b.priority) ? 0 : 1;
     return aUrgent - bUrgent;
   });
+}
+
+// One closed dispute for the triage history: the client's note, how the admin
+// closed it, and who and when.
+export interface ResolvedDispute {
+  id: number;
+  requestId: number;
+  service: string;
+  clientName?: string;
+  specialist?: string;
+  note: string;
+  raisedAt: string;
+  resolutionNote?: string;
+  resolvedAt: string;
+  resolvedByName?: string;
+}
+
+const RESOLVED_HISTORY_LIMIT = 20;
+
+export async function findResolvedDisputesForAdmin(): Promise<
+  ResolvedDispute[] | null
+> {
+  if (!isDbConfigured) {
+    return null;
+  }
+
+  const db = getDb();
+  if (!db) return null;
+
+  const specialists = alias(users, "specialists");
+  const clients = alias(users, "clients");
+  const resolvers = alias(users, "resolvers");
+
+  const rows = await db
+    .select({
+      dispute: requestDisputes,
+      request: requests,
+      specialist: specialists,
+      client: clients,
+      resolver: resolvers,
+    })
+    .from(requestDisputes)
+    .innerJoin(requests, eq(requestDisputes.requestId, requests.id))
+    .leftJoin(specialists, eq(requests.specialistId, specialists.id))
+    .leftJoin(clients, eq(requests.clientId, clients.id))
+    .leftJoin(resolvers, eq(requestDisputes.resolvedById, resolvers.id))
+    .where(isNotNull(requestDisputes.resolvedAt))
+    .orderBy(desc(requestDisputes.resolvedAt), desc(requestDisputes.id))
+    .limit(RESOLVED_HISTORY_LIMIT);
+
+  return rows.map(({ dispute, request, specialist, client, resolver }) => ({
+    id: dispute.id,
+    requestId: request.id,
+    service: request.title,
+    clientName: client?.name,
+    specialist: specialist?.name,
+    note: dispute.note,
+    raisedAt: dispute.raisedAt.toISOString(),
+    resolutionNote: dispute.resolutionNote ?? undefined,
+    resolvedAt: (dispute.resolvedAt as Date).toISOString(),
+    resolvedByName: resolver?.name,
+  }));
 }

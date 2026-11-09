@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests } from "@/db/schema";
+import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import {
   assignSpecialist,
   claimRequest,
@@ -25,7 +26,6 @@ import type { Actor } from "@/domain/authorization";
 import { getActor } from "@/features/auth/server/actor";
 import { getServerSession } from "@/features/auth/server/session";
 import { UserRole } from "@/features/auth/types";
-import { canFlagIssue, canResolveIssue } from "../request-rules";
 import { RequestPriority, RequestStatus } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
 
@@ -258,73 +258,30 @@ export async function transitionRequestServerAction(
           INVALID_STATE: "Тази заявка не може да бъде оценена.",
         },
       );
-    case "issue": {
-      const db = getDb();
-      if (!db) return { success: false, error: "Няма връзка с базата данни." };
-      const [req] = await db
-        .select()
-        .from(requests)
-        .where(eq(requests.id, requestId));
-      if (!req) return { success: false, error: "Заявката не е намерена." };
-      if (req.issue) {
-        revalidateWorkspaceRequests();
-        return { success: true, mode: "db" };
-      }
-      if (
-        !canFlagIssue({
-          status: req.status,
-          cancelled: req.cancelled,
-          issue: req.issue,
-        })
-      ) {
-        return {
-          success: false,
-          error:
+    case "dispute":
+      return runAsActor(
+        async (actor) => {
+          await raiseDispute(actor, requestId, action.note ?? "");
+        },
+        {
+          FORBIDDEN: "Само клиентът на заявката може да подаде сигнал.",
+          INVALID_INPUT: "Моля, опишете проблема (до 2000 символа).",
+          INVALID_STATE:
             "Сигнал за проблем може да се подаде след приключване на работата.",
-        };
-      }
-
-      await db
-        .update(requests)
-        .set({
-          issue: true,
-          issueOpenedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(requests.id, requestId));
-
-      revalidateWorkspaceRequests();
-      return { success: true, mode: "db" };
-    }
-    case "resolve": {
-      const db = getDb();
-      if (!db) return { success: false, error: "Няма връзка с базата данни." };
-      const [req] = await db
-        .select()
-        .from(requests)
-        .where(eq(requests.id, requestId));
-      if (!req) return { success: false, error: "Заявката не е намерена." };
-      if (
-        !canResolveIssue({
-          status: req.status,
-          issue: req.issue,
-        })
-      ) {
-        return { success: false, error: "Няма активен сигнал по тази заявка." };
-      }
-
-      await db
-        .update(requests)
-        .set({
-          issue: false,
-          issueNote: null,
-          updatedAt: new Date(),
-        })
-        .where(eq(requests.id, requestId));
-
-      revalidateWorkspaceRequests();
-      return { success: true, mode: "db" };
-    }
+        },
+      );
+    case "resolve-dispute":
+      return runAsActor(
+        async (actor) => {
+          await resolveDispute(actor, requestId, action.resolutionNote);
+        },
+        {
+          FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
+          INVALID_INPUT: "Бележката към решението е твърде дълга.",
+          NOT_FOUND: "Заявката не е намерена.",
+          INVALID_STATE: "Няма активен сигнал по тази заявка.",
+        },
+      );
     default:
       return { success: true, mode: "db" };
   }

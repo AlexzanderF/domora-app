@@ -75,7 +75,19 @@ export function canConfirmCompletion(request: RuleCheckRequest): boolean {
   );
 }
 
-export function canFlagIssue(request: RuleCheckRequest): boolean {
+export const MAX_DISPUTE_NOTE_LENGTH = 2000;
+
+export function normalizeDisputeNote(value: string | undefined): string {
+  return value?.trim() ?? "";
+}
+
+// A dispute needs a note, and a bounded one. Shared by the database-backed
+// domain module and the in-memory demo transitions.
+export function isValidDisputeNote(note: string): boolean {
+  return note.length > 0 && note.length <= MAX_DISPUTE_NOTE_LENGTH;
+}
+
+export function canRaiseDispute(request: RuleCheckRequest): boolean {
   return (
     !request.cancelled &&
     request.status === RequestStatus.AwaitingConfirmation &&
@@ -83,7 +95,7 @@ export function canFlagIssue(request: RuleCheckRequest): boolean {
   );
 }
 
-export function canResolveIssue(request: RuleCheckRequest): boolean {
+export function canResolveDispute(request: RuleCheckRequest): boolean {
   return request.issue === true;
 }
 

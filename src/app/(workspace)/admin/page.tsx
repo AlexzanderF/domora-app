@@ -9,6 +9,7 @@ import { UnassignedRequestsQueue } from "@/features/admin/unassigned-requests-qu
 import { findAdminKpiMetrics } from "@/features/admin/server/metrics";
 import {
   findDisputedRequestsForAdmin,
+  findResolvedDisputesForAdmin,
   findSpecialistApplications,
   findUnassignedRequestsForAdmin,
 } from "@/features/admin/server/queries";
@@ -39,11 +40,13 @@ export default async function AdminPage() {
     initialMetrics,
     initialSpecialists,
     initialDisputedRequests,
+    resolvedDisputes,
     initialUnassignedRequests,
   ] = await Promise.all([
     findAdminKpiMetrics(),
     findSpecialistApplications(),
     findDisputedRequestsForAdmin(),
+    findResolvedDisputesForAdmin(),
     findUnassignedRequestsForAdmin(),
   ]);
 
@@ -102,6 +105,7 @@ export default async function AdminPage() {
           </div>
           <DisputedRequestsQueue
             initialDisputedRequests={initialDisputedRequests}
+            resolvedDisputes={resolvedDisputes}
           />
         </section>
       </div>

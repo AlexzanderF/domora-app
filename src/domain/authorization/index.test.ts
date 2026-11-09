@@ -11,6 +11,8 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.confirm",
   "request.rate",
   "request.assign",
+  "request.dispute",
+  "request.resolve_dispute",
 ];
 
 const ACTOR_ID = 7;
@@ -50,6 +52,11 @@ const resources: Record<string, RequestResource> = {
   assignedOnly: { clientId: OTHER_ID, specialistId: ACTOR_ID },
 };
 
+// Only the request's client raises a dispute; only an admin resolves one.
+const ADMIN_ACTIONS = ALL_ACTIONS.filter(
+  (a) => a !== "request.create" && a !== "request.dispute",
+);
+
 type Allowed = Partial<Record<keyof typeof resources, readonly Action[]>>;
 
 // Explicit expectation: for each actor, the actions allowed on each resource.
@@ -61,12 +68,14 @@ const expectations: Record<keyof typeof actors, Allowed> = {
       "request.cancel",
       "request.confirm",
       "request.rate",
+      "request.dispute",
     ],
     ownedOnly: [
       "request.view",
       "request.cancel",
       "request.confirm",
       "request.rate",
+      "request.dispute",
     ],
   },
   activeSpecialist: {
@@ -77,11 +86,11 @@ const expectations: Record<keyof typeof actors, Allowed> = {
   pendingSpecialist: {},
   rejectedSpecialist: {},
   admin: {
-    ownedAndAssigned: ALL_ACTIONS.filter((a) => a !== "request.create"),
-    foreign: ALL_ACTIONS.filter((a) => a !== "request.create"),
-    foreignUnassigned: ALL_ACTIONS.filter((a) => a !== "request.create"),
-    ownedOnly: ALL_ACTIONS.filter((a) => a !== "request.create"),
-    assignedOnly: ALL_ACTIONS.filter((a) => a !== "request.create"),
+    ownedAndAssigned: ADMIN_ACTIONS,
+    foreign: ADMIN_ACTIONS,
+    foreignUnassigned: ADMIN_ACTIONS,
+    ownedOnly: ADMIN_ACTIONS,
+    assignedOnly: ADMIN_ACTIONS,
   },
 };
 
@@ -115,7 +124,9 @@ describe("can() policy matrix", () => {
       it("denies resource-bound actions when no resource is given", () => {
         for (const action of ALL_ACTIONS) {
           if (action === "request.create") continue;
-          expect(can(actor, action)).toBe(actorName === "admin");
+          expect(can(actor, action)).toBe(
+            actorName === "admin" && action !== "request.dispute",
+          );
         }
       });
     });

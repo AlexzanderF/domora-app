@@ -5,9 +5,11 @@ import {
   canCancelAsClient,
   canClaim,
   canConfirmCompletion,
-  canFlagIssue,
+  canRaiseDispute,
   canRate,
-  canResolveIssue,
+  canResolveDispute,
+  isValidDisputeNote,
+  normalizeDisputeNote,
   nextExecutionStep,
   requiresCompletionReport,
 } from "./request-rules";
@@ -77,12 +79,16 @@ export function transitionRequest(
       return role === Role.Client && canConfirmCompletion(request)
         ? { ...request, status: RequestStatus.Completed }
         : request;
-    case "issue":
-      return role === Role.Client && canFlagIssue(request)
-        ? { ...request, issue: true }
+    case "dispute": {
+      const note = normalizeDisputeNote(action.note);
+      return role === Role.Client &&
+        canRaiseDispute(request) &&
+        isValidDisputeNote(note)
+        ? { ...request, issue: true, issueNote: note }
         : request;
-    case "resolve":
-      return role === Role.Admin && canResolveIssue(request)
+    }
+    case "resolve-dispute":
+      return role === Role.Admin && canResolveDispute(request)
         ? { ...request, issue: false }
         : request;
     case "rate":

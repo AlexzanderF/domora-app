@@ -171,3 +171,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+.history {
+  margin-top: 18px;
+}
+
+.historyTitle {
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyItem {
+  padding: 12px 14px;
+  border: 1px solid #d8e4d9;
+  border-radius: 8px;
+  background: #f7faf7;
+  font-size: 13px;
+}
+
+.historyMeta {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.historyText {
+  margin: 6px 0 0;
+  color: var(--ink);
+}
