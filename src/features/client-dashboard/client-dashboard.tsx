@@ -27,7 +27,7 @@ import {
 } from "./client-dashboard-logic";
 
 const sectionCard = "rounded-lg p-6 max-[700px]:p-6 max-[620px]:p-[18px]";
-const iconTile = "grid place-items-center bg-[#edf3ef] text-primary";
+const iconTile = "grid place-items-center bg-tone-edf3ef text-primary";
 const textLink = "text-[0.8rem] font-bold text-primary";
 
 function SectionHeading({
@@ -47,7 +47,7 @@ function SectionHeading({
         <span className="text-[0.68rem] font-extrabold tracking-[1.2px] text-muted-foreground">
           {eyebrow}
         </span>
-        <h2 id={id} className="mt-[3px]! text-[1.2rem]!">
+        <h2 id={id} className="mt-[3px] text-[1.2rem]">
           {title}
         </h2>
       </div>
@@ -151,7 +151,7 @@ export function ClientDashboard({
             }}
           />
         ) : (
-          <div className="flex items-center gap-3.5 bg-[#f3f7f3] p-5">
+          <div className="flex items-center gap-3.5 bg-tone-f3f7f3 p-5">
             <span
               aria-hidden="true"
               className="grid size-10 place-items-center rounded-full bg-primary text-white"
@@ -159,8 +159,8 @@ export function ClientDashboard({
               ✓
             </span>
             <div>
-              <h3 className="text-[1rem]!">Всичко е наред в дома ви</h3>
-              <p className="mt-[3px]! mb-0! text-[0.82rem] text-muted-foreground">
+              <h3 className="text-[1rem]">Всичко е наред в дома ви</h3>
+              <p className="mt-[3px] mb-0 text-[0.82rem] text-muted-foreground">
                 Няма активни услуги, които изискват внимание.
               </p>
             </div>
@@ -188,7 +188,7 @@ export function ClientDashboard({
               key={category.id}
               type="button"
               variant="secondary"
-              className="grid min-h-[92px] min-w-0 content-center justify-items-center gap-2 rounded-[7px] border-[#dce5df] px-2 py-3 text-[0.76rem] font-bold text-[#29453e] hover:border-[#7fa699] hover:bg-[#f3f7f4]"
+              className="grid min-h-[92px] min-w-0 content-center justify-items-center gap-2 rounded-[7px] border-tone-dce5df px-2 py-3 text-[0.76rem] font-bold text-tone-29453e hover:border-tone-7fa699 hover:bg-tone-f3f7f4"
               onClick={() => openBooking({ category: category.id })}
             >
               <span
@@ -220,8 +220,8 @@ export function ClientDashboard({
             <SubscriptionSummary subscription={subscription} />
           ) : (
             <div className="grid gap-4">
-              <h3 className="text-[1rem]!">Спокойствие с абонамент</h3>
-              <p className="m-0! text-[0.84rem] text-muted-foreground">
+              <h3 className="text-[1rem]">Спокойствие с абонамент</h3>
+              <p className="m-0 text-[0.84rem] text-muted-foreground">
                 По-ниски цени, регулярна грижа и безплатни сезонни профилактики.
               </p>
               <Button
@@ -265,8 +265,8 @@ export function ClientDashboard({
                     <ServiceIcon category={request.category} />
                   </span>
                   <div>
-                    <h3 className="text-[0.96rem]!">{request.service}</h3>
-                    <p className="mt-[3px]! mb-0! text-[0.8rem] text-muted-foreground">
+                    <h3 className="text-[0.96rem]">{request.service}</h3>
+                    <p className="mt-[3px] mb-0 text-[0.8rem] text-muted-foreground">
                       {request.date} · {money(request.price)}
                     </p>
                   </div>
@@ -280,7 +280,7 @@ export function ClientDashboard({
               ))}
             </div>
           ) : (
-            <p className="m-0! text-[0.84rem] text-muted-foreground">
+            <p className="m-0 text-[0.84rem] text-muted-foreground">
               Завършените услуги ще се появят тук.
             </p>
           )}
@@ -312,8 +312,8 @@ function ActiveRequest({
           <ServiceIcon category={request.category} />
         </span>
         <div>
-          <h3 className="text-[0.96rem]!">{request.service}</h3>
-          <p className="mt-[3px]! mb-0! text-[0.8rem] text-muted-foreground">
+          <h3 className="text-[0.96rem]">{request.service}</h3>
+          <p className="mt-[3px] mb-0 text-[0.8rem] text-muted-foreground">
             {request.date} · {request.time}
             <br />
             {request.address}
@@ -334,14 +334,14 @@ function ActiveRequest({
             <li
               key={label}
               className={cn(
-                "relative grid justify-items-center gap-[7px] text-center text-[#8a9994] before:absolute before:top-3.5 before:right-1/2 before:z-0 before:h-0.5 before:w-full before:bg-[#e0e7e2] before:content-[''] first:before:hidden max-[620px]:grid-cols-[29px_minmax(0,1fr)] max-[620px]:items-center max-[620px]:justify-items-start max-[620px]:text-left max-[620px]:before:top-[-8px] max-[620px]:before:right-auto max-[620px]:before:left-3.5 max-[620px]:before:h-2 max-[620px]:before:w-0.5",
+                "relative grid justify-items-center gap-[7px] text-center text-tone-8a9994 before:absolute before:top-3.5 before:right-1/2 before:z-0 before:h-0.5 before:w-full before:bg-border before:content-[''] first:before:hidden max-[620px]:grid-cols-[29px_minmax(0,1fr)] max-[620px]:items-center max-[620px]:justify-items-start max-[620px]:text-left max-[620px]:before:top-[-8px] max-[620px]:before:right-auto max-[620px]:before:left-3.5 max-[620px]:before:h-2 max-[620px]:before:w-0.5",
                 reached && "font-bold text-primary before:bg-primary",
               )}
               aria-current={index === stage ? "step" : undefined}
             >
               <span
                 className={cn(
-                  "z-[1] grid size-[29px] place-items-center rounded-full border-2 border-[#d8e1db] bg-white text-[0.72rem] font-extrabold",
+                  "z-[1] grid size-[29px] place-items-center rounded-full border-2 border-tone-d8e1db bg-white text-[0.72rem] font-extrabold",
                   reached && "border-primary bg-primary text-white",
                 )}
               >
@@ -358,7 +358,7 @@ function ActiveRequest({
       <div className="flex items-center justify-between gap-4 border-t border-border pt-[18px] max-[620px]:flex-col max-[620px]:items-start">
         <div className="flex items-center gap-2.5">
           <span
-            className="grid size-[34px] place-items-center rounded-full bg-[#e9efdc] font-extrabold text-primary"
+            className="grid size-[34px] place-items-center rounded-full bg-tone-e9efdc font-extrabold text-primary"
             aria-hidden="true"
           >
             {request.specialist?.charAt(0) ?? "D"}
@@ -390,13 +390,13 @@ function ActiveRequest({
         </div>
       )}
       {request.issue && (
-        <p className="m-0! border-l-[3px] border-[#c88c32] bg-[#fff8ea] px-3 py-2.5 text-[0.8rem] text-[#73531e]">
+        <p className="m-0 border-l-[3px] border-tone-c88c32 bg-tone-fff8ea px-3 py-2.5 text-[0.8rem] text-tone-73531e">
           Сигналът очаква преглед от DOMORA.
         </p>
       )}
       {ratingOpen && (
         <div
-          className="flex flex-wrap items-center justify-between gap-2.5 rounded-md border border-[#dce5df] bg-[#f8faf8] p-3.5"
+          className="flex flex-wrap items-center justify-between gap-2.5 rounded-md border border-tone-dce5df bg-tone-f8faf8 p-3.5"
           role="group"
           aria-label="Оценка"
         >
@@ -407,7 +407,7 @@ function ActiveRequest({
                 key={rating}
                 type="button"
                 variant="secondary"
-                className="min-w-[38px] rounded-[5px] border-[#d6dfd9] p-[7px] font-normal"
+                className="min-w-[38px] rounded-[5px] border-tone-d6dfd9 p-[7px] font-normal"
                 aria-label={`${rating} звезди`}
                 onClick={() => onRate(rating)}
               >
@@ -430,7 +430,7 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
 
   return (
     <div className="grid gap-4">
-      <div className="flex items-center justify-between gap-3 border-l-[3px] border-primary bg-[#f3f7f4] px-3.5 py-3">
+      <div className="flex items-center justify-between gap-3 border-l-[3px] border-primary bg-tone-f3f7f4 px-3.5 py-3">
         <span className="text-[0.72rem] text-muted-foreground">
           Активен план
         </span>

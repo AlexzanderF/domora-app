@@ -17,7 +17,7 @@ function Step({
         className={cn(
           "flex size-[26px] shrink-0 items-center justify-center rounded-full border border-border bg-background text-[13px] font-bold text-muted-foreground",
           isActive && "border-primary bg-primary text-primary-foreground",
-          isCompleted && "border-[#31c48d] bg-[#def7ec] text-[#03543f]",
+          isCompleted && "border-tone-31c48d bg-tone-def7ec text-tone-03543f",
         )}
         aria-hidden="true"
       >
@@ -40,7 +40,7 @@ export function SpecialistStepIndicator({ step }: { step: 1 | 2 }) {
   return (
     <nav
       aria-label="Стъпки на кандидатстване"
-      className="mb-[22px] flex! items-center justify-between gap-3! border-b border-border pb-4"
+      className="mb-[22px] flex items-center justify-between gap-3 border-b border-border pb-4"
     >
       <Step
         number={1}

@@ -5,14 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-/*
- * Shared building blocks for the auth screens. The `!` modifiers beat the
- * legacy unlayered element rules in globals.css (label, input, h1, p, main);
- * they go away with the contract ticket (ADR 0007).
- */
+/* Shared building blocks for the auth screens. */
 
 export const authInputClass =
-  "rounded-lg! border-border! px-3.5! py-3! text-[15px]! leading-[1.55]! focus-visible:border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/12 aria-invalid:border-[#c93b2b]! aria-invalid:focus-visible:ring-[#c93b2b]/12";
+  "rounded-lg border-border px-3.5 py-3 text-[15px] leading-[1.55] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/12 aria-invalid:border-tone-c93b2b aria-invalid:focus-visible:ring-tone-c93b2b/12";
 
 export const authSelectClass = cn(authInputClass, "cursor-pointer");
 
@@ -23,7 +19,7 @@ export function AuthTitle({ className, ...props }: React.ComponentProps<"h1">) {
   return (
     <h1
       className={cn(
-        "mt-0! mb-1.5! text-[24px]! font-bold tracking-[-0.5px]! text-foreground",
+        "mt-0 mb-1.5 text-[24px] font-bold tracking-[-0.5px] text-foreground",
         className,
       )}
       {...props}
@@ -38,7 +34,7 @@ export function AuthSubtitle({
   return (
     <p
       className={cn(
-        "m-0! mb-6! text-[14px] leading-[1.4] text-muted-foreground",
+        "m-0 mb-6 text-[14px] leading-[1.4] text-muted-foreground",
         className,
       )}
       {...props}
@@ -67,7 +63,7 @@ export function AuthLabel({
 }
 
 export function Required() {
-  return <span className="ml-0.5 text-[#c93b2b]">*</span>;
+  return <span className="ml-0.5 text-tone-c93b2b">*</span>;
 }
 
 export function FieldError({ id, children }: { id: string; children: string }) {
@@ -75,7 +71,7 @@ export function FieldError({ id, children }: { id: string; children: string }) {
     <span
       id={id}
       role="alert"
-      className="mt-0.5 text-[13px] leading-[1.3] text-[#c93b2b]"
+      className="mt-0.5 text-[13px] leading-[1.3] text-tone-c93b2b"
     >
       {children}
     </span>
@@ -110,7 +106,7 @@ export function PasswordInput({
     <div className="relative flex w-full items-center">
       <AuthInput
         type={showPassword ? "text" : "password"}
-        className={cn("pr-[76px]!", className)}
+        className={cn("pr-[76px]", className)}
         {...props}
       />
       <button
@@ -133,7 +129,7 @@ export function AuthCheckbox({
     <input
       type="checkbox"
       className={cn(
-        "mt-0.5! size-[18px]! shrink-0 cursor-pointer accent-primary",
+        "mt-0.5 size-[18px] shrink-0 cursor-pointer accent-primary",
         className,
       )}
       {...props}
@@ -148,7 +144,7 @@ export function SubmitButton({
   return (
     <Button
       className={cn(
-        "mt-1.5 w-full py-[13px] text-[16px] hover:bg-[#123e34] active:not-disabled:translate-y-px disabled:opacity-65",
+        "mt-1.5 w-full py-[13px] text-[16px] hover:bg-primary-hover active:not-disabled:translate-y-px disabled:opacity-65",
         className,
       )}
       {...props}
@@ -175,9 +171,9 @@ export function SecondaryButton({
 type AlertTone = "error" | "success" | "info";
 
 const alertTones: Record<AlertTone, string> = {
-  error: "border-[#f8b4b4] bg-[#fdf2f2] text-[#9b1c1c]",
-  success: "border-[#a7f3d0] bg-[#ecfdf5] text-[#065f46]",
-  info: "border-[#bfdbfe] bg-[#eff6ff] text-[#1e40af]",
+  error: "border-tone-f8b4b4 bg-tone-fdf2f2 text-tone-9b1c1c",
+  success: "border-tone-a7f3d0 bg-tone-ecfdf5 text-tone-065f46",
+  info: "border-tone-bfdbfe bg-tone-eff6ff text-tone-1e40af",
 };
 
 export function AuthAlert({
@@ -204,7 +200,7 @@ export function SwitchPrompt({
   return (
     <p
       className={cn(
-        "mt-[22px]! mb-0! text-center text-[14px] text-muted-foreground",
+        "mt-[22px] mb-0 text-center text-[14px] text-muted-foreground",
         className,
       )}
       {...props}

@@ -69,7 +69,7 @@ export function PhotoPicker({
     <>
       <Label className={fieldClass}>
         Снимки{" "}
-        <span className="font-medium text-[#6d7c76]">
+        <span className="font-medium text-muted-foreground">
           · по желание, до {MAX_PHOTOS_PER_REQUEST}
         </span>
         <Input

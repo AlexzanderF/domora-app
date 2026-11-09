@@ -40,15 +40,15 @@ const STATUS_LABELS: Record<
 > = {
   ACTIVE: {
     label: "Активен",
-    className: "border-[#b3e7c5] bg-[#e6f7ec] text-[#176536]",
+    className: "border-tone-b3e7c5 bg-tone-e6f7ec text-tone-176536",
   },
   CANCELLED: {
     label: "Прекратен",
-    className: "border-[#d1d5db] bg-[#f3f4f6] text-[#4b5563]",
+    className: "border-tone-d1d5db bg-tone-f3f4f6 text-tone-4b5563",
   },
   EXPIRED: {
     label: "Изтекъл",
-    className: "border-[#fde68a] bg-[#fef3c7] text-[#92400e]",
+    className: "border-tone-fde68a bg-tone-fef3c7 text-tone-92400e",
   },
 };
 
@@ -72,15 +72,15 @@ const planCardClass =
   "flex flex-col rounded-[16px] p-8 shadow-[0_4px_18px_rgb(0_0_0/3%)] max-[700px]:p-8";
 const eyebrowClass = "font-extrabold tracking-[0.1em] text-muted-foreground";
 const formFieldClass =
-  "mb-0! grid! gap-[0.4rem] text-[0.84rem]! leading-[1.55]! font-bold! text-[#40564f]";
+  "mb-0 grid gap-[0.4rem] text-[0.84rem] leading-[1.55] font-bold text-tone-40564f";
 const formInputClass =
-  "mt-0! min-h-11 rounded-[8px]! leading-[1.55]! border-[#ccd9d1]! text-[0.95rem]! disabled:bg-[#f4f6f5]! disabled:text-[#84918d]!";
+  "mt-0 min-h-11 rounded-[8px] leading-[1.55] border-tone-ccd9d1 text-[0.95rem] disabled:bg-tone-f4f6f5 disabled:text-tone-84918d";
 const unavailableClass =
-  "rounded-xl border-[#f0d6a7] bg-[#fff8ea] px-6 py-5 text-[#634716] max-[700px]:px-6 max-[700px]:py-5";
+  "rounded-xl border-tone-f0d6a7 bg-tone-fff8ea px-6 py-5 text-tone-634716 max-[700px]:px-6 max-[700px]:py-5";
 
 function CheckIcon() {
   return (
-    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-[#e6f7ec] text-[1.05rem] font-extrabold text-primary">
+    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-tone-e6f7ec text-[1.05rem] font-extrabold text-primary">
       ✓
     </span>
   );
@@ -199,10 +199,10 @@ export function ClientPlanView({
     return (
       <div className="flex w-full flex-col gap-7">
         <Card role="status" className={unavailableClass}>
-          <h2 className="mb-[0.35rem]! text-[1rem]!">
+          <h2 className="mb-[0.35rem] text-[1rem]">
             Абонаментите са временно недостъпни
           </h2>
-          <p className="m-0! text-[0.9rem] leading-normal">
+          <p className="m-0 text-[0.9rem] leading-normal">
             {loadError ??
               "Не успяхме да заредим данните за вашия абонамент. Опитайте отново по-късно или се свържете с екипа на DOMORA."}
           </p>
@@ -228,10 +228,10 @@ export function ClientPlanView({
               >
                 АКТИВЕН АБОНАМЕНТ
               </span>
-              <h2 className="text-[1.65rem]! font-extrabold text-foreground">
+              <h2 className="text-[1.65rem] font-extrabold text-foreground">
                 План &bdquo;{PLAN_NAMES[subscription.planType]}&ldquo;
               </h2>
-              <p className="m-0! text-[0.95rem] text-muted-foreground">
+              <p className="m-0 text-[0.95rem] text-muted-foreground">
                 {PLAN_DESCRIPTIONS[subscription.planType]}
               </p>
             </div>
@@ -294,7 +294,7 @@ export function ClientPlanView({
 
           {/* Coverage and Benefits */}
           <div className="flex flex-col gap-[0.9rem]">
-            <h3 className="text-[1rem]! font-bold text-foreground">
+            <h3 className="text-[1rem] font-bold text-foreground">
               Включено във вашия абонамент
             </h3>
             <CheckList
@@ -318,7 +318,7 @@ export function ClientPlanView({
             <Button
               type="button"
               variant="secondary"
-              className="rounded-[10px] border-[#fca5a5] bg-transparent px-[1.1rem] py-[0.65rem] text-[0.85rem] text-[#b91c1c] hover:border-[#ef4444] hover:bg-[#fef2f2] disabled:opacity-[0.58]"
+              className="rounded-[10px] border-tone-fca5a5 bg-transparent px-[1.1rem] py-[0.65rem] text-[0.85rem] text-tone-b91c1c hover:border-tone-ef4444 hover:bg-tone-fef2f2 disabled:opacity-[0.58]"
               onClick={handleCancelSubscription}
               disabled={isProcessing}
             >
@@ -329,11 +329,11 @@ export function ClientPlanView({
       ) : (
         /* Unsubscribed Client View */
         <>
-          <div className="flex flex-col gap-2 rounded-[16px] border border-[#c9e0d4] bg-linear-to-br from-[#f0f7f4] to-[#e6f2ec] px-8 py-7">
-            <h2 className="text-[1.35rem]! font-extrabold text-primary">
+          <div className="flex flex-col gap-2 rounded-[16px] border border-tone-c9e0d4 bg-linear-to-br from-tone-f0f7f4 to-tone-e6f2ec px-8 py-7">
+            <h2 className="text-[1.35rem] font-extrabold text-primary">
               Изберете абонаментен план за грижа и спокойствие
             </h2>
-            <p className="m-0! max-w-[720px] text-[0.95rem] leading-normal text-[#29453e]">
+            <p className="m-0 max-w-[720px] text-[0.95rem] leading-normal text-tone-29453e">
               Абонаментите на DOMORA ви осигуряват редовна профилактика,
               поддръжка и фиксиран екип от проверени специалисти на
               преференциални цени без скрити такси.
@@ -350,7 +350,7 @@ export function ClientPlanView({
               </span>
               <h3
                 id="subscription-property-title"
-                className="mt-[0.2rem]! text-[1.05rem]! text-foreground"
+                className="mt-[0.2rem] text-[1.05rem] text-foreground"
               >
                 Попълнете адрес и размер преди избор на план
               </h3>
@@ -405,7 +405,7 @@ export function ClientPlanView({
               </Label>
             </div>
             {formError && (
-              <p className="m-0! text-[0.82rem] font-bold text-[#b14545]">
+              <p className="m-0 text-[0.82rem] font-bold text-tone-b14545">
                 {formError}
               </p>
             )}
@@ -483,7 +483,7 @@ function TierCard({
     <Card
       className={cn(
         planCardClass,
-        "relative gap-6 transition hover:border-[#84b998] hover:shadow-[0_8px_24px_rgb(0_0_0/6%)]",
+        "relative gap-6 transition hover:border-ring hover:shadow-[0_8px_24px_rgb(0_0_0/6%)]",
         featured && "border-primary shadow-[0_4px_20px_rgb(27_89_75/10%)]",
       )}
     >
@@ -493,10 +493,10 @@ function TierCard({
         </Badge>
       )}
       <div className="flex flex-col gap-2">
-        <h3 className="text-[1.4rem]! font-extrabold text-foreground">
+        <h3 className="text-[1.4rem] font-extrabold text-foreground">
           {title}
         </h3>
-        <p className="m-0! text-[0.9rem] leading-[1.4] text-muted-foreground">
+        <p className="m-0 text-[0.9rem] leading-[1.4] text-muted-foreground">
           {subtitle}
         </p>
       </div>

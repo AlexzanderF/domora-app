@@ -34,7 +34,7 @@ export async function downscaleImage(file: File): Promise<File> {
     const context = canvas.getContext("2d");
     if (!context) throw new Error("Canvas is not available.");
     // JPEG has no transparency: flatten PNG/WebP alpha onto white.
-    context.fillStyle = "#fff";
+    context.fillStyle = "white";
     context.fillRect(0, 0, width, height);
     context.drawImage(bitmap, 0, 0, width, height);
     const blob = await new Promise<Blob | null>((resolve) =>

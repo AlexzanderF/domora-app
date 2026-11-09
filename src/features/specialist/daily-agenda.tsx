@@ -151,7 +151,7 @@ export function DailyAgenda({
             </p>
             {request.issue && (
               <p
-                className={`${rowText} border-l-[3px] border-[#d9776b] bg-[#fbe9e7] px-3.5 py-2.5`}
+                className={`${rowText} border-l-[3px] border-tone-d9776b bg-tone-fbe9e7 px-3.5 py-2.5`}
               >
                 Клиентът е подал сигнал за проблем с извършената работа.
                 Прегледайте и коригирайте при нужда.
@@ -199,7 +199,7 @@ export function DailyAgenda({
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitReport}>
-            <Label htmlFor="report" className="mb-0!">
+            <Label htmlFor="report" className="mb-0">
               Описание на извършената работа
             </Label>
             <Textarea

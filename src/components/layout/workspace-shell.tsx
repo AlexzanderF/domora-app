@@ -60,7 +60,6 @@ export function WorkspaceShell({
           ? "[--sidebar-width:72px]"
           : "shell-tablet:[--sidebar-width:250px]",
       )}
-      data-workspace-shell=""
       data-sidebar-collapsed={collapsed ? "true" : "false"}
     >
       <Sidebar

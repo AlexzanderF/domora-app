@@ -8,12 +8,12 @@ export function FinalCta() {
       aria-labelledby="final-cta-title"
     >
       <div className="max-w-[760px]">
-        <p className="mt-0! mb-3! text-[0.72rem] font-[850] tracking-[0.15em] text-accent">
+        <p className="mt-0 mb-3 text-[0.72rem] font-[850] tracking-[0.15em] text-accent">
           ВАШИЯТ ДОМ. НАШАТА ГРИЖА.
         </p>
         <h2
           id="final-cta-title"
-          className="text-[clamp(2rem,4vw,3.5rem)]! tracking-[-0.04em]"
+          className="text-[clamp(2rem,4vw,3.5rem)] tracking-[-0.04em]"
         >
           Готови ли сте за по-спокоен и чист дом?
         </h2>

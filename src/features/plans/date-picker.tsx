@@ -7,8 +7,7 @@ import { PickerTrigger } from "@/features/plans/picker-trigger";
 
 // `@daypicker/react` v10 stays as the date picker (not the shadcn Calendar).
 // It ships unstyled here, so its parts are styled through `classNames`, on top
-// of the library's own default class names. `flex!` beats the legacy unlayered
-// `nav` rule in globals.css (the library renders its arrows in a `<nav>`).
+// of the library's own default class names.
 const defaults = getDefaultClassNames();
 const dayPickerClassNames = {
   root: `${defaults.root} m-0 [--rdp-accent-color:#175246]`,
@@ -16,7 +15,7 @@ const dayPickerClassNames = {
   month: `${defaults.month} w-full`,
   month_caption: `${defaults.month_caption} flex min-h-[2.15rem] items-center px-[2.35rem] text-center font-extrabold text-[#17372f]`,
   caption_label: `${defaults.caption_label} w-full`,
-  nav: `${defaults.nav} absolute inset-x-[0.65rem] top-[0.65rem] flex! justify-between`,
+  nav: `${defaults.nav} absolute inset-x-[0.65rem] top-[0.65rem] flex justify-between`,
   button_previous: `${defaults.button_previous} grid size-[1.9rem] place-items-center rounded-md border border-[#dce5df] bg-white p-0 text-[#175246]`,
   button_next: `${defaults.button_next} grid size-[1.9rem] place-items-center rounded-md border border-[#dce5df] bg-white p-0 text-[#175246]`,
   month_grid: `${defaults.month_grid} w-full border-collapse`,

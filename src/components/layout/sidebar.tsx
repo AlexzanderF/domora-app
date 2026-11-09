@@ -36,7 +36,7 @@ export function Sidebar({
       {onToggleCollapse && (
         <button
           type="button"
-          className="absolute top-[92px] -right-3 z-40 flex size-6 cursor-pointer items-center justify-center rounded-md border border-border bg-white p-0 text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[ease] hover:scale-[1.08] hover:border-[#b7cbbf] hover:text-primary hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] shell-phone:hidden"
+          className="absolute top-[92px] -right-3 z-40 flex size-6 cursor-pointer items-center justify-center rounded-md border border-border bg-white p-0 text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[ease] hover:scale-[1.08] hover:border-tone-b7cbbf hover:text-primary hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] shell-phone:hidden"
           onClick={onToggleCollapse}
           aria-label={
             collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
@@ -84,7 +84,7 @@ export function Sidebar({
         </Link>
         <p
           className={cn(
-            "mt-1! mb-0! w-full overflow-hidden text-center text-[10px] tracking-[1.3px] text-ellipsis whitespace-nowrap shell-tablet:text-[9px] shell-phone:hidden",
+            "mt-1 mb-0 w-full overflow-hidden text-center text-[10px] tracking-[1.3px] text-ellipsis whitespace-nowrap shell-tablet:text-[9px] shell-phone:hidden",
             collapsed && "hidden",
           )}
         >
@@ -105,7 +105,7 @@ export function Sidebar({
                 ? "justify-center gap-0 px-2 py-3"
                 : "gap-3 px-3.5 py-3",
               item.active
-                ? "bg-[#eaf2ec] font-[650] text-primary"
+                ? "bg-tone-eaf2ec font-[650] text-primary"
                 : "text-muted-foreground",
             )}
             aria-current={item.active ? "page" : undefined}

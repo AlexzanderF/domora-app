@@ -39,20 +39,23 @@ function getStatusBadge(status: UserStatus) {
   switch (status) {
     case UserStatus.Pending:
       return (
-        <Badge variant="warning" className={cn(statusPill, "border-[#fed7aa]")}>
+        <Badge
+          variant="warning"
+          className={cn(statusPill, "border-tone-fed7aa")}
+        >
           Чака преглед
         </Badge>
       );
     case UserStatus.Active:
       return (
-        <Badge className={cn(statusPill, "border-[#bbf7d0]")}>Одобрен</Badge>
+        <Badge className={cn(statusPill, "border-tone-bbf7d0")}>Одобрен</Badge>
       );
     case UserStatus.Rejected:
       return (
         <Badge
           className={cn(
             statusPill,
-            "border-[#fecaca] bg-[#fee2e2] text-[#991b1b]",
+            "border-tone-fecaca bg-tone-fee2e2 text-tone-991b1b",
           )}
         >
           Отказан
@@ -168,7 +171,7 @@ export function SpecialistsReview({
         <StatCard
           label="Чакащи одобрение"
           value={counts.PENDING}
-          valueClassName="text-[#b45309]"
+          valueClassName="text-tone-b45309"
         />
         <StatCard
           label="Одобрени специалисти"
@@ -180,7 +183,7 @@ export function SpecialistsReview({
       {/* Toolbar: tabs and search */}
       <div className="flex flex-wrap items-center justify-between gap-4 py-2">
         <div
-          className="flex flex-wrap gap-1.5 rounded-[10px] bg-[#ebf0ec] p-1"
+          className="flex flex-wrap gap-1.5 rounded-[10px] bg-tone-ebf0ec p-1"
           role="tablist"
           aria-label="Филтър по статус на специалист"
         >
@@ -205,7 +208,7 @@ export function SpecialistsReview({
                 <span
                   className={cn(
                     "rounded-xl px-[7px] py-0.5 text-xs font-bold text-primary",
-                    isSelected ? "bg-[#eaf2ec]" : "bg-[#e1e9e2]",
+                    isSelected ? "bg-tone-eaf2ec" : "bg-tone-e1e9e2",
                   )}
                 >
                   {counts[tab.key]}
@@ -227,7 +230,7 @@ export function SpecialistsReview({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Търсене по име, сфера, район..."
-            className="rounded-lg! border-border! py-[9px]! pr-3.5! pl-9! text-sm! text-foreground outline-none focus:border-primary!"
+            className="rounded-lg border-border py-[9px] pr-3.5 pl-9 text-sm text-foreground outline-none focus:border-primary"
             aria-label="Търсене на специалисти"
           />
         </div>
@@ -264,19 +267,19 @@ export function SpecialistsReview({
             return (
               <article
                 key={spec.id}
-                className="rounded-xl border border-border bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-[border-color] duration-200 hover:border-[#cbd7cf]"
+                className="rounded-xl border border-border bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-[border-color] duration-200 hover:border-tone-cbd7cf"
                 aria-label={`Кандидатура на ${spec.name}`}
               >
                 <CardHeaderRow className="gap-4 max-md:flex-col max-md:items-stretch">
                   <div className="flex items-center gap-3.5">
                     <div
-                      className="grid size-12 shrink-0 place-items-center rounded-full bg-[#e9efdc] text-xl font-bold text-primary"
+                      className="grid size-12 shrink-0 place-items-center rounded-full bg-tone-e9efdc text-xl font-bold text-primary"
                       aria-hidden="true"
                     >
                       {initial}
                     </div>
                     <div className="flex flex-col gap-1">
-                      <h2 className="m-0! text-lg! font-bold text-foreground">
+                      <h2 className="m-0 text-lg font-bold text-foreground">
                         {spec.name}
                       </h2>
                       <div className="flex flex-wrap items-center gap-2">
@@ -308,7 +311,7 @@ export function SpecialistsReview({
                       disabled={
                         isProcessing || spec.status === UserStatus.Rejected
                       }
-                      className="border-[#fecaca] px-[18px] py-2 text-sm text-[#991b1b] hover:bg-[#fee2e2]"
+                      className="border-tone-fecaca px-[18px] py-2 text-sm text-tone-991b1b hover:bg-tone-fee2e2"
                     >
                       {spec.status === UserStatus.Rejected
                         ? "Отказан ✕"
@@ -317,7 +320,7 @@ export function SpecialistsReview({
                   </div>
                 </CardHeaderRow>
 
-                <DetailGrid className="mt-[18px] grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-[18px] gap-y-3 bg-[#fbfdfa] p-4 max-md:grid-cols-1">
+                <DetailGrid className="mt-[18px] grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-[18px] gap-y-3 bg-tone-fbfdfa p-4 max-md:grid-cols-1">
                   <DetailItem label="Имейл адрес">
                     <a
                       href={`mailto:${spec.email}`}
@@ -362,17 +365,17 @@ export function SpecialistsReview({
                 </DetailGrid>
 
                 {profile?.bio && (
-                  <div className="mt-4 border-t border-[#edf2ed] pt-3.5">
+                  <div className="mt-4 border-t border-tone-edf2ed pt-3.5">
                     <DetailLabel className="mb-1.5 block">
                       Професионално представяне (Био)
                     </DetailLabel>
-                    <p className="m-0! text-sm leading-[1.55] text-foreground">
+                    <p className="m-0 text-sm leading-[1.55] text-foreground">
                       {profile.bio}
                     </p>
                   </div>
                 )}
 
-                <div className="mt-4 flex items-center justify-between border-t border-[#edf2ed] pt-3 text-xs text-muted-foreground">
+                <div className="mt-4 flex items-center justify-between border-t border-tone-edf2ed pt-3 text-xs text-muted-foreground">
                   <span>
                     Подадена на:{" "}
                     {new Date(spec.createdAt).toLocaleDateString("bg-BG", {

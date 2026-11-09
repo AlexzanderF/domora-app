@@ -197,27 +197,27 @@ export function UnassignedRequestsQueue({
             className={cn(
               "rounded-[10px] border px-5 py-[18px]",
               urgent
-                ? "border-[#f5c6a5] bg-[#fffaf5]"
-                : "border-border bg-[#fbfdfa]",
+                ? "border-tone-f5c6a5 bg-tone-fffaf5"
+                : "border-border bg-tone-fbfdfa",
             )}
             aria-label={request.service}
           >
             <CardHeaderRow className="flex-nowrap max-md:flex-col">
               <div>
-                <h3 className="m-0! mb-1.5! text-base! font-bold text-foreground">
+                <h3 className="m-0 mb-1.5 text-base font-bold text-foreground">
                   {request.service}
                 </h3>
                 <div className="flex flex-wrap items-center gap-2">
                   <CategoryPill
                     className={
                       urgent
-                        ? "border-[#fecaca] bg-[#fee2e2] text-[#991b1b]"
+                        ? "border-tone-fecaca bg-tone-fee2e2 text-tone-991b1b"
                         : undefined
                     }
                   >
                     {priorityLabel(request.priority)}
                   </CategoryPill>
-                  <CategoryPill className="border-[#bbf7d0] bg-[#eaf2ec] text-primary">
+                  <CategoryPill className="border-tone-bbf7d0 bg-tone-eaf2ec text-primary">
                     {categoryName}
                   </CategoryPill>
                   <span className="text-xs text-muted-foreground">
@@ -243,16 +243,16 @@ export function UnassignedRequestsQueue({
             </DetailGrid>
 
             {recommendedName && (
-              <p className="m-0! mt-3! inline-block rounded-md border border-[#fde7c7] bg-[#fff7e6] px-2.5 py-1 text-xs font-semibold text-[#8c6318]">
+              <p className="m-0 mt-3 inline-block rounded-md border border-tone-fde7c7 bg-tone-fff7e6 px-2.5 py-1 text-xs font-semibold text-tone-8c6318">
                 Препоръчана на {recommendedName}
               </p>
             )}
 
-            <div className="mt-3.5 flex flex-wrap items-end justify-between gap-3 border-t border-[#edf2ed] pt-3.5 max-md:flex-col max-md:items-stretch">
-              <label className="flex! min-w-[220px] flex-1 flex-col gap-1.5 text-[11px]! font-semibold tracking-[0.5px] text-muted-foreground uppercase">
+            <div className="mt-3.5 flex flex-wrap items-end justify-between gap-3 border-t border-tone-edf2ed pt-3.5 max-md:flex-col max-md:items-stretch">
+              <label className="flex min-w-[220px] flex-1 flex-col gap-1.5 text-[11px] font-semibold tracking-[0.5px] text-muted-foreground uppercase">
                 Специалист
                 <select
-                  className="cursor-pointer rounded-lg! border-border! px-3! py-2! text-sm! font-medium tracking-normal text-foreground normal-case outline-none focus:border-primary!"
+                  className="cursor-pointer rounded-lg border-border px-3 py-2 text-sm font-medium tracking-normal text-foreground normal-case outline-none focus:border-primary"
                   value={getSelectedId(request) ?? ""}
                   onChange={(e) =>
                     setSelectedSpecialists((prev) => ({
@@ -291,7 +291,7 @@ export function UnassignedRequestsQueue({
                   variant="secondary"
                   onClick={() => handleRecommend(request)}
                   disabled={isProcessing}
-                  className="border-[#bbf7d0] px-[18px] py-2 text-[13px] hover:bg-[#eaf2ec]"
+                  className="border-tone-bbf7d0 px-[18px] py-2 text-[13px] hover:bg-tone-eaf2ec"
                 >
                   Препоръчай
                 </Button>

@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FinalCta } from "@/features/landing/final-cta";
@@ -36,14 +37,11 @@ export default async function HomePage() {
   }
   return (
     <>
-      <a href="#main" className="skip-link">
-        Към съдържанието
-      </a>
+      <SkipLink />
       <LandingHeader />
-      {/* `!` modifiers beat the legacy unlayered `main` rule in globals.css. */}
       <main
         id="main"
-        className="mx-auto! min-h-0! w-[min(1320px,calc(100%-3rem))]! max-w-none! px-0! pt-[1.35rem]! pb-0! max-[560px]:w-[calc(100%-2rem)]! max-[560px]:pt-4!"
+        className="mx-auto min-h-0 w-[min(1320px,calc(100%-3rem))] max-w-none px-0 pt-[1.35rem] pb-0 max-[560px]:w-[calc(100%-2rem)] max-[560px]:pt-4"
       >
         <Hero />
         <HowItWorks />

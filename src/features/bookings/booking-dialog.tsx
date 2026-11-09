@@ -28,6 +28,7 @@ import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";
 import { uploadRequestPhotos } from "./upload-photos";
+import { cn } from "@/lib/utils";
 import { errorClass, fieldClass } from "./field-styles";
 
 export function BookingDialog({ tariffs }: { tariffs: Tariffs }) {
@@ -156,10 +157,10 @@ function BookingForm({
       >
         <div className="mb-4 flex items-start justify-between gap-[18px]">
           <div>
-            <span className="text-[0.68rem] font-extrabold tracking-[0.06em] text-[#668078]">
+            <span className="text-[0.68rem] font-extrabold tracking-[0.06em] text-tone-668078">
               DOMORA / НОВА ЗАЯВКА
             </span>
-            <DialogTitle className="mt-[5px]! mb-0! text-[1.35rem]! leading-[1.18]! text-[#17372f]">
+            <DialogTitle className="mt-[5px] mb-0 text-[1.35rem] leading-[1.18] text-tone-17372f">
               {plan
                 ? `Абонамент ${plan === Plan.Home ? "за дома" : "за входа"}`
                 : "Разкажете ни от какво се нуждаете"}
@@ -167,7 +168,7 @@ function BookingForm({
           </div>
           <DialogClose
             aria-label="Затвори"
-            className="grid size-[34px] flex-none cursor-pointer place-items-center rounded-[7px] border border-[#d9e3dd] bg-white text-[1.35rem] leading-none text-[#526b63] hover:border-[#7fa699] hover:text-[#17372f] focus-visible:border-[#7fa699] focus-visible:text-[#17372f]"
+            className="grid size-[34px] flex-none cursor-pointer place-items-center rounded-[7px] border border-tone-d9e3dd bg-white text-[1.35rem] leading-none text-tone-526b63 hover:border-tone-7fa699 hover:text-tone-17372f focus-visible:border-tone-7fa699 focus-visible:text-tone-17372f"
           >
             ×
           </DialogClose>
@@ -290,7 +291,7 @@ function BookingForm({
             </Field>
           )}
           <div
-            className="quote flex items-center justify-between gap-4 rounded-[7px] border border-[#dbe5df] bg-[#edf4e8] px-3.5 py-[13px] max-[640px]:flex-col max-[640px]:items-start max-[640px]:gap-1.5 [&>span]:max-w-[260px] [&>span]:text-right [&>span]:text-[0.78rem] [&>span]:text-[#40564f] max-[640px]:[&>span]:max-w-none max-[640px]:[&>span]:text-left [&_small]:text-[0.72rem] [&_small]:text-[#687b75] [&_strong]:block [&_strong]:text-[1.38rem] [&_strong]:leading-[1.1] [&_strong]:text-[#17372f]"
+            className="quote flex items-center justify-between gap-4 rounded-[7px] border border-tone-dbe5df bg-tone-edf4e8 px-3.5 py-[13px] max-[640px]:flex-col max-[640px]:items-start max-[640px]:gap-1.5 [&>span]:max-w-[260px] [&>span]:text-right [&>span]:text-[0.78rem] [&>span]:text-tone-40564f max-[640px]:[&>span]:max-w-none max-[640px]:[&>span]:text-left [&_small]:text-[0.72rem] [&_small]:text-tone-687b75 [&_strong]:block [&_strong]:text-[1.38rem] [&_strong]:leading-[1.1] [&_strong]:text-tone-17372f"
             aria-live="polite"
           >
             <div>
@@ -302,7 +303,7 @@ function BookingForm({
             </div>
             <span>{quoteScope(category, serviceIndex, plan)}</span>
           </div>
-          <p className="m-0! text-[0.8rem] text-[#6d7c76]">
+          <p className="m-0 text-[0.8rem] text-muted-foreground">
             Часът подлежи на потвърждение. Материали и допълнителна работа се
             одобряват отделно.
           </p>
@@ -358,7 +359,7 @@ function FieldGroup({
   children: ReactNode;
 }) {
   return (
-    <div className={fieldClass}>
+    <div className={cn(fieldClass, "leading-[1.55]")}>
       <span>{label}</span>
       {children}
       {error && (

@@ -45,7 +45,7 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
     return (
       <div className="flex items-center gap-2.5 text-foreground">
         <span
-          className="inline-grid size-[34px] place-items-center rounded-full bg-[#e9efdc] font-semibold"
+          className="inline-grid size-[34px] place-items-center rounded-full bg-tone-e9efdc font-semibold"
           aria-hidden="true"
         >
           {initial}

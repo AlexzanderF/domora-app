@@ -105,7 +105,7 @@ export function AccountFields({
       </AuthField>
 
       <div className="mt-1">
-        <AuthLabel className="flex! cursor-pointer items-start gap-2.5 text-[14px] leading-[1.4]">
+        <AuthLabel className="flex cursor-pointer items-start gap-2.5 text-[14px] leading-[1.4]">
           <AuthCheckbox
             id={`${idPrefix}-terms`}
             name="termsAccepted"

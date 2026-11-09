@@ -87,12 +87,12 @@ export function DisputedRequestsQueue({
         return (
           <article
             key={request.id}
-            className="rounded-[10px] border border-[#fde7c7] bg-[#fffaf5] px-5 py-[18px]"
+            className="rounded-[10px] border border-tone-fde7c7 bg-tone-fffaf5 px-5 py-[18px]"
             aria-label={request.service}
           >
             <CardHeaderRow className="max-md:flex-col max-md:items-stretch">
               <div>
-                <h3 className="m-0! mb-1.5! text-base! font-bold text-foreground">
+                <h3 className="m-0 mb-1.5 text-base font-bold text-foreground">
                   {request.service}
                 </h3>
                 <div className="flex flex-wrap items-center gap-2.5">
@@ -112,7 +112,7 @@ export function DisputedRequestsQueue({
               </Button>
             </CardHeaderRow>
 
-            <DetailGrid className="mt-4 border-[#f2e5cf]">
+            <DetailGrid className="mt-4 border-tone-f2e5cf">
               <DetailItem label="Назначен специалист">
                 <DetailValue>
                   {request.specialist || "Няма назначен специалист"}
@@ -132,21 +132,21 @@ export function DisputedRequestsQueue({
               </DetailItem>
             </DetailGrid>
 
-            <div className="mt-3.5 border-t border-[#f2e5cf] pt-3">
-              <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-[#b45309] uppercase">
+            <div className="mt-3.5 border-t border-tone-f2e5cf pt-3">
+              <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-tone-b45309 uppercase">
                 Описание на проблема (от клиента)
               </span>
-              <p className="m-0! text-[13px] leading-normal text-foreground">
+              <p className="m-0 text-[13px] leading-normal text-foreground">
                 {request.issueNote ?? request.description}
               </p>
             </div>
 
             {request.report && (
-              <div className="mt-3.5 border-t border-[#f2e5cf] pt-3">
-                <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-[#b45309] uppercase">
+              <div className="mt-3.5 border-t border-tone-f2e5cf pt-3">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-tone-b45309 uppercase">
                   Отчет от специалиста
                 </span>
-                <p className="m-0! text-[13px] leading-normal text-foreground">
+                <p className="m-0 text-[13px] leading-normal text-foreground">
                   {request.report}
                 </p>
                 <ReportPhotos photoIds={request.reportPhotoIds} />
@@ -164,14 +164,14 @@ function ResolvedHistory({ disputes }: { disputes: ResolvedDispute[] }) {
   if (disputes.length === 0) return null;
   return (
     <section className="mt-[18px]" aria-label="История на решените сигнали">
-      <h3 className="m-0! mb-2.5! text-sm! font-bold text-foreground">
+      <h3 className="m-0 mb-2.5 text-sm font-bold text-foreground">
         История на решените сигнали
       </h3>
       <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
         {disputes.map((dispute) => (
           <li
             key={dispute.id}
-            className="rounded-lg border border-[#d8e4d9] bg-[#f7faf7] px-3.5 py-3 text-[13px]"
+            className="rounded-lg border border-tone-d8e4d9 bg-tone-f7faf7 px-3.5 py-3 text-[13px]"
           >
             <strong>
               #{dispute.requestId} · {dispute.service}
@@ -182,11 +182,9 @@ function ResolvedHistory({ disputes }: { disputes: ResolvedDispute[] }) {
               {dispute.resolvedAt.slice(0, 10)}
               {dispute.resolvedByName ? ` от ${dispute.resolvedByName}` : ""}
             </span>
-            <p className="m-0! mt-1.5! text-foreground">
-              Сигнал: {dispute.note}
-            </p>
+            <p className="m-0 mt-1.5 text-foreground">Сигнал: {dispute.note}</p>
             {dispute.resolutionNote && (
-              <p className="m-0! mt-1.5! text-foreground">
+              <p className="m-0 mt-1.5 text-foreground">
                 Решение: {dispute.resolutionNote}
               </p>
             )}
