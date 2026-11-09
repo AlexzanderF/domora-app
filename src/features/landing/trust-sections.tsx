@@ -1,5 +1,5 @@
+import { Card } from "@/components/ui/card";
 import { LandingIcon } from "./landing-icon";
-import styles from "./trust-sections.module.css";
 
 const testimonials = [
   {
@@ -64,46 +64,76 @@ const questions = [
   },
 ];
 
+// `!` modifiers beat the legacy unlayered `h2`, `h3`, `p` and `footer` element
+// rules in globals.css; drop them when the contract ticket removes those rules.
+const eyebrow =
+  "mt-0! mb-[0.65rem]! text-xs font-extrabold tracking-[0.15em] text-primary";
+const sectionTitle = "text-[clamp(2rem,4vw,3.25rem)]! tracking-[-0.035em]";
+
 export function TrustAndTestimonials() {
   return (
-    <section className={styles.trustSection} aria-labelledby="trust-title">
-      <div className={styles.sectionHeading}>
-        <p>СПОКОЙСТВИЕ ВЪВ ВСЯКА СТЪПКА</p>
-        <h2 id="trust-title">Защо да изберете DOMORA</h2>
+    <section
+      className="py-[clamp(2.5rem,5vw,4.25rem)]"
+      aria-labelledby="trust-title"
+    >
+      <div className="mb-[1.65rem] max-w-[700px]">
+        <p className={eyebrow}>СПОКОЙСТВИЕ ВЪВ ВСЯКА СТЪПКА</p>
+        <h2 id="trust-title" className={sectionTitle}>
+          Защо да изберете DOMORA
+        </h2>
       </div>
 
-      <ul className={styles.benefits}>
+      <ul className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[850px]:grid-cols-1">
         {benefits.map((benefit) => (
-          <li key={benefit.title}>
-            <span className={styles.benefitIcon}>
-              <LandingIcon path={benefit.icon} />
-            </span>
-            <div>
-              <h3>{benefit.title}</h3>
-              <p>{benefit.description}</p>
-            </div>
+          <li key={benefit.title} className="min-w-0">
+            <Card className="flex h-full gap-4 rounded-2xl border-[#dbe4de] p-[1.2rem]">
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#eaf2ec] text-primary">
+                <LandingIcon path={benefit.icon} className="size-[1.45rem]" />
+              </span>
+              <div>
+                <h3 className="text-base! leading-[1.4]">{benefit.title}</h3>
+                <p className="mt-[0.55rem]! mb-0! text-[0.88rem] text-[#63736d]">
+                  {benefit.description}
+                </p>
+              </div>
+            </Card>
           </li>
         ))}
       </ul>
 
-      <div className={styles.testimonialHeading}>
-        <p>ИСТОРИИ ОТ ДОМОВЕ, ЗА КОИТО СЕ ГРИЖИМ</p>
-        <h3>Доверие, изградено с добре свършена работа</h3>
+      <div className="mt-[clamp(2.5rem,5vw,4rem)] mb-[1.4rem] max-w-[690px]">
+        <p className={eyebrow}>ИСТОРИИ ОТ ДОМОВЕ, ЗА КОИТО СЕ ГРИЖИМ</p>
+        <h3 className="text-[clamp(1.7rem,3.5vw,2.7rem)]! tracking-[-0.03em]">
+          Доверие, изградено с добре свършена работа
+        </h3>
       </div>
-      <div className={styles.testimonials}>
+      <div className="grid grid-cols-3 gap-4 max-[850px]:grid-cols-1">
         {testimonials.map((testimonial) => (
-          <article key={testimonial.name}>
-            <div className={styles.rating} aria-label="Оценка: 5 от 5">
+          <article
+            key={testimonial.name}
+            className="flex min-w-0 flex-col rounded-[18px] bg-[#174c41] p-[clamp(1.15rem,2.4vw,1.6rem)] text-white"
+          >
+            <div
+              className="text-[0.85rem] tracking-[0.14em] text-accent"
+              aria-label="Оценка: 5 от 5"
+            >
               <span aria-hidden="true">★★★★★</span>
             </div>
-            <blockquote>„{testimonial.quote}“</blockquote>
-            <footer>
-              <span className={styles.avatar} aria-hidden="true">
+            <blockquote className="mx-0 mt-4 mb-[1.35rem] flex-1 text-base leading-[1.7] text-[#f4f8f6]">
+              „{testimonial.quote}“
+            </blockquote>
+            <footer className="flex! items-center gap-3 justify-between! px-11! pt-[10px]! pb-[22px]! text-xs! text-muted-foreground!">
+              <span
+                className="grid size-11 place-items-center rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
+                aria-hidden="true"
+              >
                 {testimonial.initials}
               </span>
-              <div>
+              <div className="grid">
                 <strong>{testimonial.name}</strong>
-                <span>{testimonial.context}</span>
+                <span className="text-[0.78rem] text-[#bdd0c9]">
+                  {testimonial.context}
+                </span>
               </div>
             </footer>
           </article>
@@ -115,20 +145,33 @@ export function TrustAndTestimonials() {
 
 export function Faq() {
   return (
-    <section id="faq" className={styles.faq} aria-labelledby="faq-title">
-      <div className={styles.faqIntro}>
-        <p>ИМАТЕ ВЪПРОС?</p>
-        <h2 id="faq-title">Често задавани въпроси</h2>
-        <span>
+    <section
+      id="faq"
+      className="grid scroll-mt-34 grid-cols-[minmax(260px,0.7fr)_minmax(0,1.3fr)] gap-[clamp(1.75rem,5vw,4rem)] py-[clamp(2.5rem,5vw,4.25rem)] max-[850px]:grid-cols-1 max-[850px]:gap-8"
+      aria-labelledby="faq-title"
+    >
+      <div>
+        <p className={eyebrow}>ИМАТЕ ВЪПРОС?</p>
+        <h2 id="faq-title" className={sectionTitle}>
+          Често задавани въпроси
+        </h2>
+        <span className="mt-4 block max-w-[430px] text-[#61726c]">
           Събрахме най-важното, за да знаете какво да очаквате още преди първата
           заявка.
         </span>
       </div>
-      <div className={styles.questions}>
+      <div>
         {questions.map((item) => (
-          <details key={item.question}>
-            <summary>{item.question}</summary>
-            <p>{item.answer}</p>
+          <details
+            key={item.question}
+            className="group border-t border-[#cedbd3] last:border-b"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-[1.05rem] text-[1.05rem] font-[750] text-[#182e29] after:grid after:size-7 after:shrink-0 after:place-items-center after:rounded-full after:bg-[#eaf2ec] after:text-primary after:content-['+'] group-open:after:content-['−'] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#84b998] [&::-webkit-details-marker]:hidden">
+              {item.question}
+            </summary>
+            <p className="m-0! max-w-[680px] pr-12 pb-[1.4rem] text-[#61726c]">
+              {item.answer}
+            </p>
           </details>
         ))}
       </div>

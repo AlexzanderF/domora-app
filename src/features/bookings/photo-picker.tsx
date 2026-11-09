@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/toast-provider";
 import {
   MAX_PHOTOS_PER_REQUEST,
@@ -9,7 +11,7 @@ import {
   PHOTO_TYPES,
 } from "@/domain/photos/limits";
 import { downscaleImage } from "./downscale-image";
-import styles from "./photo-picker.module.css";
+import { fieldClass } from "./field-styles";
 
 // Lets the client choose up to 5 photos. Each is downscaled in the browser;
 // the processed files are handed to the form, which uploads them after the
@@ -65,13 +67,12 @@ export function PhotoPicker({
 
   return (
     <>
-      <label className={styles.field}>
+      <Label className={fieldClass}>
         Снимки{" "}
-        <span className={styles.hint}>
+        <span className="font-medium text-[#6d7c76]">
           · по желание, до {MAX_PHOTOS_PER_REQUEST}
         </span>
-        <input
-          className={styles.input}
+        <Input
           type="file"
           accept={PHOTO_TYPES.join(",")}
           multiple
@@ -80,11 +81,11 @@ export function PhotoPicker({
             void choose(Array.from(event.target.files ?? []));
           }}
         />
-      </label>
-      <div className={styles.previews}>
+      </Label>
+      <div id="previews" className="flex flex-wrap gap-1.5">
         {previews.map((url, index) => (
           <Image
-            className={styles.preview}
+            className="mb-0 size-[54px] rounded-md object-cover"
             key={url}
             src={url}
             width={70}

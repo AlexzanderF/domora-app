@@ -14,7 +14,16 @@ import { RequestPriority } from "@/domain/requests/types";
 import { isUrgentPriority } from "@/features/requests/priority";
 import { money } from "@/lib/format";
 import type { ServiceRequest } from "@/domain/requests/types";
-import styles from "./unassigned-requests-queue.module.css";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  CardHeaderRow,
+  CategoryPill,
+  DetailGrid,
+  DetailItem,
+  DetailValue,
+  QueueEmpty,
+} from "./admin-ui";
 
 export interface UnassignedRequestsQueueProps {
   initialRequests?: ServiceRequest[] | null;
@@ -161,20 +170,16 @@ export function UnassignedRequestsQueue({
 
   if (queue.length === 0) {
     return (
-      <div className={styles.emptyState}>
-        <span className={styles.emptyIcon} aria-hidden="true">
-          ⚡
-        </span>
-        <p className={styles.emptyTitle}>Няма непоети спешни заявки</p>
-        <p className={styles.emptyDescription}>
-          Всички заявки са разпределени към специалисти.
-        </p>
-      </div>
+      <QueueEmpty
+        icon="⚡"
+        title="Няма непоети спешни заявки"
+        description="Всички заявки са разпределени към специалисти."
+      />
     );
   }
 
   return (
-    <div className={styles.list}>
+    <div className="flex flex-col gap-3.5">
       {queue.map((request) => {
         const categoryName =
           categories.find((c) => c.id === request.category)?.name ?? "Друго";
@@ -189,52 +194,65 @@ export function UnassignedRequestsQueue({
         return (
           <article
             key={request.id}
-            className={`${styles.card} ${urgent ? styles.cardUrgent : ""}`}
+            className={cn(
+              "rounded-[10px] border px-5 py-[18px]",
+              urgent
+                ? "border-[#f5c6a5] bg-[#fffaf5]"
+                : "border-border bg-[#fbfdfa]",
+            )}
             aria-label={request.service}
           >
-            <div className={styles.cardHeader}>
+            <CardHeaderRow className="flex-nowrap max-md:flex-col">
               <div>
-                <h3 className={styles.title}>{request.service}</h3>
-                <div className={styles.metaRow}>
-                  <span
-                    className={`${styles.priorityBadge} ${urgent ? styles.priorityUrgent : ""}`}
+                <h3 className="m-0! mb-1.5! text-base! font-bold text-foreground">
+                  {request.service}
+                </h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <CategoryPill
+                    className={
+                      urgent
+                        ? "border-[#fecaca] bg-[#fee2e2] text-[#991b1b]"
+                        : undefined
+                    }
                   >
                     {priorityLabel(request.priority)}
-                  </span>
-                  <span className={styles.categoryBadge}>{categoryName}</span>
-                  <span className={styles.dateText}>
+                  </CategoryPill>
+                  <CategoryPill className="border-[#bbf7d0] bg-[#eaf2ec] text-primary">
+                    {categoryName}
+                  </CategoryPill>
+                  <span className="text-xs text-muted-foreground">
                     {request.date} · {request.time}
                   </span>
                 </div>
               </div>
-              <span className={styles.price}>{money(request.price)}</span>
-            </div>
+              <span className="text-base font-bold whitespace-nowrap text-foreground">
+                {money(request.price)}
+              </span>
+            </CardHeaderRow>
 
-            <div className={styles.detailsGrid}>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Адрес на клиента</span>
-                <span className={styles.detailValue}>{request.address}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Клиент</span>
-                <span className={styles.detailValue}>
+            <DetailGrid className="mt-3.5">
+              <DetailItem label="Адрес на клиента">
+                <DetailValue>{request.address}</DetailValue>
+              </DetailItem>
+              <DetailItem label="Клиент">
+                <DetailValue>
                   {request.clientName || "—"}
                   {request.clientPhone ? ` · ${request.clientPhone}` : ""}
-                </span>
-              </div>
-            </div>
+                </DetailValue>
+              </DetailItem>
+            </DetailGrid>
 
             {recommendedName && (
-              <p className={styles.recommendedBadge}>
+              <p className="m-0! mt-3! inline-block rounded-md border border-[#fde7c7] bg-[#fff7e6] px-2.5 py-1 text-xs font-semibold text-[#8c6318]">
                 Препоръчана на {recommendedName}
               </p>
             )}
 
-            <div className={styles.dispatchRow}>
-              <label className={styles.selectLabel}>
+            <div className="mt-3.5 flex flex-wrap items-end justify-between gap-3 border-t border-[#edf2ed] pt-3.5 max-md:flex-col max-md:items-stretch">
+              <label className="flex! min-w-[220px] flex-1 flex-col gap-1.5 text-[11px]! font-semibold tracking-[0.5px] text-muted-foreground uppercase">
                 Специалист
                 <select
-                  className={styles.select}
+                  className="cursor-pointer rounded-lg! border-border! px-3! py-2! text-sm! font-medium tracking-normal text-foreground normal-case outline-none focus:border-primary!"
                   value={getSelectedId(request) ?? ""}
                   onChange={(e) =>
                     setSelectedSpecialists((prev) => ({
@@ -259,23 +277,24 @@ export function UnassignedRequestsQueue({
                   ))}
                 </select>
               </label>
-              <div className={styles.actionsGroup}>
-                <button
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
                   type="button"
                   onClick={() => handleAssign(request)}
                   disabled={isProcessing}
-                  className={styles.assignButton}
+                  className="px-[18px] py-2 text-[13px]"
                 >
                   Разпредели
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => handleRecommend(request)}
                   disabled={isProcessing}
-                  className={styles.recommendButton}
+                  className="border-[#bbf7d0] px-[18px] py-2 text-[13px] hover:bg-[#eaf2ec]"
                 >
                   Препоръчай
-                </button>
+                </Button>
               </div>
             </div>
           </article>

@@ -10,7 +10,6 @@ import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
-import styles from "./landing.module.css";
 
 export const metadata: Metadata = {
   title: "DOMORA — спокойствие за вашия дом",
@@ -41,7 +40,11 @@ export default async function HomePage() {
         Към съдържанието
       </a>
       <LandingHeader />
-      <main id="main" className={styles.main}>
+      {/* `!` modifiers beat the legacy unlayered `main` rule in globals.css. */}
+      <main
+        id="main"
+        className="mx-auto! min-h-0! w-[min(1320px,calc(100%-3rem))]! max-w-none! px-0! pt-[1.35rem]! pb-0! max-[560px]:w-[calc(100%-2rem)]! max-[560px]:pt-4!"
+      >
         <Hero />
         <HowItWorks />
         <ServiceShowcase />
