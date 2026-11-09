@@ -122,7 +122,7 @@ jobs:
             COOKIE_SECURE=${COOKIE_SECURE:-}
             NOTIFIER_DRIVER=${NOTIFIER_DRIVER:-console}
             RESEND_API_KEY=${RESEND_API_KEY:-}
-            NOTIFIER_FROM=${NOTIFIER_FROM:-}
+            NOTIFIER_FROM="${NOTIFIER_FROM:-}"
             EOF
 
             # Pull the prebuilt image; never build on the server.

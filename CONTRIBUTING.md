@@ -2,7 +2,7 @@
 
 1. Update `main`, then create a short-lived feature branch, for example `feature/booking-history`.
 2. Run `npm ci` using Node.js 24. The lockfile is the shared dependency source of truth.
-3. Keep routes in `src/app`, shared UI in `src/components`, and business logic with its feature in `src/features`.
+3. Keep routes in `src/app`, shared UI in `src/components`, business rules in framework-free modules under `src/domain`, and feature UI with its Server Actions in `src/features`.
 4. Use Server Components by default. Add `"use client"` at interactive boundaries. Do not move secrets or privileged operations into browser components.
 5. Keep Bulgarian UI copy, responsive layout and keyboard access consistent with the existing app.
 6. Run `npm run format`, `npm run check`, and `npm run build`. New unit and integration tests are welcome; do not add e2e tests (`tests/e2e/`) unless explicitly requested.

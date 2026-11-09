@@ -27,7 +27,7 @@ One VPS runs Docker Compose (`compose.yaml`):
 
 `web`, `migrate` and `worker` share one image, built in CI and pulled from GHCR. The server never builds.
 
-Until the [hard gates](#hard-gates-before-inviting-external-users) are met the beta runs as plain HTTP on the server IP, with the `console` notifier (emails are logged by `worker`, not sent), for the owner only.
+Until the [hard gates](#hard-gates-before-inviting-external-users) are met the beta runs as plain HTTP on the server IP, with the `console` notifier (emails are logged by `worker`, not sent), for the owner only. During that stage, provider (Contabo) snapshots of the VPS are the only backup: enable them. They are a stopgap and do not satisfy gate 2.
 
 ## First-time server setup
 
@@ -91,6 +91,8 @@ Migrations must be additive (expand first, contract in a later release), so the 
 3. Run it. No CI and no build run; the existing image for that SHA is pulled and started, with the same health checks.
 
 Rollback does not undo migrations. Because migrations are additive, the older image runs against the newer schema. If a migration itself is the problem, fix it forward with a new migration, or [restore from backup](#restore).
+
+Rolling back also checks out that commit's `compose.yaml` and `caddy/Caddyfile` on the server. After gate 1, never roll back to a commit older than the Caddyfile change made there: it would remove HSTS and the `www` redirect.
 
 The next merge to `main` deploys the newest commit again, so revert the bad change on `main` before merging anything else.
 
@@ -186,13 +188,13 @@ Verify: trigger a real notification (for example approve a test specialist), con
 
 The guarded request lifecycle (start work, rate, raise issue and resolve issue all enforce the actor through `can()`) must be running in production. It was merged with issues #112 and #113.
 
-Verify: the commit deployed to production is at or after those merges. On the **server**:
+Verify on the **server** that the checked-out release contains the #113 merge commit (which itself contains #112):
 
 ```bash
-grep DOMORA_IMAGE .env
+git merge-base --is-ancestor 419ce6d4cd077411b48502dde9f3e22ce49560c7 HEAD && echo "gate 4 met"
 ```
 
-The tag is the deployed commit SHA; confirm it is on `main` and not a rollback to a commit before those merges.
+It must print `gate 4 met`. The deploy always checks out the commit it deploys, so `HEAD` is the running release. Re-check after any rollback.
 
 ## Backups and restore
 
@@ -210,7 +212,7 @@ ssh deploy@SERVER 'cd /opt/domora-app && docker compose exec -T db sh -c "pg_dum
 ssh deploy@SERVER 'cd /opt/domora-app && docker compose exec -T web tar -C /data/photos -czf - .' > "domora-photos-$(date +%F).tgz"
 ```
 
-Keep at least 14 daily copies. Schedule both commands (cron or similar) on that machine and alert on a non-zero exit or an empty file. The files contain personal data: store them encrypted and access-controlled.
+Take the dump first and the photo archive straight after it, so every photo the dump references is in the archive. Keep at least 14 daily copies. Schedule both commands (cron or similar) on that machine and alert on a non-zero exit or an empty file. The files contain personal data: store them encrypted and access-controlled.
 
 ### Restore drill
 
@@ -219,6 +221,8 @@ Proves the off-box copies are usable, without touching production. Run on any ma
 ```bash
 docker run -d --rm --name domora-restore-drill -e POSTGRES_PASSWORD=drill postgres:16-alpine
 ```
+
+Wait a few seconds for Postgres to accept connections, then:
 
 ```bash
 docker exec -i domora-restore-drill pg_restore -U postgres -d postgres --no-owner < domora-db-YYYY-MM-DD.dump
