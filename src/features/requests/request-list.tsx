@@ -81,7 +81,7 @@ export function RequestList({
               </>
             )}
           </div>
-          <span className="text-[18px] font-[650] whitespace-nowrap max-[700px]:text-[16px] [&_small]:block [&_small]:text-[12px] [&_small]:font-normal">
+          <span className="amount text-[18px] font-[650] whitespace-nowrap max-[700px]:text-[16px] [&_small]:block [&_small]:text-[12px] [&_small]:font-normal">
             {money(request.price)}
             {request.plan && <small> / мес.</small>}
           </span>

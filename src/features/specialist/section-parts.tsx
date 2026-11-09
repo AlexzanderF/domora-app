@@ -58,7 +58,7 @@ export function RequestRow({
         {icon}
       </div>
       <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">{children}</div>
-      <span className="text-lg font-[650] whitespace-nowrap max-[700px]:text-base">
+      <span className="amount text-lg font-[650] whitespace-nowrap max-[700px]:text-base">
         {amount}
       </span>
     </article>

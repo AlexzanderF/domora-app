@@ -37,7 +37,7 @@ export default function ContactPage() {
             <span className={eyebrow}>Контакти</span>
             <h1
               id="contact-title"
-              className="mt-[0.9rem] mb-0 text-[clamp(3.2rem,9vw,7.4rem)] leading-[0.9] text-[#102f29]"
+              className="mt-[0.9rem] mb-0 text-[clamp(3.2rem,9vw,7.4rem)] leading-[0.9] text-tone-102f29"
             >
               Говорете с DOMORA.
             </h1>
@@ -47,7 +47,7 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="grid overflow-hidden rounded-[18px] bg-[#102f29] shadow-[0_24px_60px_rgb(16_47_41/18%)]">
+          <div className="grid overflow-hidden rounded-[18px] bg-tone-102f29 shadow-[0_24px_60px_rgb(16_47_41/18%)]">
             <a className={`${panelRow} hover:bg-white/6`} href={`tel:${phone}`}>
               <span className={panelLabel}>Телефон</span>
               <strong className={panelValue}>{phone}</strong>
@@ -97,7 +97,7 @@ export default function ContactPage() {
             <span className={eyebrow}>Запитване</span>
             <h2
               id="message"
-              className="mt-[0.8rem] max-w-[520px] text-[clamp(2.1rem,5vw,4rem)] leading-none text-[#102f29]"
+              className="mt-[0.8rem] max-w-[520px] text-[clamp(2.1rem,5vw,4rem)] leading-none text-tone-102f29"
             >
               Изпратете ни детайлите.
             </h2>

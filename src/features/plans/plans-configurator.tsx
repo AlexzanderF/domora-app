@@ -71,7 +71,8 @@ const checkItem =
   "before:mr-[0.65rem] before:font-[850] before:text-[#287057] before:content-['✓']";
 const stepperButton =
   "h-10 rounded-none p-0 text-[1.25rem] font-[650] text-[#175246] hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-[#a9b6b1] disabled:opacity-100";
-const errorText = "mt-[0.3rem] block text-[0.76rem] font-[650] text-[#a33b3b]";
+const errorText =
+  "mt-[0.3rem] block text-[0.76rem] font-[650] text-tone-a33b3b";
 
 export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
   const router = useRouter();
@@ -171,7 +172,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
               </Button>
             ))}
           </div>
-          <p className="mt-3 mb-0 text-[0.9rem] text-[#687b75]">
+          <p className="mt-3 mb-0 text-[0.9rem] text-tone-687b75">
             {option.description}
           </p>
         </div>
@@ -308,7 +309,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           >
             {option.label}
           </h2>
-          <p className="mt-[0.3rem] mb-[1.2rem] text-[0.88rem] text-[#687b75]">
+          <p className="mt-[0.3rem] mb-[1.2rem] text-[0.88rem] text-tone-687b75">
             {visits} {visits === 1 ? "посещение" : "посещения"} месечно ·{" "}
             {quantity || "—"} {option.unit}
           </p>
@@ -319,9 +320,9 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             <strong className="text-[2rem] text-[#17372f]">
               {price === null ? "—" : money(price)}
             </strong>
-            <span className="text-[#687b75]">/ месец</span>
+            <span className="text-tone-687b75">/ месец</span>
           </div>
-          <p className="mt-[0.7rem] mb-6 text-[0.76rem] text-[#687b75]">
+          <p className="mt-[0.7rem] mb-6 text-[0.76rem] text-tone-687b75">
             {money(tariffs[plan])} × {quantity || "—"} {option.unit} × {visits}{" "}
             посещения
             {discount && " × 0.90"}
