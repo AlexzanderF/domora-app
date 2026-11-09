@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/toast-provider";
 import {
@@ -334,58 +336,31 @@ export function ClientPlanView({
               <div className={styles.tierHeader}>
                 <h3 className={styles.tierTitle}>За дома</h3>
                 <p className={styles.tierSubtitle}>
-                  Идеален за апартаменти и еднофамилни къщи с редовна поддръжка.
+                  Едно посещение от майстор всеки месец за вашия апартамент или
+                  къща.
                 </p>
               </div>
-
               <div className={styles.pricingBlock}>
-                <span className={styles.priceFrom}>от</span>
-                <span className={styles.priceNumber}>1.50</span>
-                <span className={styles.priceUnit}>лв. / м² месечно</span>
+                <span className={styles.priceUnit}>
+                  Месечна цена: предстои обявяване
+                </span>
               </div>
-
               <ul className={styles.tierFeatures}>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Редовно почистване на подове, санитарни възли и кухня
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Периодичен технически оглед на ВиК и електроинсталации
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Детайлен доклад и снимков отчет след всяко посещение
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    15% постоянна отстъпка за всички извънредни ремонтни
-                    дейности
-                  </span>
-                </li>
-                <li className={styles.tierFeatureItem}>
-                  <span className={styles.checkIcon}>✓</span>
-                  <span>
-                    Приоритетен график и фиксирани доверени специалисти
-                  </span>
-                </li>
+                {[
+                  "1 включено посещение от майстор месечно",
+                  "ВиК, електро и климатици",
+                  "Ключарски услуги и дребни ремонти",
+                  "Всяко допълнително посещение се доплаща",
+                ].map((feature) => (
+                  <li key={feature} className={styles.tierFeatureItem}>
+                    <span className={styles.checkIcon}>✓</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
               </ul>
-
-              <button
-                type="button"
-                className={styles.subscribeCta}
-                onClick={() => handleSubscribe(SubscriptionPlan.Home)}
-                disabled={isProcessing}
-              >
-                {isProcessing ? "Зареждане..." : "Абонирай се за дома"}
-              </button>
+              <Link href="/plans" className={styles.subscribeCta}>
+                Разгледай абонамента
+              </Link>
             </div>
 
             {/* Plan Tier 2: Entry */}

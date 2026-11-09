@@ -11,6 +11,7 @@ import type { Tariffs } from "@/features/requests/types";
 import { startSubscriptionAction } from "@/features/subscriptions/server/actions";
 import { SubscriptionPlan } from "@/features/subscriptions/types";
 import { localDate, money } from "@/lib/format";
+import { HomePlanPreview } from "./home-plan-preview";
 import styles from "./plans.module.css";
 
 const planOptions: Record<
@@ -27,14 +28,14 @@ const planOptions: Record<
 > = {
   home: {
     label: "За дома",
-    description: "Редовно почистване на апартамент или къща.",
+    description: "Едно посещение от майстор всеки месец за вашия дом.",
     quantityLabel: "Площ на дома",
     unit: "м²",
     defaultQuantity: 80,
     service: "Абонамент За дома",
     features: [
-      "Подове и достъпни повърхности",
-      "Кухня и санитарни помещения",
+      "ВиК, електро и климатици",
+      "Ключарски услуги и дребни ремонти",
       "Отчет след всяко посещение",
     ],
   },
@@ -126,6 +127,10 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (plan === Plan.Home) {
+    return <HomePlanPreview onChooseEntry={() => choosePlan(Plan.Entry)} />;
   }
 
   return (
