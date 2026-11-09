@@ -54,7 +54,7 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
         <h2>Тарифи за услуги</h2>
       </div>
       <Card>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[14px] text-muted-foreground">
           Цените се прилагат за нови заявки. Съществуващите запазват одобрената
           цена.
         </p>

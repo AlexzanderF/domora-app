@@ -1,5 +1,6 @@
 /* Tailwind v4 without preflight: the legacy CSS below still owns resets and
    element defaults until the contract ticket (ADR 0007). */
+@layer theme, base, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
@@ -78,11 +79,14 @@ body {
     "Segoe UI",
     sans-serif;
 }
-button,
-input,
-select,
-textarea {
-  font: inherit;
+/* In the base layer so Tailwind utilities (button font-weight, sizes) win. */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 }
 button,
 a,

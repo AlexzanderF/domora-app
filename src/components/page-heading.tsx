@@ -14,7 +14,7 @@ export function PageHeading({
       <div>
         <span className="eyebrow">{eyebrow}</span>
         <h1>{title}</h1>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-[14px] text-muted-foreground">{description}</p>
       </div>
       {children}
     </div>

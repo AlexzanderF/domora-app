@@ -7,6 +7,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       className="toaster group"
       position="bottom-center"
+      toastOptions={{
+        classNames: { toast: "!px-[22px] !py-3.5 !text-[14px]" },
+      }}
       style={
         {
           "--normal-bg": "#173b32",

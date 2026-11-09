@@ -12,7 +12,7 @@ export default function ErrorPage({
   return (
     <Card>
       <h1>Възникна проблем.</h1>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-[14px] text-muted-foreground">
         Опитайте да заредите страницата отново.
       </p>
       <Button onClick={reset}>Опитай отново</Button>

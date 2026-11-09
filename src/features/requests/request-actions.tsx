@@ -138,7 +138,7 @@ export function RequestActions({
           </>
         )}
       {request.rating && (
-        <span className="text-sm text-muted-foreground">
+        <span className="text-[14px] text-muted-foreground">
           Оценка: {request.rating}/5 ★
         </span>
       )}
