@@ -3,7 +3,6 @@
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
-import { useDemo } from "./demo-provider";
 import { RequestActions } from "./request-actions";
 import { Plan, RequestStatus, Role } from "./types";
 import type { ServiceRequest } from "./types";
@@ -17,11 +16,9 @@ export function RequestList({
   limit?: number;
   actions?: boolean;
   role?: Role;
-  initialRequests?: ServiceRequest[] | null;
+  initialRequests: ServiceRequest[];
 }) {
-  const { requests: demoRequests } = useDemo();
-  const sourceRequests = initialRequests ?? demoRequests;
-  const items = limit ? sourceRequests.slice(0, limit) : sourceRequests;
+  const items = limit ? initialRequests.slice(0, limit) : initialRequests;
   if (!items.length)
     return (
       <div className="empty">
@@ -70,7 +67,7 @@ export function RequestList({
                 <RequestActions request={request} role={role} />
                 {request.issue && (
                   <p className="notice">
-                    Подаден демо сигнал. Очаква преглед от DOMORA.
+                    Подаден сигнал. Очаква преглед от DOMORA.
                   </p>
                 )}
               </>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useDemo } from "@/features/requests/demo-provider";
+import { useBooking } from "@/features/bookings/booking-provider";
 
 export function BookingButton() {
-  const { openBooking } = useDemo();
+  const { openBooking } = useBooking();
   return (
     <button className="primary" onClick={() => openBooking({ category: 0 })}>
       + Нова заявка

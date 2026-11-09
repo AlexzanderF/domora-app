@@ -1,41 +1,18 @@
 "use client";
 
-import { useDemo } from "@/features/requests/demo-provider";
-import { isActiveStage } from "@/features/requests/request-rules";
-import { isUrgentPriority } from "@/features/requests/priority";
-import { RequestStatus } from "@/features/requests/types";
 import { money } from "@/lib/format";
 import type { AdminKpiMetrics } from "./server/metrics";
 import styles from "./admin-command-center.module.css";
 
 export interface AdminKpiCardsProps {
-  initialMetrics?: AdminKpiMetrics | null;
+  initialMetrics: AdminKpiMetrics | null;
 }
 
-export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps = {}) {
-  const { requests } = useDemo();
-
-  // Compute live values: use server-provided DB metrics if present, otherwise calculate from demo provider
-  const unassignedUrgentCount =
-    initialMetrics?.unassignedUrgentCount ??
-    requests.filter(
-      (r) =>
-        !r.cancelled &&
-        r.status === RequestStatus.Created &&
-        isUrgentPriority(r.priority),
-    ).length;
-
-  const pendingSpecialistsCount = initialMetrics?.pendingSpecialistsCount ?? 1;
-
-  const activeRepairsCount =
-    initialMetrics?.activeRepairsCount ??
-    requests.filter((r) => !r.cancelled && isActiveStage(r.status)).length;
-
-  const monthlyRevenue =
-    initialMetrics?.monthlyRevenue ??
-    requests
-      .filter((r) => r.status === RequestStatus.Completed)
-      .reduce((sum, r) => sum + (r.price || 0), 0);
+export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps) {
+  const unassignedUrgentCount = initialMetrics?.unassignedUrgentCount ?? 0;
+  const pendingSpecialistsCount = initialMetrics?.pendingSpecialistsCount ?? 0;
+  const activeRepairsCount = initialMetrics?.activeRepairsCount ?? 0;
+  const monthlyRevenue = initialMetrics?.monthlyRevenue ?? 0;
 
   return (
     <div className={`stats ${styles.kpiGrid}`}>

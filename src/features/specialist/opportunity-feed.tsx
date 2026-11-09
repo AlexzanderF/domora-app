@@ -1,18 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { categories } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
-import { useDemo } from "@/features/requests/demo-provider";
 import { assignSpecialistAction } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
-import {
-  RequestPriority,
-  RequestStatus,
-  Role,
-} from "@/features/requests/types";
+import { RequestPriority } from "@/features/requests/types";
 import type { ServiceRequest } from "@/features/requests/types";
 import styles from "./specialist-dashboard.module.css";
 
@@ -29,39 +25,36 @@ export function OpportunityFeed({
   viewAllHref,
   specialistId,
 }: {
-  initialOpportunities?: ServiceRequest[] | null;
+  initialOpportunities: ServiceRequest[];
   limit?: number;
   viewAllHref?: string;
   specialistId?: number;
 }) {
-  const { requests: demoRequests, updateRequest } = useDemo();
+  const router = useRouter();
   const notify = useToast();
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
   const [acceptingId, setAcceptingId] = useState<number | null>(null);
 
-  const source =
-    initialOpportunities ??
-    demoRequests.filter(
-      (request) =>
-        request.status === RequestStatus.Created && !request.cancelled,
-    );
-  const visible = source.filter((request) => !dismissedIds.has(request.id));
+  const visible = initialOpportunities.filter(
+    (request) => !dismissedIds.has(request.id),
+  );
   const items = limit ? visible.slice(0, limit) : visible;
 
   async function accept(request: ServiceRequest) {
     setAcceptingId(request.id);
-    updateRequest(request.id, { type: "accept" }, Role.Specialist);
     try {
       const result = await assignSpecialistAction(request.id);
       if (!result.success) {
         notify(result.error ?? "Грешка при приемане на заявката.");
         return;
       }
+      notify("Заявката е приета и добавена към дневния график.");
+      router.refresh();
     } catch {
-      // Demo mode or network fallback
+      notify("Грешка при приемане на заявката. Опитайте отново.");
+    } finally {
+      setAcceptingId(null);
     }
-    notify("Заявката е приета и добавена към дневния график.");
-    setAcceptingId(null);
   }
 
   function dismiss(request: ServiceRequest) {

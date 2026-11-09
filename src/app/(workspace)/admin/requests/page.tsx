@@ -35,7 +35,11 @@ export default async function AdminRequestsPage() {
         description="Преглед и филтриране на всички клиентски заявки за услуги в платформата."
       />
       <div className="card">
-        <RequestList actions role="admin" initialRequests={initialRequests} />
+        <RequestList
+          actions
+          role="admin"
+          initialRequests={initialRequests ?? []}
+        />
       </div>
     </>
   );

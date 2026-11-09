@@ -1,6 +1,6 @@
 "use client";
 
-import { useDemo } from "@/features/requests/demo-provider";
+import { useBooking } from "@/features/bookings/booking-provider";
 import type { CategoryId } from "@/features/requests/types";
 
 export function BookingCta({
@@ -12,7 +12,7 @@ export function BookingCta({
   className?: string;
   children: React.ReactNode;
 }) {
-  const { openBooking } = useDemo();
+  const { openBooking } = useBooking();
 
   return (
     <button

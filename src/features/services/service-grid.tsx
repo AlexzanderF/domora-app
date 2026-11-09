@@ -1,11 +1,11 @@
 "use client";
 
-import { useDemo } from "@/features/requests/demo-provider";
+import { useBooking } from "@/features/bookings/booking-provider";
 import { categories } from "./catalog";
 import { ServiceIcon } from "./service-icon";
 
 export function ServiceGrid() {
-  const { openBooking } = useDemo();
+  const { openBooking } = useBooking();
   return (
     <div className="services">
       {categories.map((category) => (

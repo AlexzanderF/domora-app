@@ -24,7 +24,6 @@ import {
 import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
 import { getActor } from "@/features/auth/server/actor";
-import { getServerSession } from "@/features/auth/server/session";
 import { UserRole } from "@/features/auth/types";
 import { RequestPriority, RequestStatus } from "../types";
 import type { CategoryId, Plan, RequestAction, ServiceRequest } from "../types";
@@ -44,7 +43,6 @@ export interface CreateServiceRequestInput {
 export interface ServiceRequestActionResult {
   success: boolean;
   error?: string;
-  mode?: "db" | "demo";
   request?: ServiceRequest;
 }
 
@@ -73,9 +71,7 @@ async function runAsActor(
   try {
     const request = await run(await getActor());
     revalidateWorkspaceRequests();
-    return request
-      ? { success: true, mode: "db", request }
-      : { success: true, mode: "db" };
+    return request ? { success: true, request } : { success: true };
   } catch (error) {
     if (error instanceof RequestError) {
       return {
@@ -90,15 +86,6 @@ async function runAsActor(
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
-
-  const user = await getServerSession();
-  if (!user) {
-    return { success: true, mode: "demo" };
-  }
-
   return runAsActor(
     async (actor) => {
       const created = await createRequest(actor, {
@@ -134,9 +121,6 @@ export async function createServiceRequestAction(
 export async function assignSpecialistAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await claimRequest(actor, requestId);
@@ -152,9 +136,6 @@ export async function assignSpecialistAction(
 export async function startWorkAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await startWork(actor, requestId);
@@ -169,9 +150,6 @@ export async function completeWorkAction(
   requestId: number,
   report?: string,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await submitReport(actor, requestId, report ?? "");
@@ -186,9 +164,6 @@ export async function completeWorkAction(
 export async function cancelRequestAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
   return runAsActor(
     async (actor) => {
       await cancelRequest(actor, requestId);
@@ -201,10 +176,6 @@ export async function transitionRequestServerAction(
   requestId: number,
   action: RequestAction,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return { success: true, mode: "demo" };
-  }
-
   switch (action.type) {
     case "advance": {
       const db = getDb();
@@ -283,7 +254,7 @@ export async function transitionRequestServerAction(
         },
       );
     default:
-      return { success: true, mode: "db" };
+      return { success: true };
   }
 }
 
