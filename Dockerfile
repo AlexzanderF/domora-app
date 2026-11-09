@@ -43,6 +43,11 @@ COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/dist-migrate/migrate.mjs ./migrate.mjs
 COPY --from=builder /app/dist-worker/worker.mjs ./worker.mjs
 
+# Photo storage: mount a volume here. Created and owned by the app user so a
+# fresh named volume inherits write access.
+ENV PHOTO_STORAGE_DIR=/data/photos
+RUN mkdir -p /data/photos && chown nextjs:nodejs /data/photos
+
 USER nextjs
 
 EXPOSE 3000

@@ -54,6 +54,9 @@ services:
       PORT: "3000"
       DATABASE_URL: *db-url
       COOKIE_SECURE: ${COOKIE_SECURE:-}
+    volumes:
+      # Client photos. Named volume: survives redeploys and image rebuilds.
+      - photos:/data/photos
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -104,6 +107,7 @@ services:
 
 volumes:
   pgdata:
+  photos:
   caddy_data:
   caddy_config:
 

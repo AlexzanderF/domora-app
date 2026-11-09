@@ -23,6 +23,7 @@ import type {
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
 import { PhotoPicker } from "./photo-picker";
+import { uploadRequestPhotos } from "./upload-photos";
 import styles from "./booking-dialog.module.css";
 
 export function BookingDialog({ tariffs }: { tariffs: Tariffs }) {
@@ -72,11 +73,13 @@ function BookingForm({
   }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
+  const [photosBusy, setPhotosBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
-    if (isSubmitting) return;
+    if (isSubmitting || photosBusy) return;
     const data = new FormData(form);
     const description = String(data.get("description") ?? "").trim();
     const address = String(data.get("address") ?? "").trim();
@@ -117,9 +120,18 @@ function BookingForm({
       });
 
       if (actionResult.success) {
+        // The request is saved first; photos attach to it afterwards.
+        const upload =
+          photos.length && actionResult.request
+            ? await uploadRequestPhotos(actionResult.request.id, photos)
+            : null;
         closeBooking();
         router.push("/client/requests");
-        notify("Заявката е създадена успешно.");
+        notify(
+          upload && !upload.ok
+            ? `Заявката е създадена, но снимките не бяха качени. ${upload.error}`
+            : "Заявката е създадена успешно.",
+        );
         return;
       }
 
@@ -222,7 +234,7 @@ function BookingForm({
           />
         </Field>
         <div className={styles.photoSlot}>
-          <PhotoPicker />
+          <PhotoPicker onChange={setPhotos} onBusyChange={setPhotosBusy} />
         </div>
         <Field label="Адрес" error={errors.address} id="address-error">
           <input
@@ -291,7 +303,7 @@ function BookingForm({
         <button
           className={styles.submit}
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || photosBusy}
           aria-label="Изпрати демо заявка"
         >
           {isSubmitting ? "Изпращане..." : "Изпрати демо заявка →"}

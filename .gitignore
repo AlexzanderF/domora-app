@@ -10,3 +10,6 @@ next-env.d.ts
 !.env.example
 .DS_Store
 *.log
+
+# Local photo storage (PHOTO_STORAGE_DIR default)
+.data/
