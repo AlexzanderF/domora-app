@@ -115,7 +115,7 @@ jobs:
             # Public address for links in emails (password reset).
             if [[ "$APP_DOMAIN" == ":80" ]]; then
               APP_URL="http://${SERVER_HOST}"
-            elif [[ "$APP_DOMAIN" == http://* ]]; then
+            elif [[ "$APP_DOMAIN" == http://* || "$APP_DOMAIN" == https://* ]]; then
               APP_URL="$APP_DOMAIN"
             else
               APP_URL="https://${APP_DOMAIN}"

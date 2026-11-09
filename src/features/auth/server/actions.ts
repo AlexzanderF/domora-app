@@ -5,6 +5,7 @@ import { getDb, isDbConfigured } from "@/db";
 import { users } from "@/db/schema";
 import {
   IdentityError,
+  isPasswordResetTokenValid,
   registerSpecialist,
   requestPasswordReset,
   resetPassword,
@@ -283,15 +284,20 @@ export async function resetPasswordAction(
     return { success: false, error: "Грешка при свързване с базата данни." };
   }
 
+  const invalidLink = {
+    success: false,
+    error: "Връзката е невалидна или е изтекла.",
+    invalidLink: true,
+  } as const;
+  // Checked first so a made-up token never costs a password hash.
+  if (!(await isPasswordResetTokenValid(token))) {
+    return invalidLink;
+  }
   try {
     await resetPassword(token, await bcrypt.hash(password, 10));
   } catch (error) {
     if (error instanceof IdentityError && error.code === "INVALID_TOKEN") {
-      return {
-        success: false,
-        error: "Връзката е невалидна или е изтекла.",
-        invalidLink: true,
-      };
+      return invalidLink;
     }
     throw error;
   }

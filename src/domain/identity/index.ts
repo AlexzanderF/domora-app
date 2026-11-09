@@ -224,7 +224,15 @@ export async function requestPasswordReset(
   });
 }
 
-// Whether a link can still be used: known, unused and not expired.
+// A link can be used while it is known, unused and not expired.
+function usableLink(token: string, now: Date) {
+  return and(
+    eq(passwordResetTokens.tokenHash, hashSessionToken(token)),
+    isNull(passwordResetTokens.usedAt),
+    gt(passwordResetTokens.expiresAt, now),
+  );
+}
+
 export async function isPasswordResetTokenValid(
   token: string,
   now: Date = new Date(),
@@ -232,13 +240,7 @@ export async function isPasswordResetTokenValid(
   const [row] = await requireDb()
     .select({ id: passwordResetTokens.id })
     .from(passwordResetTokens)
-    .where(
-      and(
-        eq(passwordResetTokens.tokenHash, hashSessionToken(token)),
-        isNull(passwordResetTokens.usedAt),
-        gt(passwordResetTokens.expiresAt, now),
-      ),
-    );
+    .where(usableLink(token, now));
   return Boolean(row);
 }
 
@@ -256,13 +258,7 @@ export async function resetPassword(
         userId: passwordResetTokens.userId,
       })
       .from(passwordResetTokens)
-      .where(
-        and(
-          eq(passwordResetTokens.tokenHash, hashSessionToken(token)),
-          isNull(passwordResetTokens.usedAt),
-          gt(passwordResetTokens.expiresAt, now),
-        ),
-      )
+      .where(usableLink(token, now))
       .for("update");
     if (!link) {
       throw new IdentityError("INVALID_TOKEN", "Reset link is not valid.");
@@ -276,5 +272,9 @@ export async function resetPassword(
       .set({ passwordHash, updatedAt: now })
       .where(eq(users.id, link.userId));
     await tx.delete(sessions).where(eq(sessions.userId, link.userId));
+    await enqueueEvent(tx, {
+      type: "password.reset_completed",
+      payload: { userId: link.userId },
+    });
   });
 }
