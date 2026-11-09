@@ -2,21 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { requestPasswordResetAction } from "./server/actions";
 import { validateEmail } from "./validation";
 import styles from "./auth.module.css";
-
-function generateResetToken(): string {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  return (
-    Math.random().toString(36).substring(2, 15) +
-    Math.random().toString(36).substring(2, 15)
-  );
-}
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -24,7 +12,7 @@ export function ForgotPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const validationError = validateEmail(email);
@@ -34,15 +22,20 @@ export function ForgotPasswordForm() {
     }
 
     setError(null);
+    setIsSubmitted(false);
     setIsSubmitting(true);
-
-    const token = generateResetToken();
-    console.log(
-      `[DOMORA Auth] Simulated password reset token for ${email.trim()}: ${token}`,
-    );
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const result = await requestPasswordResetAction(email);
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        setError(result.error);
+      }
+    } catch {
+      setError("Възникна грешка. Моля, опитайте отново.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -59,8 +52,8 @@ export function ForgotPasswordForm() {
           role="status"
           style={{ marginBottom: "20px" }}
         >
-          Изпратихме инструкции за възстановяване на паролата на вашия имейл.
-          Моля, проверете входящата си поща.
+          Ако има профил с този имейл адрес, изпратихме на него връзка за смяна
+          на паролата. Моля, проверете входящата си поща.
         </div>
       )}
 

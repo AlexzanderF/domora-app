@@ -81,6 +81,8 @@ services:
       NOTIFIER_DRIVER: ${NOTIFIER_DRIVER:-console}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       NOTIFIER_FROM: ${NOTIFIER_FROM:-}
+      # Public address for links in emails, e.g. https://app.example.com.
+      APP_URL: ${APP_URL:-http://localhost}
     volumes:
       # Same volume as web: the orphan upload sweep deletes files from it.
       - photos:/data/photos

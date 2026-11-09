@@ -64,7 +64,7 @@ Until the [hard gates](#hard-gates-before-inviting-external-users) are met the b
 | `RESEND_API_KEY`               | gate 3   | Resend API key (EU region)                                                  |
 | `NOTIFIER_FROM`                | gate 3   | Sender on the verified domain, e.g. `DOMORA <no-reply@your-domain.example>` |
 
-GitHub Secrets are the source of truth: every deploy rewrites `/opt/domora-app/.env` from them. Do not edit `.env` on the server; the next deploy overwrites it. Do not change `POSTGRES_PASSWORD` after the first deploy: the database keeps the password it was initialised with.
+GitHub Secrets are the source of truth: every deploy rewrites `/opt/domora-app/.env` from them. Do not edit `.env` on the server; the next deploy overwrites it. The deploy also writes `APP_URL`, the address used for links in emails (password reset): `https://` plus `APP_DOMAIN`, or `http://` plus `CONTABO_HOST` while `APP_DOMAIN` is empty. Do not change `POSTGRES_PASSWORD` after the first deploy: the database keeps the password it was initialised with.
 
 ## Deploy
 

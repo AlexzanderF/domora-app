@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, lte } from "drizzle-orm";
+import { and, asc, eq, isNull, lte, sql } from "drizzle-orm";
 import { notificationDeliveries, outboxEvents, requireDb } from "@/db";
 import type { DomoraDatabase, OutboxEventSelect } from "@/db";
 import type { Notifier, NotificationMessage } from "./notifier";
@@ -22,6 +22,9 @@ export interface OutboxEventInput {
   type: string;
   // Bump when the payload shape changes so old events stay readable.
   version?: number;
+  // A `secrets` key (here and in a message's data) is for values that must
+  // not outlive the email, such as a reset token: it is removed from the
+  // event at fan-out and from the delivery once it is sent or given up on.
   payload: Record<string, unknown>;
 }
 
@@ -101,7 +104,10 @@ async function fanOut(handlers: EventHandlers, now: Date): Promise<number> {
       }
       await tx
         .update(outboxEvents)
-        .set({ fannedOutAt: now })
+        .set({
+          fannedOutAt: now,
+          payload: sql`${outboxEvents.payload} - 'secrets'`,
+        })
         .where(eq(outboxEvents.id, event.id));
       done += 1;
     }
@@ -140,7 +146,13 @@ async function deliver(
         });
         await tx
           .update(notificationDeliveries)
-          .set({ status: "SENT", attempts, sentAt: now, lastError: null })
+          .set({
+            status: "SENT",
+            attempts,
+            sentAt: now,
+            lastError: null,
+            data: sql`${notificationDeliveries.data} - 'secrets'`,
+          })
           .where(eq(notificationDeliveries.id, delivery.id));
         result.sent += 1;
       } catch (error) {
@@ -152,6 +164,9 @@ async function deliver(
             attempts,
             lastError: error instanceof Error ? error.message : String(error),
             nextAttemptAt: new Date(now.getTime() + backoffMs(attempts)),
+            ...(exhausted && {
+              data: sql`${notificationDeliveries.data} - 'secrets'`,
+            }),
           })
           .where(eq(notificationDeliveries.id, delivery.id));
         if (exhausted) result.failed += 1;

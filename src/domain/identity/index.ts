@@ -1,7 +1,15 @@
-import { and, eq } from "drizzle-orm";
-import { requireDb, specialistProfiles, users } from "@/db";
+import { randomBytes } from "node:crypto";
+import { and, count, eq, gt, isNull, lte } from "drizzle-orm";
+import {
+  passwordResetTokens,
+  requireDb,
+  sessions,
+  specialistProfiles,
+  users,
+} from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
+import { hashSessionToken } from "@/features/auth/server/token";
 import { UserRole, UserStatus } from "@/features/auth/types";
 
 // Framework-free (no next/*): who may use the platform. Specialists sign up as
@@ -9,7 +17,11 @@ import { UserRole, UserStatus } from "@/features/auth/types";
 // database on every request, so a decision applies to the very next request.
 
 export type IdentityErrorCode =
-  "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "INVALID_INPUT";
+  | "UNAUTHENTICATED"
+  | "FORBIDDEN"
+  | "NOT_FOUND"
+  | "INVALID_INPUT"
+  | "INVALID_TOKEN";
 
 export class IdentityError extends Error {
   constructor(
@@ -141,5 +153,128 @@ export async function bootstrapAdmin(
       status: UserStatus.Active,
     });
     return { created: true };
+  });
+}
+
+const RESET_TOKEN_TTL_MS = 48 * 60 * 60 * 1000;
+const RESET_REQUEST_WINDOW_MS = 60 * 60 * 1000;
+const RESET_REQUESTS_PER_WINDOW = 3;
+
+// Emails the account holder a one-time link. Resolves the same way whether
+// or not the email has an account or the limit is reached, so a caller
+// cannot tell which emails are registered.
+export async function requestPasswordReset(
+  email: string,
+  now: Date = new Date(),
+): Promise<void> {
+  await requireDb().transaction(async (tx) => {
+    // The row lock makes concurrent requests for one user count each other.
+    const [user] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email.trim().toLowerCase()))
+      .for("update");
+    if (!user) return;
+
+    await tx
+      .delete(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.userId, user.id),
+          lte(passwordResetTokens.expiresAt, now),
+        ),
+      );
+    const [recent] = await tx
+      .select({ n: count() })
+      .from(passwordResetTokens)
+      .where(
+        and(
+          eq(passwordResetTokens.userId, user.id),
+          gt(
+            passwordResetTokens.createdAt,
+            new Date(now.getTime() - RESET_REQUEST_WINDOW_MS),
+          ),
+        ),
+      );
+    if (recent.n >= RESET_REQUESTS_PER_WINDOW) return;
+
+    // A newer link replaces any earlier unused one.
+    await tx
+      .update(passwordResetTokens)
+      .set({ usedAt: now })
+      .where(
+        and(
+          eq(passwordResetTokens.userId, user.id),
+          isNull(passwordResetTokens.usedAt),
+        ),
+      );
+    const token = randomBytes(32).toString("base64url");
+    await tx.insert(passwordResetTokens).values({
+      userId: user.id,
+      tokenHash: hashSessionToken(token),
+      expiresAt: new Date(now.getTime() + RESET_TOKEN_TTL_MS),
+      createdAt: now,
+    });
+    // The worker needs the raw token to build the link; the outbox drops
+    // `secrets` once the email is out.
+    await enqueueEvent(tx, {
+      type: "password.reset_requested",
+      payload: { userId: user.id, secrets: { token } },
+    });
+  });
+}
+
+// A link can be used while it is known, unused and not expired.
+function usableLink(token: string, now: Date) {
+  return and(
+    eq(passwordResetTokens.tokenHash, hashSessionToken(token)),
+    isNull(passwordResetTokens.usedAt),
+    gt(passwordResetTokens.expiresAt, now),
+  );
+}
+
+export async function isPasswordResetTokenValid(
+  token: string,
+  now: Date = new Date(),
+): Promise<boolean> {
+  const [row] = await requireDb()
+    .select({ id: passwordResetTokens.id })
+    .from(passwordResetTokens)
+    .where(usableLink(token, now));
+  return Boolean(row);
+}
+
+// Sets the new password, spends the link and signs the user out everywhere.
+// Only the password changes: role and status stay as they are.
+export async function resetPassword(
+  token: string,
+  passwordHash: string,
+  now: Date = new Date(),
+): Promise<void> {
+  await requireDb().transaction(async (tx) => {
+    const [link] = await tx
+      .select({
+        id: passwordResetTokens.id,
+        userId: passwordResetTokens.userId,
+      })
+      .from(passwordResetTokens)
+      .where(usableLink(token, now))
+      .for("update");
+    if (!link) {
+      throw new IdentityError("INVALID_TOKEN", "Reset link is not valid.");
+    }
+    await tx
+      .update(passwordResetTokens)
+      .set({ usedAt: now })
+      .where(eq(passwordResetTokens.id, link.id));
+    await tx
+      .update(users)
+      .set({ passwordHash, updatedAt: now })
+      .where(eq(users.id, link.userId));
+    await tx.delete(sessions).where(eq(sessions.userId, link.userId));
+    await enqueueEvent(tx, {
+      type: "password.reset_completed",
+      payload: { userId: link.userId },
+    });
   });
 }

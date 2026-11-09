@@ -88,6 +88,25 @@ export const sessions = pgTable(
   (table) => [index("sessions_user_id_idx").on(table.userId)],
 );
 
+// Password reset links. Only the sha256 digest is stored, like session tokens.
+// usedAt is set when the link is used or replaced by a newer one.
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
+    userId: integer("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("password_reset_tokens_user_id_idx").on(table.userId)],
+);
+
 export const specialistProfiles = pgTable("specialist_profiles", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   userId: integer("user_id")
