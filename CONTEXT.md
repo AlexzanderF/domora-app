@@ -54,6 +54,10 @@ _Avoid_: Invoice note, Closing comment
 A service request where the client has flagged an issue with completed work; the specialist is given an opportunity to rectify it directly, while the Administrator tracks it in the triage queue.
 _Avoid_: Complaint, Ticket conflict
 
+**Dispute**:
+One client-raised flag on a service request, with the client's note. Resolving it keeps the record and stamps who resolved it, when and an optional resolution note, so a request keeps its full dispute history. The database still names the open-dispute flag and note `issue` / `issueNote`.
+_Avoid_: Issue, Complaint, Ticket
+
 **Admin Recommendation**:
 An unassigned service request explicitly suggested to a specific specialist by an Administrator, appearing in their opportunities feed with high priority without forcing an instant lock.
 _Avoid_: Admin invite, Manual ping

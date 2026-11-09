@@ -151,13 +151,21 @@ describe("request lifecycle", () => {
     expect(cancelled.price).toBe(newRequest.price);
   });
 
-  it("allows an issue only while awaiting confirmation and rejects invalid ratings", () => {
-    expect(transitionRequest(newRequest, { type: "issue" }, "client")).toBe(
-      newRequest,
-    );
-    expect(
-      transitionRequest(initialRequests[1], { type: "issue" }, "client").issue,
-    ).toBe(true);
+  it("allows a dispute only while awaiting confirmation, with a valid note, and rejects invalid ratings", () => {
+    const dispute = { type: "dispute", note: "  Течът остава  " } as const;
+    expect(transitionRequest(newRequest, dispute, "client")).toBe(newRequest);
+    const disputed = transitionRequest(initialRequests[1], dispute, "client");
+    expect(disputed.issue).toBe(true);
+    expect(disputed.issueNote).toBe("Течът остава");
+    for (const note of [undefined, "   ", "x".repeat(2001)]) {
+      expect(
+        transitionRequest(
+          initialRequests[1],
+          { type: "dispute", note },
+          "client",
+        ),
+      ).toBe(initialRequests[1]);
+    }
     const completed: ServiceRequest = { ...newRequest, status: "COMPLETED" };
     for (const rating of [0, 6, 2.5, NaN])
       expect(

@@ -36,7 +36,7 @@ export function DisputedRequestsQueue({
     try {
       setProcessingId(request.id);
       const res = await transitionRequestServerAction(request.id, {
-        type: "resolve",
+        type: "resolve-dispute",
         resolutionNote,
       });
       if (!res.success) {

@@ -5,7 +5,7 @@ import type { Actor } from "@/domain/authorization";
 import { UserRole } from "@/features/auth/types";
 import { RequestStatus } from "@/features/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
-import { getDisputeHistory, raiseIssue, resolveIssue } from "./index";
+import { getDisputeHistory, raiseDispute, resolveDispute } from "./index";
 
 let client: Actor;
 let otherClient: Actor;
@@ -43,9 +43,9 @@ async function requestRow() {
   return row;
 }
 
-describe("raiseIssue", () => {
+describe("raiseDispute", () => {
   it("stores the note, flags the request and audits it", async () => {
-    const dispute = await raiseIssue(client, requestId, "  Течът остава  ");
+    const dispute = await raiseDispute(client, requestId, "  Течът остава  ");
 
     expect(dispute).toMatchObject({
       requestId,
@@ -61,11 +61,11 @@ describe("raiseIssue", () => {
       .select()
       .from(requestEvents)
       .where(eq(requestEvents.requestId, requestId));
-    expect(events.map((e) => e.type)).toEqual(["request.issue_raised"]);
+    expect(events.map((e) => e.type)).toEqual(["request.dispute_raised"]);
   });
 
   it("is visible to the assigned specialist and admins, not strangers", async () => {
-    await raiseIssue(client, requestId, "Течът остава");
+    await raiseDispute(client, requestId, "Течът остава");
 
     expect((await getDisputeHistory(specialist, requestId))[0].note).toBe(
       "Течът остава",
@@ -84,50 +84,65 @@ describe("raiseIssue", () => {
 
   it("rejects everyone but the request's client", async () => {
     for (const actor of [otherClient, specialist, otherSpecialist, admin]) {
-      expect(await rejection(raiseIssue(actor, requestId, "Проблем"))).toBe(
+      expect(await rejection(raiseDispute(actor, requestId, "Проблем"))).toBe(
         "FORBIDDEN",
       );
     }
-    expect(await rejection(raiseIssue(null, requestId, "Проблем"))).toBe(
+    expect(await rejection(raiseDispute(null, requestId, "Проблем"))).toBe(
       "UNAUTHENTICATED",
     );
     expect((await requestRow()).issue).toBe(false);
   });
 
   it("requires a note", async () => {
-    expect(await rejection(raiseIssue(client, requestId, "   "))).toBe(
+    expect(await rejection(raiseDispute(client, requestId, "   "))).toBe(
       "INVALID_INPUT",
     );
   });
 
-  it("only applies to work awaiting confirmation, once at a time", async () => {
-    await raiseIssue(client, requestId, "Първи");
-    expect(await rejection(raiseIssue(client, requestId, "Втори"))).toBe(
-      "INVALID_STATE",
-    );
+  it("is idempotent while a dispute is open", async () => {
+    const first = await raiseDispute(client, requestId, "Първи");
+    const again = await raiseDispute(client, requestId, "Втори");
 
+    expect(again.id).toBe(first.id);
+    expect(again.note).toBe("Първи");
+    expect(await getDisputeHistory(client, requestId)).toHaveLength(1);
+    const events = await requireDb()
+      .select()
+      .from(requestEvents)
+      .where(eq(requestEvents.requestId, requestId));
+    expect(events).toHaveLength(1);
+  });
+
+  it("rejects a note over the length limit", async () => {
+    expect(
+      await rejection(raiseDispute(client, requestId, "x".repeat(2001))),
+    ).toBe("INVALID_INPUT");
+  });
+
+  it("only applies to work awaiting confirmation", async () => {
     const inProgress = await insertRequest({
       clientId: client.id,
       specialistId: specialist.id,
       status: RequestStatus.InProgress,
     });
-    expect(await rejection(raiseIssue(client, inProgress, "Рано"))).toBe(
+    expect(await rejection(raiseDispute(client, inProgress, "Рано"))).toBe(
       "INVALID_STATE",
     );
   });
 
   it("answers NOT_FOUND for a missing request", async () => {
-    expect(await rejection(raiseIssue(client, 999999, "Проблем"))).toBe(
+    expect(await rejection(raiseDispute(client, 999999, "Проблем"))).toBe(
       "NOT_FOUND",
     );
   });
 });
 
-describe("resolveIssue", () => {
+describe("resolveDispute", () => {
   it("lets an admin resolve and keeps the dispute history", async () => {
-    await raiseIssue(client, requestId, "Течът остава");
+    await raiseDispute(client, requestId, "Течът остава");
 
-    const resolved = await resolveIssue(admin, requestId, "Поправено");
+    const resolved = await resolveDispute(admin, requestId, "Поправено");
 
     expect(resolved).toMatchObject({
       note: "Течът остава",
@@ -147,14 +162,17 @@ describe("resolveIssue", () => {
         .where(eq(requestEvents.requestId, requestId))
         .orderBy(requestEvents.id)
     ).map((e) => e.type);
-    expect(types).toEqual(["request.issue_raised", "request.issue_resolved"]);
+    expect(types).toEqual([
+      "request.dispute_raised",
+      "request.dispute_resolved",
+    ]);
   });
 
   it("accumulates history across repeated disputes", async () => {
-    await raiseIssue(client, requestId, "Първи");
-    await resolveIssue(admin, requestId);
-    await raiseIssue(client, requestId, "Втори");
-    await resolveIssue(admin, requestId, "Готово");
+    await raiseDispute(client, requestId, "Първи");
+    await resolveDispute(admin, requestId);
+    await raiseDispute(client, requestId, "Втори");
+    await resolveDispute(admin, requestId, "Готово");
 
     const history = await getDisputeHistory(client, requestId);
     expect(history.map((d) => d.note)).toEqual(["Втори", "Първи"]);
@@ -162,11 +180,13 @@ describe("resolveIssue", () => {
   });
 
   it("rejects everyone but an admin", async () => {
-    await raiseIssue(client, requestId, "Проблем");
+    await raiseDispute(client, requestId, "Проблем");
     for (const actor of [client, otherClient, specialist, otherSpecialist]) {
-      expect(await rejection(resolveIssue(actor, requestId))).toBe("FORBIDDEN");
+      expect(await rejection(resolveDispute(actor, requestId))).toBe(
+        "FORBIDDEN",
+      );
     }
-    expect(await rejection(resolveIssue(null, requestId))).toBe(
+    expect(await rejection(resolveDispute(null, requestId))).toBe(
       "UNAUTHENTICATED",
     );
     expect((await requestRow()).issue).toBe(true);
@@ -181,7 +201,7 @@ describe("resolveIssue", () => {
       issueNote: "Старо оплакване",
     });
 
-    await resolveIssue(admin, legacy);
+    await resolveDispute(admin, legacy);
 
     const history = await getDisputeHistory(admin, legacy);
     expect(history).toHaveLength(1);
@@ -192,7 +212,7 @@ describe("resolveIssue", () => {
   });
 
   it("rejects resolving when nothing is open", async () => {
-    expect(await rejection(resolveIssue(admin, requestId))).toBe(
+    expect(await rejection(resolveDispute(admin, requestId))).toBe(
       "INVALID_STATE",
     );
   });

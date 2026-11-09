@@ -120,7 +120,7 @@ export function ClientDashboard({
               if (!note) return;
               void performAction(
                 trackedRequest,
-                { type: "issue", note },
+                { type: "dispute", note },
                 "Сигналът е изпратен за преглед.",
               );
             }}

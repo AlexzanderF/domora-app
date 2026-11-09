@@ -105,7 +105,7 @@ export function RequestActions({
                   ?.trim();
                 if (!note) return;
                 void perform(
-                  { type: "issue", note },
+                  { type: "dispute", note },
                   "Сигналът е отбелязан за преглед.",
                 );
               }}

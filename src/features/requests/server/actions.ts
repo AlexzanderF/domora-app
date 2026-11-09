@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests } from "@/db/schema";
-import { raiseIssue, resolveIssue } from "@/domain/disputes";
+import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import {
   assignSpecialist,
   claimRequest,
@@ -258,10 +258,10 @@ export async function transitionRequestServerAction(
           INVALID_STATE: "Тази заявка не може да бъде оценена.",
         },
       );
-    case "issue":
+    case "dispute":
       return runAsActor(
         async (actor) => {
-          await raiseIssue(actor, requestId, action.note ?? "");
+          await raiseDispute(actor, requestId, action.note ?? "");
         },
         {
           FORBIDDEN: "Само клиентът на заявката може да подаде сигнал.",
@@ -270,10 +270,10 @@ export async function transitionRequestServerAction(
             "Сигнал за проблем може да се подаде след приключване на работата.",
         },
       );
-    case "resolve":
+    case "resolve-dispute":
       return runAsActor(
         async (actor) => {
-          await resolveIssue(actor, requestId, action.resolutionNote);
+          await resolveDispute(actor, requestId, action.resolutionNote);
         },
         {
           FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",

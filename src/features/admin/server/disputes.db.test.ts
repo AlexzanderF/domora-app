@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { Actor } from "@/domain/authorization";
-import { raiseIssue, resolveIssue } from "@/domain/disputes";
+import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import { UserRole } from "@/features/auth/types";
 import { RequestStatus } from "@/features/requests/types";
 import { createActor, insertRequest } from "../../../../tests/db/factories";
@@ -27,7 +27,7 @@ beforeEach(async () => {
 
 describe("admin dispute triage queries", () => {
   it("lists an open dispute with its note, then moves it to history", async () => {
-    await raiseIssue(client, requestId, "Течът остава");
+    await raiseDispute(client, requestId, "Течът остава");
 
     const open = await findDisputedRequestsForAdmin();
     expect(open?.map((r) => [r.id, r.issueNote])).toEqual([
@@ -35,7 +35,7 @@ describe("admin dispute triage queries", () => {
     ]);
     expect(await findResolvedDisputesForAdmin()).toEqual([]);
 
-    await resolveIssue(admin, requestId, "Поправено");
+    await resolveDispute(admin, requestId, "Поправено");
 
     expect(await findDisputedRequestsForAdmin()).toEqual([]);
     const history = await findResolvedDisputesForAdmin();
