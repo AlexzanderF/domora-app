@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
 import { isActiveStage } from "@/features/requests/request-rules";
 import { localDate, money } from "@/lib/format";
 import { RequestStatus } from "@/domain/requests/types";
@@ -32,14 +33,14 @@ export function DashboardSummary({
 
   return (
     <div className={styles.summaryRow}>
-      <div className={`card ${styles.summaryCard}`}>
+      <Card className={styles.summaryCard}>
         <span className={styles.summaryLabel}>Активни задачи</span>
         <strong className={styles.summaryValue}>{activeJobs}</strong>
-      </div>
-      <div className={`card ${styles.summaryCard}`}>
+      </Card>
+      <Card className={styles.summaryCard}>
         <span className={styles.summaryLabel}>Приходи за днес</span>
         <strong className={styles.summaryValue}>{money(todaysEarnings)}</strong>
-      </div>
+      </Card>
       <Link href="/specialist/history" className={styles.summaryLink}>
         История &amp; приходи →
       </Link>

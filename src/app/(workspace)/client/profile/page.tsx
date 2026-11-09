@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { isDbConfigured } from "@/db";
 import { getServerSession } from "@/features/auth/server/session";
 import { UserRole, UserStatus } from "@/domain/identity/types";

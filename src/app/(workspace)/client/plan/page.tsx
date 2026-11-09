@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { ClientPlanView } from "@/features/subscriptions/client-plan-view";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 import { getServerSession } from "@/features/auth/server/session";

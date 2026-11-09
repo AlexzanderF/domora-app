@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { DashboardSummary } from "@/features/specialist/dashboard-summary";
 import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
 import { DailyAgenda } from "@/features/specialist/daily-agenda";

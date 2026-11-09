@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { BookingButton } from "@/features/bookings/booking-button";
 import { ClientDashboard } from "@/features/client-dashboard/client-dashboard";
 import { findClientRequests } from "@/features/requests/server/queries";

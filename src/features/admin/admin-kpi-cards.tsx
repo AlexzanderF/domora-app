@@ -1,5 +1,6 @@
 "use client";
 
+import { Card } from "@/components/ui/card";
 import { money } from "@/lib/format";
 import type { AdminKpiMetrics } from "./server/metrics";
 import styles from "./admin-command-center.module.css";
@@ -17,7 +18,7 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps) {
   return (
     <div className={`stats ${styles.kpiGrid}`}>
       {/* 1. Неразпределени спешни заявки */}
-      <div className={`card ${styles.kpiCard} ${styles.cardUrgent}`}>
+      <Card className={`${styles.kpiCard} ${styles.cardUrgent}`}>
         <div className={styles.cardAccentBar} />
         <div>
           <div className={styles.cardHeader}>
@@ -36,10 +37,10 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps) {
               : `${unassignedUrgentCount} чакащи спешни заявки`}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* 2. Чакащи одобрение специалисти */}
-      <div className={`card ${styles.kpiCard} ${styles.cardPending}`}>
+      <Card className={`${styles.kpiCard} ${styles.cardPending}`}>
         <div className={styles.cardAccentBar} />
         <div>
           <div className={styles.cardHeader}>
@@ -60,10 +61,10 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps) {
               : `${pendingSpecialistsCount} нови профила за преглед`}
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* 3. Активни ремонти днес */}
-      <div className={`card ${styles.kpiCard} ${styles.cardActive}`}>
+      <Card className={`${styles.kpiCard} ${styles.cardActive}`}>
         <div className={styles.cardAccentBar} />
         <div>
           <div className={styles.cardHeader}>
@@ -78,10 +79,10 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps) {
           <strong className={styles.cardValue}>{activeRepairsCount}</strong>
           <div className={styles.cardSubtext}>Поети или в изпълнение</div>
         </div>
-      </div>
+      </Card>
 
       {/* 4. Приходи за месеца */}
-      <div className={`card ${styles.kpiCard} ${styles.cardRevenue}`}>
+      <Card className={`${styles.kpiCard} ${styles.cardRevenue}`}>
         <div className={styles.cardAccentBar} />
         <div>
           <div className={styles.cardHeader}>
@@ -96,7 +97,7 @@ export function AdminKpiCards({ initialMetrics }: AdminKpiCardsProps) {
           <strong className={styles.cardValue}>{money(monthlyRevenue)}</strong>
           <div className={styles.cardSubtext}>От приключени заявки</div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

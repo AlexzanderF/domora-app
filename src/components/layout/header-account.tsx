@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/auth-provider";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import type { User } from "@/domain/identity/types";
@@ -46,7 +48,7 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
           {initial}
         </span>
         <span>{activeUser.name}</span>
-        <span className="badge">{roleLabel}</span>
+        <StatusBadge>{roleLabel}</StatusBadge>
         <button
           type="button"
           onClick={async () => {
@@ -65,20 +67,12 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
 
   return (
     <div className="account" style={{ gap: "10px" }}>
-      <Link
-        href="/login"
-        className="secondary"
-        style={{ textDecoration: "none", padding: "8px 16px" }}
-      >
-        Вход
-      </Link>
-      <Link
-        href="/signup"
-        className="primary"
-        style={{ textDecoration: "none", padding: "8px 16px" }}
-      >
-        Регистрация
-      </Link>
+      <Button asChild variant="secondary" className="px-4 py-2">
+        <Link href="/login">Вход</Link>
+      </Button>
+      <Button asChild className="px-4 py-2">
+        <Link href="/signup">Регистрация</Link>
+      </Button>
     </div>
   );
 }

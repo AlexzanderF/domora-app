@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast-provider";
 import { useBooking } from "@/features/bookings/booking-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
@@ -166,9 +167,9 @@ export function ClientDashboard({
               <p>
                 По-ниски цени, регулярна грижа и безплатни сезонни профилактики.
               </p>
-              <Link className="secondary" href="/client/plan">
-                Разгледайте плановете
-              </Link>
+              <Button asChild variant="secondary">
+                <Link href="/client/plan">Разгледайте плановете</Link>
+              </Button>
             </div>
           )}
         </section>
@@ -275,12 +276,12 @@ function ActiveRequest({
 
       {request.status === RequestStatus.AwaitingConfirmation && !ratingOpen && (
         <div className={styles.trackerActions}>
-          <button className="primary" type="button" onClick={onConfirm}>
+          <Button type="button" onClick={onConfirm}>
             Потвърди и оцени
-          </button>
-          <button className="secondary" type="button" onClick={onIssue}>
+          </Button>
+          <Button variant="secondary" type="button" onClick={onIssue}>
             Сигнализирай проблем
-          </button>
+          </Button>
         </div>
       )}
       {request.issue && (

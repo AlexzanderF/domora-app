@@ -1,5 +1,8 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
 export default function ErrorPage({
   reset,
 }: {
@@ -7,12 +10,12 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   return (
-    <div className="card">
+    <Card>
       <h1>Възникна проблем.</h1>
-      <p className="muted">Опитайте да заредите страницата отново.</p>
-      <button className="primary" onClick={reset}>
-        Опитай отново
-      </button>
-    </div>
+      <p className="text-sm text-muted-foreground">
+        Опитайте да заредите страницата отново.
+      </p>
+      <Button onClick={reset}>Опитай отново</Button>
+    </Card>
   );
 }

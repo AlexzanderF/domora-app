@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { TariffForm } from "@/features/admin/tariff-form";
 import { findTariffs } from "@/domain/pricing/tariffs";
 

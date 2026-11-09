@@ -1,5 +1,7 @@
 "use client";
 
+import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
 import { money } from "@/lib/format";
@@ -22,9 +24,9 @@ export function RequestList({
   const items = limit ? initialRequests.slice(0, limit) : initialRequests;
   if (!items.length)
     return (
-      <div className="empty">
+      <EmptyState>
         Все още няма заявки. Изберете услуга, за да започнете.
-      </div>
+      </EmptyState>
     );
   return (
     <>
@@ -45,19 +47,23 @@ export function RequestList({
               <br />
               {request.address}
             </p>
-            <span
-              className={`badge ${request.status === RequestStatus.Created && !request.cancelled ? "wait" : ""}`}
+            <StatusBadge
+              tone={
+                request.status === RequestStatus.Created && !request.cancelled
+                  ? "pending"
+                  : "default"
+              }
             >
               {request.cancelled ? "Отказана" : requestStages[request.status]}
-            </span>{" "}
+            </StatusBadge>{" "}
             {request.plan && (
-              <span className="badge">
+              <StatusBadge>
                 {request.visitsPerMonth && request.propertySize
                   ? `${request.visitsPerMonth} ${request.visitsPerMonth === 1 ? "посещение" : "посещения"} / месец · ${request.propertySize} ${request.plan === Plan.Home ? "м²" : "етажа"}`
                   : request.plan === Plan.Home
                     ? "За дома"
                     : "За входа"}
-              </span>
+              </StatusBadge>
             )}
             {actions && (
               <>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
+import { Card } from "@/components/ui/card";
 import { RequestList } from "@/features/requests/request-list";
 import { findAllRequestsForAdmin } from "@/features/admin/server/metrics";
 import { UserRole } from "@/domain/identity/types";
@@ -34,13 +35,13 @@ export default async function AdminRequestsPage() {
         title="Всички заявки"
         description="Преглед и филтриране на всички клиентски заявки за услуги в платформата."
       />
-      <div className="card">
+      <Card>
         <RequestList
           actions
           role="admin"
           initialRequests={initialRequests ?? []}
         />
-      </div>
+      </Card>
     </>
   );
 }

@@ -248,3 +248,13 @@
   margin: 0;
   line-height: 1.45;
 }
+
+/* Phone width: compact horizontal cards (previously the global .stats .card rule). */
+@media (max-width: 700px) {
+  .kpiGrid .kpiCard {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+  }
+}
