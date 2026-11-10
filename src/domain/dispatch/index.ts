@@ -16,7 +16,7 @@ import {
 } from "@/domain/requests";
 import type { RequestDto, Tx } from "@/domain/requests";
 import { UserRole, UserStatus } from "@/domain/identity/types";
-import { canClaim } from "@/features/requests/request-rules";
+import { canClaim } from "@/domain/requests/lifecycle";
 import { RequestStatus } from "@/domain/requests/types";
 
 // Framework-free (no next/*): dispatch decides who may take an open request.
