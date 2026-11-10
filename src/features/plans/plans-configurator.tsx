@@ -1,21 +1,30 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast-provider";
-import { DatePicker } from "@/features/plans/date-picker";
-import { TimePicker } from "@/features/plans/time-picker";
+import { DateField, TimeRangeSelect } from "@/components/ui/schedule-fields";
 import { calculateQuote } from "@/domain/pricing";
 import { Plan } from "@/domain/requests/types";
 import type { Tariffs } from "@/domain/requests/types";
 import { startSubscriptionAction } from "@/features/subscriptions/server/actions";
 import { SubscriptionPlan } from "@/domain/subscriptions/types";
 import { localDate, money } from "@/lib/format";
+import { isPastDate } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { HomePlanPreview } from "./home-plan-preview";
 
@@ -62,16 +71,16 @@ const planOptions: Record<
 const quickVisits = [1, 2, 4] as const;
 
 const section = "border-b border-[#dce5df] pb-10";
-const step = "text-[0.72rem] font-[850] tracking-[0.12em] text-[#517067]";
+const step = "text-xs font-[850] tracking-[0.12em] text-[#517067]";
 const sectionTitle = "mt-[0.35rem] mb-[1.2rem] text-[1.35rem] text-[#17372f]";
 const fieldLabel =
   "m-0 grid content-start gap-[0.38rem] text-[0.82rem] leading-[1.55] font-bold text-[#40564f]";
 const fieldControl =
-  "mt-0 min-h-11 rounded-md border-[#ccd9d1] text-[0.92rem] leading-[1.55] aria-invalid:border-[#b14545]";
+  "mt-0 min-h-11 rounded-md border-[#ccd9d1] text-base leading-[1.55] aria-invalid:border-[#b14545]";
 const checkItem =
   "before:mr-[0.65rem] before:font-[850] before:text-[#287057] before:content-['✓']";
 const stepperButton =
-  "h-10 rounded-none p-0 text-[1.25rem] font-[650] text-[#175246] hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-[#a9b6b1] disabled:opacity-100";
+  "h-11 rounded-none p-0 text-[1.25rem] font-[650] text-[#175246] hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-[#a9b6b1] disabled:opacity-100";
 const errorText =
   "mt-[0.3rem] block text-[0.76rem] font-[650] text-tone-a33b3b";
 
@@ -83,6 +92,20 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
   const [quantity, setQuantity] = useState(80);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  // The sheet is phone/tablet only: close it (releasing overlay and scroll lock)
+  // if the viewport reaches lg while it is open.
+  useEffect(() => {
+    if (!sheetOpen) return;
+    const query = window.matchMedia("(min-width: 1024px)");
+    const close = () => {
+      if (query.matches) setSheetOpen(false);
+    };
+    close();
+    query.addEventListener("change", close);
+    return () => query.removeEventListener("change", close);
+  }, [sheetOpen]);
   const option = planOptions[plan];
   const validQuantity =
     Number.isInteger(quantity) && quantity >= 1 && quantity <= 1000;
@@ -109,7 +132,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
 
     if (!address) nextErrors.address = "Въведете адрес на имота.";
     if (!date) nextErrors.date = "Изберете предпочитана начална дата.";
-    else if (date < today)
+    else if (isPastDate(date, today))
       nextErrors.date = "Датата не може да бъде в миналото.";
     if (!time) nextErrors.time = "Изберете часови диапазон.";
     if (!validQuantity) {
@@ -148,12 +171,99 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
     }
   }
 
+  function renderForm(inSheet: boolean) {
+    return (
+      <form
+        className={
+          inSheet
+            ? "contents"
+            : "hidden gap-4 border-t border-[#dbe5df] pt-5 lg:grid"
+        }
+        onSubmit={submit}
+        noValidate
+      >
+        {inSheet ? (
+          <DialogHeader>
+            <span className="text-xs font-[800] text-[#668078]">СТЪПКА 04</span>
+            <DialogTitle className="m-0 text-[1.35rem] leading-[1.18] text-[#17372f]">
+              Заявете старт
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Адрес, начална дата и часови диапазон за абонамента.
+            </DialogDescription>
+          </DialogHeader>
+        ) : (
+          <div className="grid gap-[0.15rem]">
+            <span className="text-xs font-[800] text-[#668078]">СТЪПКА 04</span>
+            <h3 className="text-[1.15rem] text-[#17372f]">Заявете старт</h3>
+          </div>
+        )}
+        <FormBody inSheet={inSheet} className="grid content-start gap-[0.9rem]">
+          <Field
+            label="Адрес на имота"
+            error={errors.address}
+            id="address-error"
+          >
+            <Input
+              name="address"
+              autoComplete="street-address"
+              className={fieldControl}
+              aria-invalid={Boolean(errors.address)}
+              aria-describedby={errors.address ? "address-error" : undefined}
+              placeholder="Град, улица, номер, вход"
+            />
+          </Field>
+          <Field
+            label="Предпочитана начална дата"
+            error={errors.date}
+            id="date-error"
+          >
+            <DateField
+              min={today}
+              className={fieldControl}
+              invalid={Boolean(errors.date)}
+              describedBy={errors.date ? "date-error" : undefined}
+            />
+          </Field>
+          <Field label="Часови диапазон" error={errors.time} id="time-error">
+            <TimeRangeSelect
+              invalid={Boolean(errors.time)}
+              describedBy={errors.time ? "time-error" : undefined}
+            />
+          </Field>
+          <Label className={fieldLabel}>
+            Бележки{" "}
+            <span className="font-normal text-[#74847f]">(по желание)</span>
+            <Textarea
+              name="notes"
+              rows={3}
+              className={cn(fieldControl, "min-h-[86px]")}
+              placeholder="Достъп, предпочитания или друга важна информация"
+            />
+          </Label>
+        </FormBody>
+        <FormFoot inSheet={inSheet} className="mt-[0.35rem] grid gap-4">
+          <Button
+            className="min-h-12 rounded-[7px] bg-[#175246] px-0 py-0 font-extrabold hover:bg-[#103c33]"
+            type="submit"
+            disabled={saving}
+          >
+            {saving ? "Обработва се..." : "Заявете абонамент"}
+          </Button>
+          <small className="text-center text-xs text-[#74847f]">
+            Демо заявка без плащане. Графикът подлежи на потвърждение.
+          </small>
+        </FormFoot>
+      </form>
+    );
+  }
+
   if (plan === Plan.Home) {
     return <HomePlanPreview onChooseEntry={() => choosePlan(Plan.Entry)} />;
   }
 
   return (
-    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid grid-cols-[minmax(0,1fr)_minmax(330px,420px)] items-start gap-[clamp(2rem,5vw,5rem)] max-[820px]:grid-cols-1">
+    <div className="mt-10 md:mt-14 lg:mt-18 grid pb-24 lg:pb-0 grid-cols-1 items-start gap-8 md:gap-12 lg:gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
       <section className="grid gap-10" aria-labelledby="configure-title">
         <div className={section}>
           <span className={step}>01</span>
@@ -186,7 +296,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           <span className={step}>02</span>
           <h2 className={sectionTitle}>Колко често?</h2>
           <div
-            className="grid grid-cols-3 gap-[0.65rem] max-[520px]:gap-[0.4rem]"
+            className="grid grid-cols-3 gap-[0.4rem] sm:gap-[0.65rem]"
             aria-label="Бърз избор на посещения"
           >
             {quickVisits.map((count) => (
@@ -194,7 +304,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                 key={count}
                 type="button"
                 variant="secondary"
-                className="relative grid min-h-[104px] place-content-center gap-[0.15rem] rounded-lg border-[#ccd9d1] p-0 font-normal text-[#50645e] hover:bg-white max-[520px]:min-h-24 aria-pressed:border-2 aria-pressed:border-[#175246] aria-pressed:bg-[#edf4ef] aria-pressed:text-[#175246] aria-pressed:hover:bg-[#edf4ef]"
+                className="relative grid min-h-24 place-content-center sm:min-h-[104px] gap-[0.15rem] rounded-lg border-[#ccd9d1] p-0 font-normal text-[#50645e] hover:bg-white aria-pressed:border-2 aria-pressed:border-[#175246] aria-pressed:bg-[#edf4ef] aria-pressed:text-[#175246] aria-pressed:hover:bg-[#edf4ef]"
                 aria-pressed={visits === count}
                 onClick={() => setVisits(count)}
               >
@@ -203,16 +313,16 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                   {count === 1 ? "посещение" : "посещения"}
                 </span>
                 {count === 2 && (
-                  <small className="absolute -top-[0.65rem] left-1/2 -translate-x-1/2 rounded-[4px] bg-[#d7ef77] px-2 py-[0.18rem] text-[0.65rem] font-[800] whitespace-nowrap text-[#29443c]">
+                  <small className="absolute -top-[0.65rem] left-1/2 -translate-x-1/2 rounded-[4px] bg-[#d7ef77] px-2 py-[0.18rem] text-xs font-[800] whitespace-nowrap text-[#29443c]">
                     Препоръчано
                   </small>
                 )}
               </Button>
             ))}
           </div>
-          <div className="mt-4 flex items-center justify-between gap-4 text-[0.9rem] font-[650] text-[#3f554e] max-[520px]:flex-col max-[520px]:items-start">
+          <div className="mt-4 flex flex-col items-start justify-between gap-4 text-[0.9rem] font-[650] text-[#3f554e] sm:flex-row sm:items-center">
             <span>Посещения на месец</span>
-            <div className="grid grid-cols-[40px_46px_40px] items-center overflow-hidden rounded-[7px] border border-[#ccd9d1] bg-white">
+            <div className="grid grid-cols-[44px_46px_44px] items-center overflow-hidden rounded-[7px] border border-[#ccd9d1] bg-white">
               <Button
                 type="button"
                 variant="ghost"
@@ -296,10 +406,10 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
       </section>
 
       <aside
-        className="sticky top-[100px] max-[820px]:static"
+        className="lg:sticky lg:top-[100px]"
         aria-labelledby="summary-title"
       >
-        <Card className="rounded-lg border-[#cad8d0] p-[clamp(1.4rem,3vw,2rem)] shadow-[0_16px_45px_rgb(22_60_50/9%)] max-[700px]:p-[clamp(1.4rem,3vw,2rem)]">
+        <Card className="rounded-lg border-[#cad8d0] p-6 md:p-8 shadow-[0_16px_45px_rgb(22_60_50/9%)]">
           <div className="flex items-center justify-between">
             <span className={step}>ВАШИЯТ ПЛАН</span>
             {discount && (
@@ -333,80 +443,71 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             {discount && " × 0.90"}
           </p>
 
-          <form
-            className="grid gap-4 border-t border-[#dbe5df] pt-5"
-            onSubmit={submit}
-            noValidate
-          >
-            <div className="grid gap-[0.15rem]">
-              <span className="text-[0.68rem] font-[800] text-[#668078]">
-                СТЪПКА 04
-              </span>
-              <h3 className="text-[1.15rem] text-[#17372f]">Заявете старт</h3>
-            </div>
-            <div className="grid gap-[0.9rem]">
-              <Field
-                label="Адрес на имота"
-                error={errors.address}
-                id="address-error"
-              >
-                <Input
-                  name="address"
-                  autoComplete="street-address"
-                  className={fieldControl}
-                  aria-invalid={Boolean(errors.address)}
-                  aria-describedby={
-                    errors.address ? "address-error" : undefined
-                  }
-                  placeholder="Град, улица, номер, вход"
-                />
-              </Field>
-              <Field
-                label="Предпочитана начална дата"
-                error={errors.date}
-                id="date-error"
-              >
-                <DatePicker
-                  min={today}
-                  invalid={Boolean(errors.date)}
-                  describedBy={errors.date ? "date-error" : undefined}
-                />
-              </Field>
-              <Field
-                label="Часови диапазон"
-                error={errors.time}
-                id="time-error"
-              >
-                <TimePicker
-                  invalid={Boolean(errors.time)}
-                  describedBy={errors.time ? "time-error" : undefined}
-                />
-              </Field>
-              <Label className={fieldLabel}>
-                Бележки{" "}
-                <span className="font-normal text-[#74847f]">(по желание)</span>
-                <Textarea
-                  name="notes"
-                  rows={3}
-                  className={cn(fieldControl, "min-h-[86px]")}
-                  placeholder="Достъп, предпочитания или друга важна информация"
-                />
-              </Label>
-            </div>
-            <Button
-              className="mt-[0.35rem] min-h-12 rounded-[7px] bg-[#175246] px-0 py-0 font-extrabold hover:bg-[#103c33]"
-              type="submit"
-              disabled={saving}
-            >
-              {saving ? "Обработва се..." : "Заявете абонамент"}
-            </Button>
-            <small className="text-center text-[0.7rem] text-[#74847f]">
-              Демо заявка без плащане. Графикът подлежи на потвърждение.
-            </small>
-          </form>
+          {renderForm(false)}
         </Card>
       </aside>
+
+      {!sheetOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-[#cad8d0] bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgb(22_60_50/10%)] lg:hidden">
+          <div className="grid" aria-live="polite">
+            <strong className="text-[1.25rem] text-[#17372f]">
+              {price === null ? "—" : money(price)}
+              <span className="ml-1 text-xs font-normal text-tone-687b75">
+                / месец
+              </span>
+            </strong>
+            <span className="text-xs text-tone-687b75">
+              {visits} {visits === 1 ? "посещение" : "посещения"} ·{" "}
+              {quantity || "—"} {option.unit}
+            </span>
+          </div>
+          <Button
+            type="button"
+            className="min-h-12 rounded-[7px] bg-[#175246] px-5 font-extrabold hover:bg-[#103c33]"
+            onClick={() => setSheetOpen(true)}
+          >
+            Заявете старт
+          </Button>
+        </div>
+      )}
+      <Dialog open={sheetOpen} onOpenChange={setSheetOpen}>
+        <DialogContent>{renderForm(true)}</DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function FormBody({
+  inSheet,
+  className,
+  children,
+}: {
+  inSheet: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return inSheet ? (
+    <DialogBody className={className}>{children}</DialogBody>
+  ) : (
+    <div className={className}>{children}</div>
+  );
+}
+
+function FormFoot({
+  inSheet,
+  className,
+  children,
+}: {
+  inSheet: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return inSheet ? (
+    <DialogFooter className="flex-col-reverse sm:flex-col">
+      <div className="grid w-full gap-3">{children}</div>
+    </DialogFooter>
+  ) : (
+    <div className={className}>{children}</div>
   );
 }
 

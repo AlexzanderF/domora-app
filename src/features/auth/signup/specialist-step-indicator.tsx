@@ -1,59 +1,36 @@
 import { cn } from "@/lib/utils";
+import {
+  specialistStepLabel,
+  specialistStepProgress,
+  specialistStepTitle,
+  type SpecialistStep,
+} from "./specialist-steps";
 
-function Step({
-  number,
-  title,
-  isActive,
-  isCompleted,
-}: {
-  number: 1 | 2;
-  title: string;
-  isActive: boolean;
-  isCompleted: boolean;
-}) {
+/** "Стъпка N от 2 · title" over a two-segment progress bar. */
+export function SpecialistStepIndicator({ step }: { step: SpecialistStep }) {
   return (
-    <div className="flex flex-1 items-center gap-2">
-      <span
-        className={cn(
-          "flex size-[26px] shrink-0 items-center justify-center rounded-full border border-border bg-background text-[13px] font-bold text-muted-foreground",
-          isActive && "border-primary bg-primary text-primary-foreground",
-          isCompleted && "border-tone-31c48d bg-tone-def7ec text-tone-03543f",
-        )}
-        aria-hidden="true"
+    <nav aria-label="Стъпки на кандидатстване" className="mb-6">
+      <h2
+        className="m-0 mb-2.5 text-base font-bold text-foreground"
+        aria-current="step"
       >
-        {isCompleted ? "✓" : number}
-      </span>
-      <span
-        className={cn(
-          "text-[13px] leading-[1.3] font-semibold text-muted-foreground",
-          isActive && "font-bold text-foreground",
-        )}
-        aria-current={isActive ? "step" : undefined}
-      >
-        {title}
-      </span>
-    </div>
-  );
-}
-
-export function SpecialistStepIndicator({ step }: { step: 1 | 2 }) {
-  return (
-    <nav
-      aria-label="Стъпки на кандидатстване"
-      className="mb-[22px] flex items-center justify-between gap-3 border-b border-border pb-4"
-    >
-      <Step
-        number={1}
-        title="Стъпка 1: Данни за профила"
-        isActive={step === 1}
-        isCompleted={step > 1}
-      />
-      <Step
-        number={2}
-        title="Стъпка 2: Професионална квалификация"
-        isActive={step === 2}
-        isCompleted={false}
-      />
+        {specialistStepLabel(step)}
+        <span className="font-semibold text-muted-foreground">
+          {" · "}
+          {specialistStepTitle(step)}
+        </span>
+      </h2>
+      <div className="flex gap-1.5" aria-hidden="true">
+        {specialistStepProgress(step).map((reached, index) => (
+          <span
+            key={index}
+            className={cn(
+              "h-1.5 flex-1 rounded-full bg-border",
+              reached && "bg-primary",
+            )}
+          />
+        ))}
+      </div>
     </nav>
   );
 }

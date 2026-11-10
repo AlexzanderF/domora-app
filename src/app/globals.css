@@ -5,11 +5,6 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
 
-/* Inclusive breakpoints matching the legacy max-width media queries (Tailwind's
-   max-* variants are exclusive). Used by the workspace shell. */
-@custom-variant shell-tablet (@media (max-width: 1100px));
-@custom-variant shell-phone (@media (max-width: 700px));
-
 /* shadcn semantic tokens. A dark theme later only redefines values under
    .dark. */
 :root {

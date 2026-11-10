@@ -45,6 +45,7 @@ export function AccountFields({
         name="name"
         type="text"
         autoComplete="name"
+        enterKeyHint="next"
         value={data.name}
         onChange={onChange}
         placeholder={isClient ? "Иван Иванов" : "Димитър Петров"}
@@ -58,6 +59,7 @@ export function AccountFields({
         name="email"
         type="email"
         autoComplete="email"
+        enterKeyHint="next"
         value={data.email}
         onChange={onChange}
         placeholder={isClient ? "ivan@example.bg" : "dimitar@example.bg"}
@@ -72,6 +74,7 @@ export function AccountFields({
         type="tel"
         inputMode="tel"
         autoComplete="tel"
+        enterKeyHint="next"
         value={data.phone}
         onChange={onChange}
         placeholder={isClient ? "0888 123 456" : "0888 765 432"}
@@ -86,6 +89,7 @@ export function AccountFields({
           id={`${idPrefix}-password`}
           name="password"
           autoComplete="new-password"
+          enterKeyHint="done"
           required
           value={data.password}
           onChange={onChange}
@@ -105,7 +109,7 @@ export function AccountFields({
       </AuthField>
 
       <div className="mt-1">
-        <AuthLabel className="flex cursor-pointer items-start gap-2.5 text-[14px] leading-[1.4]">
+        <AuthLabel className="flex min-h-11 cursor-pointer items-start gap-2.5 py-2 text-[14px] leading-[1.4]">
           <AuthCheckbox
             id={`${idPrefix}-terms`}
             name="termsAccepted"

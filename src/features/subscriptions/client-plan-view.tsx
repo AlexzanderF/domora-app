@@ -70,14 +70,14 @@ const ENTRY_TIER_FEATURES = [
 ];
 
 const planCardClass =
-  "flex flex-col rounded-[16px] p-8 shadow-[0_4px_18px_rgb(0_0_0/3%)] max-[700px]:p-8";
+  "flex flex-col rounded-[16px] p-5 sm:p-8 shadow-[0_4px_18px_rgb(0_0_0/3%)]";
 const eyebrowClass = "font-extrabold tracking-[0.1em] text-muted-foreground";
 const formFieldClass =
   "mb-0 grid gap-[0.4rem] text-[0.84rem] leading-[1.55] font-bold text-tone-40564f";
 const formInputClass =
   "mt-0 min-h-11 rounded-[8px] leading-[1.55] border-tone-ccd9d1 text-[0.95rem] disabled:bg-tone-f4f6f5 disabled:text-tone-84918d";
 const unavailableClass =
-  "rounded-xl border-tone-f0d6a7 bg-tone-fff8ea px-6 py-5 text-tone-634716 max-[700px]:px-6 max-[700px]:py-5";
+  "rounded-xl border-tone-f0d6a7 bg-tone-fff8ea px-6 py-5 text-tone-634716";
 
 function CheckIcon() {
   return (
@@ -219,7 +219,7 @@ export function ClientPlanView({
       {isSubscribed && subscription ? (
         /* Subscribed Client View */
         <Card className={cn(planCardClass, "gap-7")}>
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
+          <div className="flex flex-col items-start gap-4 border-b border-border pb-6">
             <div className="flex flex-col gap-[0.35rem]">
               <span
                 className={cn(
@@ -248,7 +248,7 @@ export function ClientPlanView({
           </div>
 
           {/* Key Metrics Grid */}
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {[
               {
                 icon: "📍",
@@ -299,7 +299,7 @@ export function ClientPlanView({
               Включено във вашия абонамент
             </h3>
             <CheckList
-              className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-3"
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
               itemClassName="items-center text-[0.92rem] text-foreground"
               items={[
                 isHome
@@ -315,11 +315,11 @@ export function ClientPlanView({
           </div>
 
           {/* Plan Actions */}
-          <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
+          <div className="flex flex-col gap-4 border-t border-border pt-5">
             <Button
               type="button"
               variant="secondary"
-              className="rounded-[10px] border-tone-fca5a5 bg-transparent px-[1.1rem] py-[0.65rem] text-[0.85rem] text-tone-b91c1c hover:border-tone-ef4444 hover:bg-tone-fef2f2 disabled:opacity-[0.58]"
+              className="w-full rounded-[10px] border-tone-fca5a5 bg-transparent px-[1.1rem] py-[0.65rem] text-[0.85rem] text-tone-b91c1c hover:border-tone-ef4444 hover:bg-tone-fef2f2 disabled:opacity-[0.58]"
               onClick={handleCancelSubscription}
               disabled={isProcessing}
             >
@@ -330,7 +330,7 @@ export function ClientPlanView({
       ) : (
         /* Unsubscribed Client View */
         <>
-          <div className="flex flex-col gap-2 rounded-[16px] border border-tone-c9e0d4 bg-linear-to-br from-tone-f0f7f4 to-tone-e6f2ec px-8 py-7">
+          <div className="flex flex-col gap-2 rounded-[16px] border border-tone-c9e0d4 bg-linear-to-br from-tone-f0f7f4 to-tone-e6f2ec px-5 py-6 sm:px-8 sm:py-7">
             <h2 className="text-[1.35rem] font-extrabold text-primary">
               Изберете абонаментен план за грижа и спокойствие
             </h2>
@@ -343,10 +343,10 @@ export function ClientPlanView({
           <Card
             role="region"
             aria-labelledby="subscription-property-title"
-            className="grid gap-4 rounded-[14px] max-[700px]:p-6"
+            className="grid gap-4 rounded-[14px] p-5 sm:p-6 md:p-8"
           >
             <div>
-              <span className={cn(eyebrowClass, "text-[0.7rem]")}>
+              <span className={cn(eyebrowClass, "text-xs")}>
                 ДАННИ ЗА ИМОТА
               </span>
               <h3
@@ -369,7 +369,7 @@ export function ClientPlanView({
                 disabled={isProcessing}
               />
             </Label>
-            <div className="grid grid-cols-2 gap-4 max-[640px]:grid-cols-1">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Label className={formFieldClass}>
                 Площ на дома (м²)
                 <Input
@@ -412,7 +412,7 @@ export function ClientPlanView({
             )}
           </Card>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Plan Tier 1: Home */}
             <TierCard
               featured

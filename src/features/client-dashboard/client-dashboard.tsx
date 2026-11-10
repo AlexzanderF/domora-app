@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast-provider";
 import { useBooking } from "@/features/bookings/booking-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import { IssueDialog } from "@/features/requests/issue-dialog";
 import { RequestStatus } from "@/domain/requests/types";
 import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
@@ -21,12 +22,13 @@ import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   getRecentCompletedRequests,
+  getTrackerSegments,
   getTrackerStageIndex,
   selectActiveRequest,
   trackerStages,
 } from "./client-dashboard-logic";
 
-const sectionCard = "rounded-lg p-6 max-[700px]:p-6 max-[620px]:p-[18px]";
+const sectionCard = "rounded-lg p-[18px] md:p-6";
 const iconTile = "grid place-items-center bg-tone-edf3ef text-primary";
 const textLink = "text-[0.8rem] font-bold text-primary";
 
@@ -44,7 +46,7 @@ function SectionHeading({
   return (
     <div className="mb-5 flex items-start justify-between gap-5">
       <div>
-        <span className="text-[0.68rem] font-extrabold tracking-[1.2px] text-muted-foreground">
+        <span className="text-xs font-extrabold tracking-[1.2px] text-muted-foreground">
           {eyebrow}
         </span>
         <h2 id={id} className="mt-[3px] text-[1.2rem]">
@@ -67,6 +69,7 @@ export function ClientDashboard({
   const router = useRouter();
   const notify = useToast();
   const [ratingRequestId, setRatingRequestId] = useState<number | null>(null);
+  const [issueOpen, setIssueOpen] = useState(false);
   const activeRequest = useMemo(
     () => selectActiveRequest(requests),
     [requests],
@@ -130,17 +133,7 @@ export function ClientDashboard({
                 "Услугата е потвърдена. Оставете оценка.",
               );
             }}
-            onIssue={() => {
-              const note = window
-                .prompt("Опишете проблема с работата:")
-                ?.trim();
-              if (!note) return;
-              void performAction(
-                trackedRequest,
-                { type: "dispute", note },
-                "Сигналът е изпратен за преглед.",
-              );
-            }}
+            onIssue={() => setIssueOpen(true)}
             onRate={(rating) => {
               void performAction(
                 trackedRequest,
@@ -166,12 +159,25 @@ export function ClientDashboard({
             </div>
           </div>
         )}
+        {trackedRequest && (
+          <IssueDialog
+            open={issueOpen}
+            onOpenChange={setIssueOpen}
+            onSubmit={(note) =>
+              void performAction(
+                trackedRequest,
+                { type: "dispute", note },
+                "Сигналът е изпратен за преглед.",
+              )
+            }
+          />
+        )}
       </Card>
 
       <Card
         role="region"
         aria-labelledby="quick-title"
-        className={cn(sectionCard, "pt-5 max-[620px]:pt-[18px]")}
+        className={cn(sectionCard, "pt-[18px] md:pt-5")}
       >
         <SectionHeading
           eyebrow="НОВА УСЛУГА"
@@ -182,7 +188,7 @@ export function ClientDashboard({
             Изберете категория
           </span>
         </SectionHeading>
-        <div className="grid grid-cols-6 gap-2.5 max-[960px]:grid-cols-3 max-[620px]:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((category) => (
             <Button
               key={category.id}
@@ -205,7 +211,7 @@ export function ClientDashboard({
         </div>
       </Card>
 
-      <div className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-5 max-[960px]:grid-cols-1">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <Card
           role="region"
           aria-labelledby="property-title"
@@ -254,7 +260,7 @@ export function ClientDashboard({
               {recentRequests.map((request) => (
                 <article
                   key={request.id}
-                  className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-[11px] border-t border-border py-[13px] first:border-t-0 first:pt-0 max-[620px]:grid-cols-[36px_minmax(0,1fr)]"
+                  className="grid grid-cols-[36px_minmax(0,1fr)] items-center gap-[11px] border-t border-border py-[13px] first:border-t-0 first:pt-0 sm:grid-cols-[36px_minmax(0,1fr)_auto]"
                 >
                   <span
                     className={cn(
@@ -272,7 +278,7 @@ export function ClientDashboard({
                   </div>
                   <Link
                     href={`/client/requests#request-${request.id}`}
-                    className={cn(textLink, "max-[620px]:col-start-2")}
+                    className={cn(textLink, "col-start-2 sm:col-start-auto")}
                   >
                     Разписка
                   </Link>
@@ -307,7 +313,7 @@ function ActiveRequest({
 
   return (
     <div className="grid gap-[22px]">
-      <div className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-3.5 max-[620px]:grid-cols-[42px_minmax(0,1fr)]">
+      <div className="grid grid-cols-[42px_minmax(0,1fr)] items-center gap-3.5 sm:grid-cols-[48px_minmax(0,1fr)_auto]">
         <span className={cn(iconTile, "size-12 rounded-lg [&_svg]:size-6")}>
           <ServiceIcon category={request.category} />
         </span>
@@ -319,13 +325,30 @@ function ActiveRequest({
             {request.address}
           </p>
         </div>
-        <strong className="text-[1.05rem] text-primary max-[620px]:col-start-2">
+        <strong className="col-start-2 text-[1.05rem] text-primary sm:col-start-auto">
           {money(request.price)}
         </strong>
       </div>
 
+      <div className="grid gap-2 sm:hidden">
+        <div className="grid grid-cols-4 gap-1" aria-hidden="true">
+          {getTrackerSegments(request.status).map((filled, index) => (
+            <span
+              key={index}
+              className={cn(
+                "h-2 rounded-full bg-border",
+                filled && "bg-primary",
+              )}
+            />
+          ))}
+        </div>
+        <p className="m-0 text-[0.8rem] font-bold text-primary">
+          Стъпка {stage + 1} от {trackerStages.length}: {trackerStages[stage]}
+        </p>
+      </div>
+
       <ol
-        className="m-0 grid list-none grid-cols-4 p-0 max-[620px]:grid-cols-1 max-[620px]:gap-2"
+        className="m-0 hidden list-none grid-cols-4 p-0 sm:grid"
         aria-label="Прогрес на услугата"
       >
         {trackerStages.map((label, index) => {
@@ -334,28 +357,26 @@ function ActiveRequest({
             <li
               key={label}
               className={cn(
-                "relative grid justify-items-center gap-[7px] text-center text-tone-8a9994 before:absolute before:top-3.5 before:right-1/2 before:z-0 before:h-0.5 before:w-full before:bg-border before:content-[''] first:before:hidden max-[620px]:grid-cols-[29px_minmax(0,1fr)] max-[620px]:items-center max-[620px]:justify-items-start max-[620px]:text-left max-[620px]:before:top-[-8px] max-[620px]:before:right-auto max-[620px]:before:left-3.5 max-[620px]:before:h-2 max-[620px]:before:w-0.5",
+                "relative grid grid-cols-[29px_minmax(0,1fr)] items-center justify-items-start gap-[7px] text-left text-tone-8a9994 before:absolute before:top-[-8px] before:left-3.5 before:z-0 before:h-2 before:w-0.5 before:bg-border before:content-[''] first:before:hidden sm:grid-cols-none sm:items-stretch sm:justify-items-center sm:text-center sm:before:top-3.5 sm:before:right-1/2 sm:before:left-auto sm:before:h-0.5 sm:before:w-full",
                 reached && "font-bold text-primary before:bg-primary",
               )}
               aria-current={index === stage ? "step" : undefined}
             >
               <span
                 className={cn(
-                  "z-[1] grid size-[29px] place-items-center rounded-full border-2 border-tone-d8e1db bg-white text-[0.72rem] font-extrabold",
+                  "z-[1] grid size-[29px] place-items-center rounded-full border-2 border-tone-d8e1db bg-white text-xs font-extrabold",
                   reached && "border-primary bg-primary text-white",
                 )}
               >
                 {index < stage ? "✓" : index + 1}
               </span>
-              <small className="max-w-[120px] text-[0.69rem] max-[620px]:max-w-none">
-                {label}
-              </small>
+              <small className="text-xs sm:max-w-[120px]">{label}</small>
             </li>
           );
         })}
       </ol>
 
-      <div className="flex items-center justify-between gap-4 border-t border-border pt-[18px] max-[620px]:flex-col max-[620px]:items-start">
+      <div className="flex flex-col items-start justify-between gap-4 border-t border-border pt-[18px] sm:flex-row sm:items-center">
         <div className="flex items-center gap-2.5">
           <span
             className="grid size-[34px] place-items-center rounded-full bg-tone-e9efdc font-extrabold text-primary"
@@ -364,7 +385,7 @@ function ActiveRequest({
             {request.specialist?.charAt(0) ?? "D"}
           </span>
           <div>
-            <small className="block text-[0.68rem] text-muted-foreground">
+            <small className="block text-xs text-muted-foreground">
               Специалист
             </small>
             <strong className="block text-[0.85rem]">
@@ -380,11 +401,20 @@ function ActiveRequest({
       </div>
 
       {request.status === RequestStatus.AwaitingConfirmation && !ratingOpen && (
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Button type="button" onClick={onConfirm}>
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+          <Button
+            type="button"
+            className="w-full sm:w-auto"
+            onClick={onConfirm}
+          >
             Потвърди и оцени
           </Button>
-          <Button variant="secondary" type="button" onClick={onIssue}>
+          <Button
+            variant="secondary"
+            type="button"
+            className="w-full sm:w-auto"
+            onClick={onIssue}
+          >
             Сигнализирай проблем
           </Button>
         </div>
@@ -407,7 +437,7 @@ function ActiveRequest({
                 key={rating}
                 type="button"
                 variant="secondary"
-                className="min-w-[38px] rounded-[5px] border-tone-d6dfd9 p-[7px] font-normal"
+                className="min-w-11 rounded-[5px] border-tone-d6dfd9 p-[7px] font-normal"
                 aria-label={`${rating} звезди`}
                 onClick={() => onRate(rating)}
               >
@@ -431,9 +461,7 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between gap-3 border-l-[3px] border-primary bg-tone-f3f7f4 px-3.5 py-3">
-        <span className="text-[0.72rem] text-muted-foreground">
-          Активен план
-        </span>
+        <span className="text-xs text-muted-foreground">Активен план</span>
         <strong className="text-[0.9rem] text-primary">
           План „
           {subscription.planType === SubscriptionPlan.Home ? "Дом" : "Вход"}“
@@ -446,7 +474,7 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
           ["Оставащи посещения", subscription.visitsRemaining],
         ].map(([term, value]) => (
           <div key={term} className="grid gap-0.5">
-            <dt className="text-[0.68rem] text-muted-foreground">{term}</dt>
+            <dt className="text-xs text-muted-foreground">{term}</dt>
             <dd className="m-0 text-[0.82rem] font-[650]">{value}</dd>
           </div>
         ))}

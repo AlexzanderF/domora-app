@@ -13,7 +13,7 @@ const services = [
 ];
 
 const section = "border-b border-[#dce5df] pb-10";
-const step = "text-[0.72rem] font-[850] tracking-[0.12em] text-[#517067]";
+const step = "text-xs font-[850] tracking-[0.12em] text-[#517067]";
 const sectionTitle = "mt-[0.35rem] mb-[1.2rem] text-[1.35rem] text-[#17372f]";
 const hint = "mt-3 mb-0 text-[0.9rem] text-tone-687b75";
 
@@ -25,7 +25,7 @@ export function HomePlanPreview({
   const [extraVisit, setExtraVisit] = useState(false);
 
   return (
-    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid grid-cols-[minmax(0,1fr)_minmax(330px,420px)] items-start gap-[clamp(2rem,5vw,5rem)] max-[820px]:grid-cols-1">
+    <div className="mt-10 md:mt-14 lg:mt-18 grid grid-cols-1 items-start gap-8 md:gap-12 lg:gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
       <section className="grid gap-10" aria-labelledby="configure-title">
         <div className={section}>
           <span className={step}>01 / ИЗБЕРЕТЕ ПЛАН</span>
@@ -101,7 +101,7 @@ export function HomePlanPreview({
           <label className="mt-4 flex cursor-pointer items-center gap-[0.85rem] rounded-lg border border-[#ccd9d1] p-4">
             <input
               type="checkbox"
-              className="m-0 size-[1.2rem] shrink-0 accent-[#175246]"
+              className="m-0 size-5 shrink-0 accent-[#175246]"
               checked={extraVisit}
               onChange={(event) => setExtraVisit(event.target.checked)}
             />
@@ -116,10 +116,10 @@ export function HomePlanPreview({
       </section>
 
       <aside
-        className="sticky top-[100px] max-[820px]:static"
+        className="lg:sticky lg:top-[100px]"
         aria-labelledby="summary-title"
       >
-        <Card className="rounded-lg border-[#cad8d0] p-[clamp(1.4rem,3vw,2rem)] shadow-[0_16px_45px_rgb(22_60_50/9%)] max-[700px]:p-[clamp(1.4rem,3vw,2rem)]">
+        <Card className="rounded-lg border-[#cad8d0] p-6 md:p-8 shadow-[0_16px_45px_rgb(22_60_50/9%)]">
           <div className="flex items-center justify-between">
             <span className={step}>ВАШИЯТ ПЛАН</span>
             <strong className="text-[0.75rem] text-[#274c3d]">
@@ -171,7 +171,7 @@ export function HomePlanPreview({
           >
             Абонирането предстои
           </Button>
-          <small className="mt-4 block text-center text-[0.7rem] text-[#74847f]">
+          <small className="mt-4 block text-center text-xs text-[#74847f]">
             Цените и подробните условия ще бъдат обявени преди старта на
             абонамента.
           </small>

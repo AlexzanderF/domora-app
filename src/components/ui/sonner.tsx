@@ -7,6 +7,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       className="toaster group"
       position="bottom-center"
+      offset={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+      mobileOffset={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
       toastOptions={{
         classNames: { toast: "!px-[22px] !py-3.5 !text-[14px]" },
       }}

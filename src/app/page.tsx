@@ -1,11 +1,12 @@
+import { PageContainer } from "@/components/layout/page-container";
 import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FinalCta } from "@/features/landing/final-cta";
 import { Hero } from "@/features/landing/hero";
 import { HowItWorks } from "@/features/landing/how-it-works";
-import { LandingFooter } from "@/features/landing/landing-footer";
-import { LandingHeader } from "@/features/landing/landing-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { ServiceShowcase } from "@/features/landing/service-showcase";
 import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
 import { UserRole, UserStatus } from "@/domain/identity/types";
@@ -38,19 +39,16 @@ export default async function HomePage() {
   return (
     <>
       <SkipLink />
-      <LandingHeader />
-      <main
-        id="main"
-        className="mx-auto min-h-0 w-[min(1320px,calc(100%-3rem))] max-w-none px-0 pt-[1.35rem] pb-0 max-[560px]:w-[calc(100%-2rem)] max-[560px]:pt-4"
-      >
+      <SiteHeader />
+      <PageContainer as="main" id="main" className="pt-4 pb-0 sm:pt-[1.35rem]">
         <Hero />
         <HowItWorks />
         <ServiceShowcase />
         <TrustAndTestimonials />
         <Faq />
         <FinalCta />
-      </main>
-      <LandingFooter />
+      </PageContainer>
+      <SiteFooter />
     </>
   );
 }

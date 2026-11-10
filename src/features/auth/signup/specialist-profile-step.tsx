@@ -79,6 +79,8 @@ export function SpecialistProfileStep({
         required
         name="area"
         type="text"
+        autoComplete="address-level2"
+        enterKeyHint="next"
         value={data.area}
         onChange={onChange}
         placeholder="напр. София и района, Пловдив..."
@@ -95,6 +97,8 @@ export function SpecialistProfileStep({
         min="0"
         max="60"
         step="1"
+        inputMode="numeric"
+        enterKeyHint="next"
         value={data.experienceYears}
         onChange={onChange}
         placeholder="напр. 5"
@@ -125,6 +129,8 @@ export function SpecialistProfileStep({
         hint="(незадължително)"
         name="companyName"
         type="text"
+        autoComplete="organization"
+        enterKeyHint="next"
         value={data.companyName}
         onChange={onChange}
         placeholder="напр. Ремонти Про ЕООД"
@@ -136,19 +142,20 @@ export function SpecialistProfileStep({
         hint="(незадължително)"
         name="eik"
         type="text"
+        enterKeyHint="done"
         value={data.eik}
         onChange={onChange}
         placeholder="напр. 204567891"
         error={errors.eik}
       />
 
-      <div className="mt-2 flex gap-2.5">
-        <SecondaryButton type="button" onClick={onBack}>
-          ← Назад
-        </SecondaryButton>
+      <div className="mt-2 flex flex-col gap-3">
         <SubmitButton type="submit" disabled={isSubmitting} className="mt-0">
           {isSubmitting ? "Изпращане..." : "Изпрати за одобрение"}
         </SubmitButton>
+        <SecondaryButton type="button" onClick={onBack} className="w-full">
+          ← Назад
+        </SecondaryButton>
       </div>
     </AuthForm>
   );

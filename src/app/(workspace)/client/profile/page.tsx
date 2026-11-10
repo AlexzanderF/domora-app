@@ -15,12 +15,12 @@ import { findUserSubscription } from "@/features/subscriptions/server/queries";
 export const metadata: Metadata = { title: "Моят профил" };
 export const dynamic = "force-dynamic";
 
-const cardClass = "rounded-xl p-6 max-[700px]:p-[1.15rem]";
+const cardClass = "rounded-xl p-[1.15rem] md:p-6";
 const eyebrowClass =
   "mb-[0.3rem] block text-[0.75rem] font-bold tracking-[0.12em] text-muted-foreground";
 const headingClass = "text-[1.15rem]";
 const headerClass =
-  "mb-5 flex items-start justify-between gap-4 max-[700px]:flex-col";
+  "mb-5 flex flex-col items-start justify-between gap-4 md:flex-row";
 const labelClass =
   "mb-[0.35rem] block text-[0.78rem] font-bold tracking-[0.05em] text-muted-foreground uppercase";
 const valueClass =
@@ -72,7 +72,7 @@ export default async function ClientProfilePage() {
         description="Преглеждайте контактните данни, имота и връзките към услугите си."
       />
       {!user ? (
-        <Card className="rounded-xl border-tone-f0d6a7 bg-tone-fff8ea px-6 py-5 text-tone-634716 max-[700px]:p-[1.15rem]">
+        <Card className="rounded-xl border-tone-f0d6a7 bg-tone-fff8ea p-[1.15rem] text-tone-634716 md:px-6 md:py-5">
           <h2 className="mb-[0.35rem] text-[1rem]">
             Профилът е временно недостъпен
           </h2>
@@ -82,7 +82,7 @@ export default async function ClientProfilePage() {
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)] items-start gap-5 max-[980px]:grid-cols-1">
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)]">
           <div className="grid gap-5">
             <Card
               role="region"
@@ -100,7 +100,7 @@ export default async function ClientProfilePage() {
                   {getRoleLabel(user.role)}
                 </Badge>
               </div>
-              <div className="grid grid-cols-3 gap-[0.9rem] max-[700px]:grid-cols-1">
+              <div className="grid grid-cols-1 gap-[0.9rem] md:grid-cols-3">
                 {(
                   [
                     ["Име", user.name],
