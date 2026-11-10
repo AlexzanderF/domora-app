@@ -26,7 +26,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "z-30 flex w-full flex-col items-stretch border-border bg-white px-5 py-[18px] transition-[width,padding] duration-200 ease-[ease] md:fixed md:inset-y-0 md:left-0 md:w-(--sidebar-width) md:border-r",
+        "z-30 hidden w-full flex-col items-stretch border-border bg-white px-5 py-[18px] transition-[width,padding] duration-200 ease-[ease] lg:flex md:fixed md:inset-y-0 md:left-0 md:w-(--sidebar-width) md:border-r",
         collapsed
           ? "md:items-center md:px-2 md:py-6 lg:px-2.5 lg:py-[30px]"
           : "md:px-3.5 md:py-[26px] lg:px-[18px] lg:py-6",
@@ -36,7 +36,7 @@ export function Sidebar({
       {onToggleCollapse && (
         <button
           type="button"
-          className="absolute top-[92px] -right-3 z-40 hidden size-6 cursor-pointer items-center justify-center rounded-md border border-border bg-white p-0 text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[ease] hover:scale-[1.08] hover:border-tone-b7cbbf hover:text-primary hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
+          className="absolute top-[92px] -right-3 z-40 hidden size-6 lg:flex cursor-pointer items-center justify-center rounded-md border border-border bg-white p-0 text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[ease] hover:scale-[1.08] hover:border-tone-b7cbbf hover:text-primary hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
           onClick={onToggleCollapse}
           aria-label={
             collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
