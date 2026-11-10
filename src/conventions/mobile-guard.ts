@@ -4,13 +4,19 @@
  */
 
 export type GuardRule =
-  "arbitrary-max" | "shell-variant" | "vh-unit" | "small-text" | "small-input";
+  | "arbitrary-max"
+  | "shell-variant"
+  | "vh-unit"
+  | "clamp"
+  | "small-text"
+  | "small-input";
 
 export type Violation = { rule: GuardRule; line: number; text: string };
 
 const ARBITRARY_MAX = /max-\[[^\]]*px\]/g;
 const SHELL_VARIANT = /\bshell-(?:phone|tablet)\b/g;
 // `\b` before the digits keeps dvh/svh/lvh (letter before "vh") from matching.
+const CLAMP = /\bclamp\(/g;
 const VH_UNIT = /\d(?:\.\d+)?vh\b/g;
 const TAILWIND_TEXT = /\btext-\[(\d*\.?\d+)(px|rem)\]/g;
 const CSS_FONT_SIZE = /font-size:\s*(\d*\.?\d+)(px|rem)/g;
@@ -26,7 +32,7 @@ function toPx(value: string, unit: string) {
   return unit === "rem" ? parseFloat(value) * 16 : parseFloat(value);
 }
 
-function sizesBelow(line: string, patterns: RegExp[], limitPx: number) {
+function countSizesBelow(line: string, patterns: RegExp[], limitPx: number) {
   let found = 0;
   for (const pattern of patterns) {
     for (const match of line.matchAll(pattern)) {
@@ -46,9 +52,10 @@ export function findViolations(source: string): Violation[] {
     push("arbitrary-max", [...text.matchAll(ARBITRARY_MAX)].length);
     push("shell-variant", [...text.matchAll(SHELL_VARIANT)].length);
     push("vh-unit", [...text.matchAll(VH_UNIT)].length);
+    push("clamp", [...text.matchAll(CLAMP)].length);
     push(
       "small-text",
-      sizesBelow(text, [TAILWIND_TEXT, CSS_FONT_SIZE], MIN_TEXT_PX),
+      countSizesBelow(text, [TAILWIND_TEXT, CSS_FONT_SIZE], MIN_TEXT_PX),
     );
     if (FIELD_HINT.test(text)) {
       // Heuristic: a line that mentions a form control and sets its text size
@@ -56,7 +63,7 @@ export function findViolations(source: string): Violation[] {
       const named = [...text.matchAll(/\btext-(?:xs|sm)\b/g)].length;
       push(
         "small-input",
-        named + sizesBelow(text, [TAILWIND_TEXT], MIN_INPUT_PX),
+        named + countSizesBelow(text, [TAILWIND_TEXT], MIN_INPUT_PX),
       );
     }
   });

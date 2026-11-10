@@ -25,7 +25,7 @@ export function HomePlanPreview({
   const [extraVisit, setExtraVisit] = useState(false);
 
   return (
-    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid grid-cols-1 items-start gap-[clamp(2rem,5vw,5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
+    <div className="mt-10 md:mt-14 lg:mt-18 grid grid-cols-1 items-start gap-8 md:gap-12 lg:gap-20 lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
       <section className="grid gap-10" aria-labelledby="configure-title">
         <div className={section}>
           <span className={step}>01 / ИЗБЕРЕТЕ ПЛАН</span>
@@ -119,7 +119,7 @@ export function HomePlanPreview({
         className="lg:sticky lg:top-[100px]"
         aria-labelledby="summary-title"
       >
-        <Card className="rounded-lg border-[#cad8d0] p-[clamp(1.4rem,3vw,2rem)] shadow-[0_16px_45px_rgb(22_60_50/9%)]">
+        <Card className="rounded-lg border-[#cad8d0] p-6 md:p-8 shadow-[0_16px_45px_rgb(22_60_50/9%)]">
           <div className="flex items-center justify-between">
             <span className={step}>ВАШИЯТ ПЛАН</span>
             <strong className="text-[0.75rem] text-[#274c3d]">

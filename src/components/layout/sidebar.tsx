@@ -26,10 +26,8 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "z-30 hidden w-full flex-col items-stretch border-border bg-white px-5 py-[18px] transition-[width,padding] duration-200 ease-[ease] lg:flex md:fixed md:inset-y-0 md:left-0 md:w-(--sidebar-width) md:border-r",
-        collapsed
-          ? "md:items-center md:px-2 md:py-6 lg:px-2.5 lg:py-[30px]"
-          : "md:px-3.5 md:py-[26px] lg:px-[18px] lg:py-6",
+        "fixed inset-y-0 left-0 z-30 hidden w-(--sidebar-width) flex-col items-stretch border-r border-border bg-white transition-[width,padding] duration-200 ease-[ease] lg:flex",
+        collapsed ? "items-center px-2.5 py-[30px]" : "px-[18px] py-6",
       )}
       aria-label="Странично меню"
     >
@@ -63,7 +61,7 @@ export function Sidebar({
       )}
       <div className="mb-1.5 flex w-full flex-col items-center justify-center text-center">
         <Link
-          className="flex w-full items-center justify-center gap-2.5 text-[23px] font-extrabold tracking-[2px] text-primary no-underline md:text-[22px] lg:text-[26px]"
+          className="flex w-full items-center justify-center gap-2.5 text-[26px] font-extrabold tracking-[2px] text-primary no-underline"
           href="/"
           title="DOMORA Начало"
         >
@@ -76,7 +74,7 @@ export function Sidebar({
           <span
             className={cn(
               "overflow-hidden text-ellipsis whitespace-nowrap",
-              collapsed && "md:hidden",
+              collapsed && "hidden",
             )}
           >
             DOMORA
@@ -84,26 +82,23 @@ export function Sidebar({
         </Link>
         <p
           className={cn(
-            "mt-1 mb-0 hidden w-full overflow-hidden text-center text-[12px] tracking-[0.8px] text-ellipsis whitespace-nowrap md:block",
-            collapsed && "md:hidden",
+            "mt-1 mb-0 w-full overflow-hidden text-center text-[12px] tracking-[0.8px] text-ellipsis whitespace-nowrap",
+            collapsed && "hidden",
           )}
         >
           WE TAKE CARE OF YOUR HOME
         </p>
       </div>
-      <nav
-        aria-label="Основна навигация"
-        className="mt-0 flex w-full gap-1.5 overflow-x-auto [scrollbar-width:none] md:grid md:gap-2 md:overflow-visible"
-      >
+      <nav aria-label="Основна навигация" className="mt-0 grid w-full gap-2">
         {navigation.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex flex-[1_0_auto] items-center justify-center gap-1.5 rounded-[9px] px-2.5 py-2 text-[13px] leading-[1.3] whitespace-nowrap no-underline md:flex-none md:py-3 md:text-left md:text-[15px]",
+              "flex items-center rounded-[9px] py-3 text-left text-[15px] leading-[1.3] whitespace-nowrap no-underline",
               collapsed
-                ? "md:justify-center md:gap-0 md:px-2"
-                : "md:justify-start md:gap-3 md:px-3.5",
+                ? "justify-center gap-0 px-2"
+                : "justify-start gap-3 px-3.5",
               item.active
                 ? "bg-tone-eaf2ec font-[650] text-primary"
                 : "text-muted-foreground",
@@ -113,8 +108,8 @@ export function Sidebar({
           >
             <span
               className={cn(
-                "inline-flex w-auto shrink-0 items-center justify-center text-[16px]",
-                collapsed ? "md:text-[20px]" : "md:w-[22px] md:text-[18px]",
+                "inline-flex shrink-0 items-center justify-center",
+                collapsed ? "text-[20px]" : "w-[22px] text-[18px]",
               )}
               aria-hidden="true"
             >
@@ -123,7 +118,7 @@ export function Sidebar({
             <span
               className={cn(
                 "overflow-hidden text-ellipsis whitespace-nowrap",
-                collapsed && "md:hidden",
+                collapsed && "hidden",
               )}
             >
               {item.label}

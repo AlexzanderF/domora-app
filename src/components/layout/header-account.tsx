@@ -6,12 +6,16 @@ import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/auth-provider";
+import { AccountAvatar } from "./account-avatar";
+import { getAccountDisplay } from "./account";
+import { useLogout } from "./use-logout";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import type { User } from "@/domain/identity/types";
 
 export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
-  const { user, status, logout } = useAuth();
+  const { user, status } = useAuth();
   const router = useRouter();
+  const logout = useLogout();
 
   const activeUser = user ?? initialUser ?? null;
 
@@ -30,35 +34,17 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
     return null;
   }
 
-  const roleLabel =
-    activeUser?.role === UserRole.Specialist
-      ? "Специалист"
-      : activeUser?.role === UserRole.Admin
-        ? "Администратор"
-        : "Клиент";
-
-  const initial = activeUser?.name
-    ? activeUser.name.trim().charAt(0).toUpperCase()
-    : "Д";
-
   if (activeUser) {
+    const { name, roleLabel, initial } = getAccountDisplay(activeUser);
     return (
       <div className="flex items-center gap-2.5 text-foreground">
-        <span
-          className="inline-grid size-[34px] place-items-center rounded-full bg-tone-e9efdc font-semibold"
-          aria-hidden="true"
-        >
-          {initial}
-        </span>
-        <span>{activeUser.name}</span>
+        <AccountAvatar initial={initial} />
+        <span>{name}</span>
         <StatusBadge>{roleLabel}</StatusBadge>
         <Button
           type="button"
           variant="link"
-          onClick={async () => {
-            await logout();
-            router.push("/login");
-          }}
+          onClick={() => void logout()}
           className="ml-2 rounded-none px-1.5 py-px text-[14px]"
           aria-label="Изход от профила"
         >

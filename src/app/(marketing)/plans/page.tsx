@@ -16,7 +16,7 @@ export default async function PlansPage() {
       as="main"
       id="main"
       size="plans"
-      className="min-h-[calc(100dvh-76px)] pt-8 pb-[clamp(4rem,8vw,7rem)] sm:pt-[clamp(2.5rem,6vw,5rem)]"
+      className="min-h-[calc(100dvh-76px)] pt-8 pb-16 md:pb-24 lg:pb-28 sm:pt-10 md:pt-16 lg:pt-20"
     >
       <header className="static block h-auto w-[min(760px,100%)] border-0 bg-transparent p-0 text-[14px] text-[#17372f]">
         <span className="text-xs font-[850] tracking-[0.12em] text-[#517067]">

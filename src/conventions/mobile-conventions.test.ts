@@ -27,6 +27,12 @@ describe("findViolations", () => {
     ).toEqual(["shell-variant"]);
   });
 
+  it("flags clamp() fluid sizing", () => {
+    expect(rules('"mt-[clamp(2.5rem,6vw,4.5rem)]"')).toEqual(["clamp"]);
+    expect(rules("font-size: clamp(1rem, 2vw, 2rem);")).toEqual(["clamp"]);
+    expect(rules('"mt-10 md:mt-14"')).toEqual([]);
+  });
+
   it("flags vh units but not dvh, svh or lvh", () => {
     expect(rules('"min-h-[calc(100vh-130px)]"')).toEqual(["vh-unit"]);
     expect(rules("height: 65vh;")).toEqual(["vh-unit"]);

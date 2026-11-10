@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { PhotoPicker } from "@/features/bookings/photo-picker";
 import { uploadReportPhotos } from "@/features/bookings/upload-photos";
 import { EmptyState } from "@/components/empty-state";
@@ -27,6 +27,7 @@ import {
 } from "@/features/requests/server/actions";
 import { mapsSearchUrl } from "./maps-link";
 import { hasUnsavedReport } from "./report-draft";
+import { DiscardReportSheet } from "./discard-report-sheet";
 import { money } from "@/lib/format";
 import { RequestStatus } from "@/domain/requests/types";
 import type { ServiceRequest } from "@/domain/requests/types";
@@ -52,6 +53,8 @@ export function DailyAgenda({
   const [photosBusy, setPhotosBusy] = useState(false);
   // Remounts the picker so a previous report's previews do not linger.
   const [pickerKey, setPickerKey] = useState(0);
+  const [discardAsking, setDiscardAsking] = useState(false);
+  const discardAnswer = useRef<((discard: boolean) => void) | null>(null);
 
   const items = initialAgenda;
 
@@ -74,6 +77,19 @@ export function DailyAgenda({
 
   function openReportDialog(request: ServiceRequest) {
     setReportTarget(request);
+  }
+
+  function askDiscard() {
+    setDiscardAsking(true);
+    return new Promise<boolean>((resolve) => {
+      discardAnswer.current = resolve;
+    });
+  }
+
+  function answerDiscard(discard: boolean) {
+    setDiscardAsking(false);
+    discardAnswer.current?.(discard);
+    discardAnswer.current = null;
   }
 
   function closeReportDialog() {
@@ -141,7 +157,7 @@ export function DailyAgenda({
                 href={mapsSearchUrl(request.address)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary underline"
+                className="inline-flex min-h-11 items-center text-primary underline"
               >
                 {request.address}
               </a>
@@ -205,8 +221,7 @@ export function DailyAgenda({
         open={reportTarget !== null}
         blockOutsideDismiss
         confirmClose={() =>
-          !hasUnsavedReport(reportText, photos.length) ||
-          window.confirm("Да отхвърлим ли въведения отчет и снимки?")
+          !hasUnsavedReport(reportText, photos.length) || askDiscard()
         }
         onOpenChange={(open) => {
           if (!open) closeReportDialog();
@@ -256,6 +271,11 @@ export function DailyAgenda({
           </form>
         </DialogContent>
       </Dialog>
+      <DiscardReportSheet
+        open={discardAsking}
+        onKeep={() => answerDiscard(false)}
+        onDiscard={() => answerDiscard(true)}
+      />
     </SpecialistSection>
   );
 }
