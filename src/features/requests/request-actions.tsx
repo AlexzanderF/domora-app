@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import { IssueDialog } from "./issue-dialog";
 import { canAdvance, requiresCompletionReport } from "./request-rules";
 import { RequestStatus, Role } from "@/domain/requests/types";
 import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
@@ -17,6 +19,7 @@ export function RequestActions({
 }) {
   const router = useRouter();
   const notify = useToast();
+  const [issueOpen, setIssueOpen] = useState(false);
 
   const perform = async (action: RequestAction, message: string) => {
     try {
@@ -48,100 +51,104 @@ export function RequestActions({
   }
 
   return (
-    <div className="mt-[13px] flex flex-wrap gap-2 [&_button]:px-3 [&_button]:py-[7px] [&_button]:text-[14px]">
-      {role === Role.Client && canAdvance(request) && (
-        <Button
-          variant="secondary"
-          onClick={() => {
-            if (window.confirm("Да отменим ли тази заявка?")) {
-              void perform({ type: "cancel" }, "Заявката е отказана.");
-            }
-          }}
-        >
-          Откажи заявката
-        </Button>
-      )}
-      {role !== Role.Client && canAdvance(request) && (
-        <>
-          <Button onClick={advance}>
-            {request.status === RequestStatus.Created
-              ? "Приеми заявката"
-              : request.status === RequestStatus.InProgress
-                ? "Добави отчет"
-                : "Следващ статус"}
+    <>
+      <div className="mt-[13px] flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center [&_button]:w-full [&_button]:text-[14px] sm:[&_button]:w-auto">
+        {role === Role.Client && canAdvance(request) && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              if (window.confirm("Да отменим ли тази заявка?")) {
+                void perform({ type: "cancel" }, "Заявката е отказана.");
+              }
+            }}
+          >
+            Откажи заявката
           </Button>
-          {request.status === RequestStatus.Created && (
-            <Button
-              variant="secondary"
-              onClick={() =>
-                void perform(
-                  { type: "decline" },
-                  "Заявката остава за преразпределяне.",
-                )
-              }
-            >
-              Откажи изпълнение
-            </Button>
-          )}
-        </>
-      )}
-      {role === Role.Client &&
-        request.status === RequestStatus.AwaitingConfirmation && (
-          <>
-            <Button
-              onClick={() =>
-                void perform(
-                  { type: "complete" },
-                  "Услугата е приключена. Можете да оставите оценка.",
-                )
-              }
-            >
-              Потвърди приключването
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                const note = window
-                  .prompt("Опишете проблема с работата:")
-                  ?.trim();
-                if (!note) return;
-                void perform(
-                  { type: "dispute", note },
-                  "Сигналът е отбелязан за преглед.",
-                );
-              }}
-            >
-              Има проблем
-            </Button>
-          </>
         )}
-      {role === Role.Client &&
-        request.status === RequestStatus.Completed &&
-        !request.rating && (
+        {role !== Role.Client && canAdvance(request) && (
           <>
-            <span>Оценете:</span>
-            {[1, 2, 3, 4, 5].map((rating) => (
-              <button
-                key={rating}
-                className="border-0 bg-transparent text-tone-aa761c"
-                aria-label={`${rating} звезди`}
+            <Button onClick={advance}>
+              {request.status === RequestStatus.Created
+                ? "Приеми заявката"
+                : request.status === RequestStatus.InProgress
+                  ? "Добави отчет"
+                  : "Следващ статус"}
+            </Button>
+            {request.status === RequestStatus.Created && (
+              <Button
+                variant="secondary"
                 onClick={() =>
                   void perform(
-                    { type: "rate", rating },
-                    "Благодарим за оценката!",
+                    { type: "decline" },
+                    "Заявката остава за преразпределяне.",
                   )
                 }
               >
-                {rating}★
-              </button>
-            ))}
+                Откажи изпълнение
+              </Button>
+            )}
           </>
         )}
-      {request.rating && (
-        <span className="text-[14px] text-muted-foreground">
-          Оценка: {request.rating}/5 ★
-        </span>
-      )}
-    </div>
+        {role === Role.Client &&
+          request.status === RequestStatus.AwaitingConfirmation && (
+            <>
+              <Button
+                onClick={() =>
+                  void perform(
+                    { type: "complete" },
+                    "Услугата е приключена. Можете да оставите оценка.",
+                  )
+                }
+              >
+                Потвърди приключването
+              </Button>
+              <Button variant="secondary" onClick={() => setIssueOpen(true)}>
+                Има проблем
+              </Button>
+            </>
+          )}
+        {role === Role.Client &&
+          request.status === RequestStatus.Completed &&
+          !request.rating && (
+            <>
+              <span>Оценете:</span>
+              <div className="flex flex-wrap gap-1">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <Button
+                    key={rating}
+                    variant="ghost"
+                    size="icon"
+                    className="w-11! text-tone-aa761c"
+                    aria-label={`${rating} звезди`}
+                    onClick={() =>
+                      void perform(
+                        { type: "rate", rating },
+                        "Благодарим за оценката!",
+                      )
+                    }
+                  >
+                    {rating}★
+                  </Button>
+                ))}
+              </div>
+            </>
+          )}
+        {request.rating && (
+          <span className="text-[14px] text-muted-foreground">
+            Оценка: {request.rating}/5 ★
+          </span>
+        )}
+      </div>
+      <IssueDialog
+        open={issueOpen}
+        onOpenChange={setIssueOpen}
+        onSubmit={(note) =>
+          void perform(
+            { type: "dispute", note },
+            "Сигналът е отбелязан за преглед.",
+          )
+        }
+      />
+    </>
   );
 }

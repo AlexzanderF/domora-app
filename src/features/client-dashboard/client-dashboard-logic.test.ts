@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ServiceRequest } from "@/domain/requests/types";
 import {
   getRecentCompletedRequests,
+  getTrackerSegments,
   getTrackerStageIndex,
   selectActiveRequest,
 } from "./client-dashboard-logic";
@@ -34,6 +35,22 @@ describe("client dashboard logic", () => {
       "AWAITING_CONFIRMATION",
     ];
     expect(statuses.map(getTrackerStageIndex)).toEqual([0, 1, 2, 3]);
+  });
+
+  it("fills tracker segments up to and including the current stage", () => {
+    expect(getTrackerSegments("CREATED")).toEqual([true, false, false, false]);
+    expect(getTrackerSegments("IN_PROGRESS")).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ]);
+    expect(getTrackerSegments("AWAITING_CONFIRMATION")).toEqual([
+      true,
+      true,
+      true,
+      true,
+    ]);
   });
 
   it("prioritizes a request waiting for client confirmation", () => {
