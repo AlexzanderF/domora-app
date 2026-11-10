@@ -4,7 +4,7 @@ import { PageHeading } from "@/components/page-heading";
 import { DashboardSummary } from "@/features/specialist/dashboard-summary";
 import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
 import { DailyAgenda } from "@/features/specialist/daily-agenda";
-import { isActiveStage } from "@/features/requests/request-rules";
+import { isActiveStage } from "@/domain/requests/lifecycle";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { RequestStatus } from "@/domain/requests/types";
