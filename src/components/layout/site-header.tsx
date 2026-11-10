@@ -63,7 +63,10 @@ export function SiteHeader({
                 <Link href={nav.secondary.href}>{nav.secondary.label}</Link>
               </Button>
             )}
-            <Button asChild className="min-h-11">
+            <Button
+              asChild
+              className="min-h-11 px-3.5 text-sm lg:px-4 lg:text-base"
+            >
               <Link href={nav.primary.href}>{nav.primary.label}</Link>
             </Button>
           </div>
