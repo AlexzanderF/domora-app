@@ -14,6 +14,7 @@ import {
 import {
   RequestError,
   cancelRequest,
+  releaseRequest,
   confirmCompletion,
   createRequest,
   getRequest,
@@ -171,7 +172,12 @@ export async function cancelRequestAction(
 ): Promise<ServiceRequestActionResult> {
   return runAsActor(
     async (actor) => {
-      await cancelRequest(actor, requestId);
+      // Hand-back is the specialist's own action; everyone else cancels.
+      if (actor?.role === UserRole.Specialist) {
+        await releaseRequest(actor, requestId);
+      } else {
+        await cancelRequest(actor, requestId);
+      }
     },
     { INVALID_STATE: "Заявката вече не може да бъде отказана." },
   );
@@ -220,7 +226,11 @@ export async function transitionRequestServerAction(
             }
             return;
           }
-          await cancelRequest(actor, requestId);
+          if (actor?.role === UserRole.Specialist) {
+            await releaseRequest(actor, requestId);
+          } else {
+            await cancelRequest(actor, requestId);
+          }
         },
         { INVALID_STATE: "Заявката вече не може да бъде отказана." },
       );
