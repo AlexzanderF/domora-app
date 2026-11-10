@@ -80,8 +80,8 @@ export function ClientProfileForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      <Card className="grid gap-4 rounded-xl p-6 pb-0 max-[700px]:p-[1.15rem]">
-        <div className="flex items-start justify-between gap-4 max-[700px]:flex-col">
+      <Card className="grid gap-4 rounded-xl p-[1.15rem] pb-0 md:p-6">
+        <div className="flex flex-col items-start justify-between gap-4 md:flex-row">
           <div>
             <span className="mb-[0.3rem] block text-[0.75rem] font-bold tracking-[0.12em] text-muted-foreground">
               КОНТАКТИ И ИМОТ
@@ -90,7 +90,7 @@ export function ClientProfileForm({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 max-[700px]:grid-cols-1">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Label className={`${fieldClass} col-span-full`}>
             Име и фамилия
             <Input
@@ -177,7 +177,7 @@ export function ClientProfileForm({
           </Label>
         </div>
 
-        <div className="sticky bottom-0 z-[2] -mx-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-t border-border bg-white/95 px-6 py-4 shadow-[0_-12px_24px_rgba(24,43,38,0.08)] max-[700px]:-mx-[1.15rem] max-[700px]:grid-cols-1 max-[700px]:px-[1.15rem] max-[700px]:pt-[0.9rem] max-[700px]:pb-4">
+        <div className="sticky bottom-0 z-[2] -mx-[1.15rem] grid grid-cols-1 items-center gap-4 border-t border-border bg-white/95 px-[1.15rem] pt-[0.9rem] pb-4 shadow-[0_-12px_24px_rgba(24,43,38,0.08)] md:-mx-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-6 md:py-4">
           <div className="min-w-0">
             {formError && (
               <p
@@ -197,7 +197,7 @@ export function ClientProfileForm({
             )}
           </div>
           <Button
-            className="inline-flex min-h-[42px] items-center justify-center rounded-lg px-4 py-[0.65rem] font-bold disabled:opacity-70 max-[700px]:w-full"
+            className="inline-flex min-h-[42px] items-center justify-center rounded-lg px-4 py-[0.65rem] font-bold disabled:opacity-70 w-full md:w-auto"
             type="submit"
             disabled={isPending}
           >

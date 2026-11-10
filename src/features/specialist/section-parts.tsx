@@ -18,11 +18,11 @@ export function SpecialistSection({
   children: ReactNode;
 }) {
   return (
-    <Card className="mb-6 p-6 max-[700px]:p-6">
+    <Card className="mb-6 p-6">
       <div className="mb-1.5 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3.5">
         <div>
           <h2 className="mb-1 text-[17px] font-bold">{title}</h2>
-          <Badge className="rounded-md bg-tone-f1f5f9 px-2 py-[3px] text-[11px] text-tone-475569">
+          <Badge className="rounded-md bg-tone-f1f5f9 px-2 py-[3px] text-xs text-tone-475569">
             {badge}
           </Badge>
         </div>
@@ -50,7 +50,7 @@ export function RequestRow({
     <article
       aria-label={label}
       className={cn(
-        "flex items-start gap-4 border-b border-border py-[19px] last:border-b-0 last:pb-0 max-[700px]:gap-2.5",
+        "flex items-start gap-2.5 sm:gap-4 border-b border-border py-[19px] last:border-b-0 last:pb-0",
         disputed && "rounded-[10px] bg-tone-fdf3f2 px-3",
       )}
     >
@@ -58,7 +58,7 @@ export function RequestRow({
         {icon}
       </div>
       <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">{children}</div>
-      <span className="amount text-lg font-[650] whitespace-nowrap max-[700px]:text-base">
+      <span className="amount text-base sm:text-lg font-[650] whitespace-nowrap">
         {amount}
       </span>
     </article>
