@@ -30,7 +30,6 @@ import { localDate, money } from "@/lib/format";
 import { isPastDate } from "@/lib/schedule";
 import { PhotoPicker } from "./photo-picker";
 import { uploadRequestPhotos } from "./upload-photos";
-import { cn } from "@/lib/utils";
 import { errorClass, fieldClass } from "./field-styles";
 
 export function BookingDialog({ tariffs }: { tariffs: Tariffs }) {
@@ -167,7 +166,7 @@ function BookingForm({
                 : "Разкажете ни от какво се нуждаете"}
             </DialogTitle>
           </DialogHeader>
-          <DialogBody className="grid content-start gap-[0.78rem]">
+          <DialogBody className="grid content-start gap-4">
             <div className={fieldGridClass}>
               <Label className={fieldClass}>
                 Категория
@@ -229,7 +228,7 @@ function BookingForm({
                 rows={2}
               />
             </Field>
-            <div className="grid gap-[0.45rem]">
+            <div className="grid gap-3">
               <PhotoPicker onChange={setPhotos} onBusyChange={setPhotosBusy} />
             </div>
             <Field label="Адрес" error={errors.address} id="address-error">
@@ -318,7 +317,7 @@ function BookingForm({
   );
 }
 
-const fieldGridClass = "grid grid-cols-1 gap-[0.8rem] sm:grid-cols-2";
+const fieldGridClass = "grid grid-cols-1 gap-4 sm:grid-cols-2";
 
 function Field({
   label,
@@ -356,7 +355,7 @@ function FieldGroup({
   children: ReactNode;
 }) {
   return (
-    <div className={cn(fieldClass, "leading-[1.55]")}>
+    <div className={fieldClass}>
       <span>{label}</span>
       {children}
       {error && (
