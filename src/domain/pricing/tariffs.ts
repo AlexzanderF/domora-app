@@ -3,6 +3,7 @@ import { can, type Actor } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
 import type { CategoryId, Tariffs } from "@/domain/requests/types";
 import { defaultTariffs, homeRateToStored, tariffsFromRows } from "./index";
+import { DomainError } from "@/domain/errors";
 
 // Server-only (reads the database); kept apart from ./index so client
 // components can import the pure quote functions without bundling `pg`.
@@ -19,15 +20,7 @@ export async function findTariffs(): Promise<Tariffs> {
 export type PricingErrorCode =
   "UNAUTHENTICATED" | "FORBIDDEN" | "INVALID_INPUT";
 
-export class PricingError extends Error {
-  constructor(
-    readonly code: PricingErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "PricingError";
-  }
-}
+export class PricingError extends DomainError<PricingErrorCode> {}
 
 const CATEGORY_IDS: readonly CategoryId[] = [0, 1, 2, 3, 4, 5];
 

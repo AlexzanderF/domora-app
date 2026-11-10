@@ -1,4 +1,5 @@
 import type { Actor } from "@/domain/authorization";
+import { DomainError } from "@/domain/errors";
 
 // Framework-free (no next/*): the errors and Actor guards shared by the
 // requests, dispatch, disputes and photos modules.
@@ -11,15 +12,7 @@ export type RequestErrorCode =
   | "INVALID_STATE"
   | "PRICE_CHANGED";
 
-export class RequestError extends Error {
-  constructor(
-    readonly code: RequestErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "RequestError";
-  }
-}
+export class RequestError extends DomainError<RequestErrorCode> {}
 
 export function requireActor(actor: Actor | null): Actor {
   if (!actor) {

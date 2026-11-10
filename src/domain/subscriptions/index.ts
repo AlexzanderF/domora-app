@@ -8,6 +8,7 @@ import {
   SubscriptionStatus,
 } from "@/domain/subscriptions/types";
 import type { Subscription } from "@/domain/subscriptions/types";
+import { DomainError } from "@/domain/errors";
 
 // Framework-free (no next/*): plan and visit accounting. A client keeps one
 // ACTIVE subscription at a time; replaced and cancelled ones stay as history.
@@ -17,15 +18,7 @@ import type { Subscription } from "@/domain/subscriptions/types";
 export type SubscriptionErrorCode =
   "UNAUTHENTICATED" | "FORBIDDEN" | "INVALID_INPUT";
 
-export class SubscriptionError extends Error {
-  constructor(
-    readonly code: SubscriptionErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "SubscriptionError";
-  }
-}
+export class SubscriptionError extends DomainError<SubscriptionErrorCode> {}
 
 export interface CreateSubscriptionInput {
   planType: SubscriptionPlan;
