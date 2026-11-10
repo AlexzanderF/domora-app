@@ -50,7 +50,7 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="grid overflow-hidden rounded-[18px] bg-tone-102f29 shadow-[0_24px_60px_rgb(16_47_41/18%)]">
+          <div className="order-first grid overflow-hidden rounded-[18px] bg-tone-102f29 lg:order-none shadow-[0_24px_60px_rgb(16_47_41/18%)]">
             <a className={`${panelRow} hover:bg-white/6`} href={`tel:${phone}`}>
               <span className={panelLabel}>Телефон</span>
               <strong className={panelValue}>{phone}</strong>
