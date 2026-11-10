@@ -77,12 +77,15 @@ export function PhotoPicker({
   return (
     <>
       <Label className={fieldClass}>
-        Снимки{" "}
-        <span className="font-medium text-muted-foreground">
-          · по желание, до {MAX_PHOTOS_PER_REQUEST}
+        <span>
+          Снимки{" "}
+          <span className="text-xs font-medium text-muted-foreground">
+            (по желание, до {MAX_PHOTOS_PER_REQUEST})
+          </span>
         </span>
         <Input
           type="file"
+          className="file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-tone-edf4e8 file:px-3.5 file:py-2 file:text-sm file:font-bold file:text-primary"
           accept={PHOTO_TYPES.join(",")}
           multiple
           disabled={busy}
