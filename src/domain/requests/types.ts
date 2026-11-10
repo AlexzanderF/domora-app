@@ -90,16 +90,3 @@ export interface BookingSelection {
   category: CategoryId;
   plan?: Plan;
 }
-
-export type RequestAction =
-  | { type: "cancel" }
-  | { type: "advance"; report?: string }
-  | { type: "accept"; specialist?: string }
-  | { type: "dismiss" }
-  | { type: "decline" }
-  | { type: "admin-assign"; specialist: string }
-  | { type: "admin-recommend"; specialistId: number }
-  | { type: "complete" }
-  | { type: "dispute"; note?: string }
-  | { type: "resolve-dispute"; resolutionNote?: string }
-  | { type: "rate"; rating: number };

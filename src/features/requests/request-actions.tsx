@@ -7,12 +7,21 @@ import { useToast } from "@/components/ui/toast-provider";
 import {
   adminAssignSpecialistAction,
   adminRecommendSpecialistAction,
-  transitionRequestServerAction,
+  assignSpecialistAction,
+  cancelRequestAction,
+  completeWorkAction,
+  confirmCompletionAction,
+  declineRecommendationAction,
+  raiseDisputeAction,
+  rateRequestAction,
+  releaseRequestAction,
+  startWorkAction,
+  type ServiceRequestActionResult,
 } from "@/features/requests/server/actions";
 import { UserStatus } from "@/domain/identity/types";
 import type { User } from "@/domain/identity/types";
 import { IssueDialog } from "./issue-dialog";
-import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 
 // Renders only the actions the server sent with the request. `specialists` is
 // passed on the Administrator's screen: it makes the cancel button say whose
@@ -32,9 +41,12 @@ export function RequestActions({
   const can = (kind: ServiceRequest["actions"][number]) =>
     request.actions.includes(kind);
 
-  const perform = async (action: RequestAction, message: string) => {
+  const perform = async (
+    run: () => Promise<ServiceRequestActionResult>,
+    message: string,
+  ) => {
     try {
-      const res = await transitionRequestServerAction(request.id, action);
+      const res = await run();
       if (!res.success) {
         notify(res.error ?? "Грешка при изпълнение на действието.");
         return;
@@ -74,7 +86,10 @@ export function RequestActions({
   function submitReport() {
     const report = window.prompt("Опишете извършената работа:");
     if (!report?.trim()) return;
-    void perform({ type: "advance", report }, "Статусът е обновен.");
+    void perform(
+      () => completeWorkAction(request.id, report),
+      "Статусът е обновен.",
+    );
   }
 
   return (
@@ -91,7 +106,10 @@ export function RequestActions({
                     : "Да отменим ли тази заявка?",
                 )
               ) {
-                void perform({ type: "cancel" }, "Заявката е отказана.");
+                void perform(
+                  () => cancelRequestAction(request.id),
+                  "Заявката е отказана.",
+                );
               }
             }}
           >
@@ -148,7 +166,10 @@ export function RequestActions({
         {can("claim") && (
           <Button
             onClick={() =>
-              void perform({ type: "advance" }, "Статусът е обновен.")
+              void perform(
+                () => assignSpecialistAction(request.id),
+                "Статусът е обновен.",
+              )
             }
           >
             Приеми заявката
@@ -159,7 +180,7 @@ export function RequestActions({
             variant="secondary"
             onClick={() =>
               void perform(
-                { type: "decline" },
+                () => declineRecommendationAction(request.id),
                 "Заявката остава за преразпределяне.",
               )
             }
@@ -170,7 +191,10 @@ export function RequestActions({
         {can("start") && (
           <Button
             onClick={() =>
-              void perform({ type: "advance" }, "Статусът е обновен.")
+              void perform(
+                () => startWorkAction(request.id),
+                "Статусът е обновен.",
+              )
             }
           >
             Започни работа
@@ -184,7 +208,7 @@ export function RequestActions({
             variant="secondary"
             onClick={() =>
               void perform(
-                { type: "cancel" },
+                () => releaseRequestAction(request.id),
                 "Заявката се върна за преразпределяне.",
               )
             }
@@ -196,7 +220,7 @@ export function RequestActions({
           <Button
             onClick={() =>
               void perform(
-                { type: "complete" },
+                () => confirmCompletionAction(request.id),
                 "Услугата е приключена. Можете да оставите оценка.",
               )
             }
@@ -222,7 +246,7 @@ export function RequestActions({
                   aria-label={`${rating} звезди`}
                   onClick={() =>
                     void perform(
-                      { type: "rate", rating },
+                      () => rateRequestAction(request.id, rating),
                       "Благодарим за оценката!",
                     )
                   }
@@ -244,7 +268,7 @@ export function RequestActions({
         onOpenChange={setIssueOpen}
         onSubmit={(note) =>
           void perform(
-            { type: "dispute", note },
+            () => raiseDisputeAction(request.id, note),
             "Сигналът е отбелязан за преглед.",
           )
         }
