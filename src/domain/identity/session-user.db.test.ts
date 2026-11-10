@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { requireDb, sessions, users } from "@/db";
-import { UserRole, UserStatus } from "@/domain/identity/types";
-import { findUserBySessionToken } from "./queries";
-import { hashSessionToken } from "@/domain/identity/token";
+import { UserRole, UserStatus } from "./types";
+import { findUserBySessionToken } from "./session-user";
+import { hashSessionToken } from "./token";
 
 async function seedUser(role: UserRole, status: UserStatus) {
   const [user] = await requireDb()

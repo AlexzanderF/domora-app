@@ -105,10 +105,38 @@ const featureBoundaryConfigs = features.map((feature) => {
   };
 });
 
+// Dependency direction (ADR 0006/0007): app routes -> features -> components ->
+// domain / lib. The bottom layers must never import upward.
+const lowerLayerBoundary = {
+  files: ["src/domain/**/*.{ts,tsx}", "src/lib/**/*.{ts,tsx}"],
+  rules: {
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: [
+              "@/features",
+              "@/features/**",
+              "@/app",
+              "@/app/**",
+              "@/components",
+              "@/components/**",
+            ],
+            message:
+              "src/domain and src/lib are lower layers: they must not import features, app routes or components (ADR 0006/0007).",
+          },
+        ],
+      },
+    ],
+  },
+};
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
   ...featureBoundaryConfigs,
+  lowerLayerBoundary,
   globalIgnores([
     ".next/**",
     ".claude/**",

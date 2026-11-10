@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { deleteSession } from "@/features/auth/server/session";
+import { deleteSession } from "@/lib/server/session";
 
 // Self-healing logout: clears possibly stale session cookies (e.g. a session
 // deleted or expired server-side while the browser still holds its cookies)

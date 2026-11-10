@@ -25,7 +25,11 @@ import {
   validateSpecialistRegistration,
 } from "../validation";
 import { findUserByEmail, findUserById, findUserByPhone } from "./queries";
-import { createSession, deleteSession, getServerSession } from "./session";
+import {
+  createSession,
+  deleteSession,
+  getServerSession,
+} from "@/lib/server/session";
 
 export type AuthActionResult = ActionResult<User>;
 

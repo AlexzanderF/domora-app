@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { SESSION_COOKIE_NAME } from "@/features/auth/constants";
+import { SESSION_COOKIE_NAME } from "@/lib/server/session-constants";
 
 // Presence-only check: the cookie is never trusted for role or status.
 // Layouts resolve the real actor from the database (see requireActor).

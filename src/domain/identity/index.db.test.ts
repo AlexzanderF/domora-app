@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { requireDb, sessions, users } from "@/db";
 import { can } from "@/domain/authorization";
 import { UserRole, UserStatus } from "@/domain/identity/types";
-import { findUserBySessionToken } from "@/features/auth/server/queries";
+import { findUserBySessionToken } from "./session-user";
 import { hashSessionToken } from "@/domain/identity/token";
 import { createActor } from "../../../tests/db/factories";
 import {
