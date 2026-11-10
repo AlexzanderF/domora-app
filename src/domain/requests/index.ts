@@ -1,5 +1,12 @@
 import { desc, eq } from "drizzle-orm";
-import { requestEvents, requests, requireDb, tariffs, users } from "@/db";
+import {
+  requestEvents,
+  requests,
+  pricingSettings,
+  requireDb,
+  tariffs,
+  users,
+} from "@/db";
 import type { DomoraDatabase, RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
@@ -228,15 +235,15 @@ async function quoteBooking(
   }
   let price: number;
   try {
+    const rows = await tx
+      .select({
+        category: tariffs.category,
+        standardRate: tariffs.standardRate,
+      })
+      .from(tariffs);
+    const [settings] = await tx.select().from(pricingSettings);
     price = calculateQuote(
-      tariffsFromRows(
-        await tx
-          .select({
-            category: tariffs.category,
-            standardRate: tariffs.standardRate,
-          })
-          .from(tariffs),
-      ),
+      tariffsFromRows(rows, settings),
       input.category,
       serviceIndex,
       input.plan,

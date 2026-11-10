@@ -5,6 +5,9 @@ export const defaultTariffs: Tariffs = {
   categories: { 0: 45, 1: 35, 2: 55, 3: 25, 4: 65, 5: 25 },
   home: 1.5,
   entry: 18,
+  diagnosticFee: 25,
+  volumeDiscountMinVisits: 4,
+  volumeDiscountPercent: 10,
 };
 
 // The `home` tariff is stored as an integer in tenths of a lev per m² (15 = 1.50).
@@ -21,11 +24,26 @@ export interface TariffRow {
   standardRate: number;
 }
 
-export function tariffsFromRows(rows: readonly TariffRow[]): Tariffs {
+export interface PricingSettingsRow {
+  diagnosticFee: number;
+  volumeDiscountMinVisits: number;
+  volumeDiscountPercent: number;
+}
+
+export function tariffsFromRows(
+  rows: readonly TariffRow[],
+  settings?: PricingSettingsRow | null,
+): Tariffs {
   const result: Tariffs = {
     categories: { ...defaultTariffs.categories },
     home: defaultTariffs.home,
     entry: defaultTariffs.entry,
+    diagnosticFee: settings?.diagnosticFee ?? defaultTariffs.diagnosticFee,
+    volumeDiscountMinVisits:
+      settings?.volumeDiscountMinVisits ??
+      defaultTariffs.volumeDiscountMinVisits,
+    volumeDiscountPercent:
+      settings?.volumeDiscountPercent ?? defaultTariffs.volumeDiscountPercent,
   };
 
   for (const row of rows) {
@@ -61,12 +79,17 @@ export function calculateQuote(
     ) {
       throw new Error("Monthly visits must be between 1 and 8.");
     }
-    const volumeMultiplier = visitsPerMonth >= 4 ? 0.9 : 1;
+    const volumeMultiplier =
+      visitsPerMonth >= tariffs.volumeDiscountMinVisits
+        ? (100 - tariffs.volumeDiscountPercent) / 100
+        : 1;
     return Math.round(
       quantity * tariffs[plan] * visitsPerMonth * volumeMultiplier,
     );
   }
-  return serviceIndex > 0 ? 25 : tariffs.categories[category];
+  return serviceIndex > 0
+    ? tariffs.diagnosticFee
+    : tariffs.categories[category];
 }
 
 export function quoteScope(
