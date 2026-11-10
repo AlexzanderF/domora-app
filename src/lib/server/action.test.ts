@@ -111,7 +111,7 @@ describe("runAction", () => {
         throw error;
       },
     });
-    expect(result).toEqual({ success: false, error: text });
+    expect(result).toEqual({ success: false, error: text, code: error.code });
   });
 
   it("lets per-call overrides replace the defaults", async () => {

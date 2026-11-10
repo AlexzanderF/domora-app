@@ -11,7 +11,9 @@ import {
   confirmCompletion,
   createRequest,
   getRequest,
-  listRequests,
+  listAgenda,
+  listAll,
+  listClientRequests,
   rateRequest,
   startWork,
   submitReport,
@@ -102,7 +104,7 @@ describe("createRequest", () => {
     expect(await rejection(createRequest(null, booking))).toBe(
       "UNAUTHENTICATED",
     );
-    expect(await listRequests(admin)).toEqual([]);
+    expect(await listAll(admin)).toEqual([]);
   });
 
   it.each([
@@ -116,7 +118,7 @@ describe("createRequest", () => {
     expect(
       await rejection(createRequest(client, { ...booking, ...override })),
     ).toBe("INVALID_INPUT");
-    expect(await listRequests(admin)).toEqual([]);
+    expect(await listAll(admin)).toEqual([]);
   });
 });
 
@@ -136,7 +138,7 @@ describe("createRequest pricing", () => {
         await rejection(createRequest(client, { ...booking, expectedPrice })),
       ).toBe("PRICE_CHANGED");
     }
-    expect(await listRequests(admin)).toEqual([]);
+    expect(await listAll(admin)).toEqual([]);
   });
 });
 
@@ -150,12 +152,16 @@ describe("visibility", () => {
 
     for (const allowed of [client, specialist, admin]) {
       expect((await getRequest(allowed, id)).id).toBe(id);
-      expect((await listRequests(allowed)).map((r) => r.id)).toEqual([id]);
     }
+    expect((await listClientRequests(client)).map((r) => r.id)).toEqual([id]);
+    expect((await listAgenda(specialist)).map((r) => r.id)).toEqual([id]);
+    expect((await listAll(admin)).map((r) => r.id)).toEqual([id]);
     for (const denied of [otherClient, otherSpecialist, pendingSpecialist]) {
       expect(await rejection(getRequest(denied, id))).toBe("FORBIDDEN");
-      expect(await listRequests(denied)).toEqual([]);
     }
+    expect(await listClientRequests(otherClient)).toEqual([]);
+    expect(await listAgenda(otherSpecialist)).toEqual([]);
+    expect(await listAgenda(pendingSpecialist)).toEqual([]);
     expect(await rejection(getRequest(null, id))).toBe("UNAUTHENTICATED");
   });
 
