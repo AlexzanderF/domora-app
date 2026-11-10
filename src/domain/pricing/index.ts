@@ -7,9 +7,14 @@ export const defaultTariffs: Tariffs = {
   entry: 18,
 };
 
-// The `home` tariff is stored as an integer in tenths of a lev per m² (15 = 1.50);
-// values of 20 or less are read as already being in lev.
-const HOME_TENTHS_THRESHOLD = 20;
+// The `home` tariff is stored as an integer in tenths of a lev per m² (15 = 1.50).
+export function homeRateToStored(home: number): number {
+  return Math.round(home * 10);
+}
+
+export function homeRateFromStored(stored: number): number {
+  return stored / 10;
+}
 
 export interface TariffRow {
   category: string;
@@ -28,10 +33,7 @@ export function tariffsFromRows(rows: readonly TariffRow[]): Tariffs {
     if (Number.isInteger(categoryId) && categoryId >= 0 && categoryId <= 5) {
       result.categories[categoryId as CategoryId] = row.standardRate;
     } else if (row.category === "home") {
-      result.home =
-        row.standardRate > HOME_TENTHS_THRESHOLD
-          ? row.standardRate / 10
-          : row.standardRate;
+      result.home = homeRateFromStored(row.standardRate);
     } else if (row.category === "entry") {
       result.entry = row.standardRate;
     }

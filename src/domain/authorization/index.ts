@@ -24,7 +24,9 @@ export type Action =
   | "request.attach_photo"
   // The specialist's own evidence on the work completion report.
   | "request.attach_report_photo"
-  | "request.view_photo";
+  | "request.view_photo"
+  // Saving Tariffs is an administrative act, never bound to a request.
+  | "tariffs.update";
 
 export interface RequestResource {
   clientId: number;

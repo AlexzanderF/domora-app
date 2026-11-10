@@ -18,4 +18,5 @@ export const eventHandlers: ExhaustiveEventHandlers = {
   "specialist.rejected": accountFlowHandlers["specialist.rejected"]!,
   "password.reset_requested": accountFlowHandlers["password.reset_requested"]!,
   "password.reset_completed": null,
+  "tariffs.updated": null,
 };

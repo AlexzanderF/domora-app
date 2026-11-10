@@ -16,6 +16,7 @@ describe("worker handler map", () => {
       "specialist.rejected",
       "password.reset_requested",
       "password.reset_completed",
+      "tariffs.updated",
     ].sort();
     expect(Object.keys(eventHandlers).sort()).toEqual(expected);
     for (const handler of Object.values(eventHandlers)) {

@@ -309,9 +309,6 @@ export const tariffs = pgTable("tariffs", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
   category: text("category").notNull().unique(),
   standardRate: integer("standard_rate").notNull(),
-  urgentRate: integer("urgent_rate").notNull(),
-  holidayRate: integer("holiday_rate").notNull(),
-  emergencyRate: integer("emergency_rate").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
