@@ -1,9 +1,21 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { PhotoPicker } from "@/features/bookings/photo-picker";
 import { uploadReportPhotos } from "@/features/bookings/upload-photos";
+import { EmptyState } from "@/components/empty-state";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { requestStages } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
@@ -12,9 +24,15 @@ import {
   startWorkAction,
 } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
-import { RequestStatus } from "@/features/requests/types";
-import type { ServiceRequest } from "@/features/requests/types";
-import styles from "./specialist-dashboard.module.css";
+import { RequestStatus } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
+import {
+  RequestActions,
+  RequestRow,
+  SpecialistSection,
+  actionButton,
+  rowText,
+} from "./section-parts";
 
 export function DailyAgenda({
   initialAgenda,
@@ -23,7 +41,6 @@ export function DailyAgenda({
 }) {
   const router = useRouter();
   const notify = useToast();
-  const dialog = useRef<HTMLDialogElement>(null);
   const [reportTarget, setReportTarget] = useState<ServiceRequest | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const [photos, setPhotos] = useState<File[]>([]);
@@ -52,11 +69,9 @@ export function DailyAgenda({
 
   function openReportDialog(request: ServiceRequest) {
     setReportTarget(request);
-    dialog.current?.showModal();
   }
 
   function closeReportDialog() {
-    dialog.current?.close();
     setReportTarget(null);
     setPhotos([]);
     setPickerKey((key) => key + 1);
@@ -99,128 +114,118 @@ export function DailyAgenda({
   }
 
   return (
-    <section className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <div>
-          <h2 className={styles.sectionTitle}>Дневен график</h2>
-          <span className={styles.sectionBadge}>Активни задачи</span>
-        </div>
-      </div>
+    <SpecialistSection title="Дневен график" badge="Активни задачи">
       {items.length === 0 ? (
-        <div className="empty">Няма активни задачи за днес.</div>
+        <EmptyState>Няма активни задачи за днес.</EmptyState>
       ) : (
         items.map((request) => (
-          <article
-            className={`request ${request.issue ? styles.disputed : ""}`}
+          <RequestRow
             key={request.id}
-            aria-label={request.service}
+            label={request.service}
+            icon={<ServiceIcon category={request.category} />}
+            amount={money(request.price)}
+            disputed={request.issue}
           >
-            <div className="tinyicon">
-              <ServiceIcon category={request.category} />
-            </div>
-            <div className="requestinfo">
-              <h3>{request.service}</h3>
-              <p>
-                {request.date} · {request.time}
-                <br />
-                {request.address}
-              </p>
-              <span className="badge">{requestStages[request.status]}</span>
-              {request.dispatchedByAdmin && (
-                <span className={styles.recommendedBadge}>
-                  Разпределена от администратор
-                </span>
+            <h3>{request.service}</h3>
+            <p className={rowText}>
+              {request.date} · {request.time}
+              <br />
+              {request.address}
+            </p>
+            <StatusBadge>{requestStages[request.status]}</StatusBadge>
+            {request.dispatchedByAdmin && (
+              <StatusBadge tone="pending">
+                Разпределена от администратор
+              </StatusBadge>
+            )}
+            <p className={rowText}>
+              {request.clientName ?? "Клиент"}
+              {request.clientPhone && (
+                <>
+                  {" · "}
+                  <a href={`tel:${request.clientPhone}`}>
+                    {request.clientPhone}
+                  </a>
+                </>
               )}
-              <p>
-                {request.clientName ?? "Клиент"}
-                {request.clientPhone && (
-                  <>
-                    {" · "}
-                    <a href={`tel:${request.clientPhone}`}>
-                      {request.clientPhone}
-                    </a>
-                  </>
-                )}
+            </p>
+            {request.issue && (
+              <p
+                className={`${rowText} border-l-[3px] border-tone-d9776b bg-tone-fbe9e7 px-3.5 py-2.5`}
+              >
+                Клиентът е подал сигнал за проблем с извършената работа.
+                Прегледайте и коригирайте при нужда.
+                {request.issueNote && <> Бележка: „{request.issueNote}“</>}
               </p>
-              {request.issue && (
-                <p className={styles.disputeNotice}>
-                  Клиентът е подал сигнал за проблем с извършената работа.
-                  Прегледайте и коригирайте при нужда.
-                  {request.issueNote && <> Бележка: „{request.issueNote}“</>}
-                </p>
+            )}
+            <RequestActions>
+              {request.status === RequestStatus.Accepted && (
+                <Button
+                  className={actionButton}
+                  disabled={busyId === request.id}
+                  onClick={() => void startWork(request)}
+                >
+                  {busyId === request.id ? "Стартиране…" : "Започни работа"}
+                </Button>
               )}
-              <div className="actions">
-                {request.status === RequestStatus.Accepted && (
-                  <button
-                    className="primary"
-                    disabled={busyId === request.id}
-                    onClick={() => void startWork(request)}
-                  >
-                    {busyId === request.id ? "Стартиране…" : "Започни работа"}
-                  </button>
-                )}
-                {request.status === RequestStatus.InProgress && (
-                  <button
-                    className="primary"
-                    disabled={busyId === request.id}
-                    onClick={() => openReportDialog(request)}
-                  >
-                    Завърши с доклад
-                  </button>
-                )}
-              </div>
-            </div>
-            <span className="amount">{money(request.price)}</span>
-          </article>
+              {request.status === RequestStatus.InProgress && (
+                <Button
+                  className={actionButton}
+                  disabled={busyId === request.id}
+                  onClick={() => openReportDialog(request)}
+                >
+                  Завърши с доклад
+                </Button>
+              )}
+            </RequestActions>
+          </RequestRow>
         ))
       )}
 
-      <dialog
-        ref={dialog}
-        aria-labelledby="report-title"
-        onCancel={(event) => {
-          event.preventDefault();
-          closeReportDialog();
+      <Dialog
+        open={reportTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) closeReportDialog();
         }}
       >
-        <div className="dialoghead">
-          <div>
-            <span className="eyebrow">DOMORA / ОТЧЕТ ЗА ИЗВЪРШЕНА РАБОТА</span>
-            <h2 id="report-title">{reportTarget?.service}</h2>
-          </div>
-          <button
-            className="icon"
-            aria-label="Затвори"
-            onClick={closeReportDialog}
-          >
-            ×
-          </button>
-        </div>
-        <form onSubmit={submitReport}>
-          <label>
-            Описание на извършената работа
-            <textarea
+        <DialogContent>
+          <DialogHeader>
+            <span className="text-xs font-bold tracking-[1.5px] text-muted-foreground">
+              DOMORA / ОТЧЕТ ЗА ИЗВЪРШЕНА РАБОТА
+            </span>
+            <DialogTitle>{reportTarget?.service}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Опишете извършената работа и добавете снимки по желание.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={submitReport}>
+            <Label htmlFor="report" className="mb-0">
+              Описание на извършената работа
+            </Label>
+            <Textarea
+              id="report"
               name="report"
               required
               minLength={5}
               placeholder="Какво беше извършено?"
               rows={4}
+              className="mb-3.5"
             />
-          </label>
-          <PhotoPicker
-            key={pickerKey}
-            onChange={setPhotos}
-            onBusyChange={setPhotosBusy}
-          />
-          <button
-            className="primary full"
-            type="submit"
-            disabled={busyId === reportTarget?.id || photosBusy}
-          >
-            Изпрати отчет
-          </button>
-        </form>
-      </dialog>
-    </section>
+            <PhotoPicker
+              key={pickerKey}
+              onChange={setPhotos}
+              onBusyChange={setPhotosBusy}
+            />
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={busyId === reportTarget?.id || photosBusy}
+            >
+              Изпрати отчет
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </SpecialistSection>
   );
 }

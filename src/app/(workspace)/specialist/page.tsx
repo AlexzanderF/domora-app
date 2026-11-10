@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { DashboardSummary } from "@/features/specialist/dashboard-summary";
 import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
 import { DailyAgenda } from "@/features/specialist/daily-agenda";
 import { isActiveStage } from "@/features/requests/request-rules";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
-import { RequestStatus } from "@/features/requests/types";
+import { RequestStatus } from "@/domain/requests/types";
 import { findSpecialistRequests } from "@/features/requests/server/queries";
 import { isDbConfigured } from "@/db";
 

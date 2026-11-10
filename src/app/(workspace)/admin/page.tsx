@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
+import { QueueSection, QueueTag } from "@/features/admin/admin-ui";
 import { AdminKpiCards } from "@/features/admin/admin-kpi-cards";
 import { PendingSpecialistsQueue } from "@/features/admin/pending-specialists-queue";
 import { DisputedRequestsQueue } from "@/features/admin/disputed-requests-queue";
@@ -13,10 +14,9 @@ import {
   findSpecialistApplications,
   findUnassignedRequestsForAdmin,
 } from "@/features/admin/server/queries";
-import { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
-import styles from "@/features/admin/admin-command-center.module.css";
 
 export const metadata: Metadata = {
   title: "Команден център · Администрация DOMORA",
@@ -24,6 +24,17 @@ export const metadata: Metadata = {
     "Оперативен триаж на спешни заявки, одобрение на специалисти и мониторинг на дейностите в платформата.",
 };
 export const dynamic = "force-dynamic";
+
+function QueueLink({ href, children }: { href: string; children: string }) {
+  return (
+    <Link
+      href={href}
+      className="text-[13px] font-semibold text-primary no-underline transition-opacity hover:underline hover:opacity-85"
+    >
+      {children}
+    </Link>
+  );
+}
 
 export default async function AdminPage() {
   const user = await getServerSession();
@@ -62,52 +73,43 @@ export default async function AdminPage() {
       <AdminKpiCards initialMetrics={initialMetrics} />
 
       {/* Triage queue sections scaffolding */}
-      <div className={styles.queuesContainer}>
+      <div className="flex flex-col gap-6">
         {/* Queue 1: Спешни & Непоети заявки */}
-        <section className={styles.queueSection}>
-          <div className={styles.queueHeader}>
-            <div className={styles.queueTitleGroup}>
-              <h2 className={styles.queueTitle}>Спешни &amp; Непоети заявки</h2>
-              <span className={styles.queueBadge}>Опашка за триаж</span>
-            </div>
-            <Link href="/admin/requests" className={styles.queueLink}>
-              Към всички заявки →
-            </Link>
-          </div>
+        <QueueSection
+          title="Спешни & Непоети заявки"
+          tag="Опашка за триаж"
+          action={
+            <QueueLink href="/admin/requests">Към всички заявки →</QueueLink>
+          }
+        >
           <UnassignedRequestsQueue
             initialRequests={initialUnassignedRequests}
             initialSpecialists={initialSpecialists}
           />
-        </section>
+        </QueueSection>
 
         {/* Queue 2: Чакащи одобрение */}
-        <section className={styles.queueSection}>
-          <div className={styles.queueHeader}>
-            <div className={styles.queueTitleGroup}>
-              <h2 className={styles.queueTitle}>Чакащи одобрение</h2>
-              <span className={styles.queueBadge}>Верификация</span>
-            </div>
-            <Link href="/admin/specialists" className={styles.queueLink}>
-              Към специалисти →
-            </Link>
-          </div>
+        <QueueSection
+          title="Чакащи одобрение"
+          tag="Верификация"
+          action={
+            <QueueLink href="/admin/specialists">Към специалисти →</QueueLink>
+          }
+        >
           <PendingSpecialistsQueue initialSpecialists={initialSpecialists} />
-        </section>
+        </QueueSection>
 
         {/* Queue 3: Сигнали за проблеми */}
-        <section className={styles.queueSection}>
-          <div className={styles.queueHeader}>
-            <div className={styles.queueTitleGroup}>
-              <h2 className={styles.queueTitle}>Сигнали за проблеми</h2>
-              <span className={styles.queueBadge}>Мониторинг</span>
-            </div>
-            <span className={styles.queueBadge}>Оспорвания</span>
-          </div>
+        <QueueSection
+          title="Сигнали за проблеми"
+          tag="Мониторинг"
+          action={<QueueTag>Оспорвания</QueueTag>}
+        >
           <DisputedRequestsQueue
             initialDisputedRequests={initialDisputedRequests}
             resolvedDisputes={resolvedDisputes}
           />
-        </section>
+        </QueueSection>
       </div>
     </>
   );

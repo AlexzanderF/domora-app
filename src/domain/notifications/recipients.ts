@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { requests, users } from "@/db";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import type { Tx } from "./index";
 
 // Lookups shared by the event handlers that resolve who to email.

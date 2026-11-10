@@ -17,7 +17,7 @@ DOMORA is a property care and home service management web application.
 - **Tech Stack**: Next.js 16 (App Router), React 19, TypeScript, Vitest, Playwright.
 - **Engine**: Node.js 24 (`>=24 <25`).
 - **Language**: Bulgarian (`bg`) for all user-facing copy, labels, placeholders, and feedback messages.
-- **Styling**: Vanilla CSS with CSS variables (`src/app/globals.css`) and CSS Modules (`*.module.css`). **Do not use Tailwind CSS**.
+- **Styling**: Tailwind v4 + shadcn/ui (Radix) with dark-ready semantic tokens; the current look is kept. CSS Modules only for bespoke marketing visuals. Legacy CSS Modules and `src/app/globals.css` classes coexist until each screen migrates. See [`docs/adr/0007-tailwind-shadcn-frontend-rework.md`](docs/adr/0007-tailwind-shadcn-frontend-rework.md).
 
 ---
 
@@ -31,9 +31,9 @@ DOMORA is a property care and home service management web application.
    - Path alias: `@/*` maps to `src/*`.
    - Routes: `src/app/(auth)/` (login, signup, approval) and `src/app/(workspace)/` (authenticated client, specialist, admin shells).
    - Shared UI & Layouts: `src/components/ui/` and `src/components/layout/`.
-   - Feature Modules: `src/features/<feature-name>/` (colocate UI components, styles, types, and mock stores).
-3. **State & Mocking**:
-   - Use the demo provider pattern (e.g., `src/features/requests/demo-provider.tsx`) when prototyping interactive flows without a backend.
+   - Feature Modules: `src/features/<feature-name>/` (colocate UI components and server actions). Features must not import other features outside the allowlist (ADR 0007).
+3. **State & Business Logic**:
+   - Business rules live in framework-free modules under `src/domain/<module>/` (ADR 0006); server actions are thin adapters. The old demo-provider pattern no longer exists.
 4. **Generated Files**:
    - Do NOT manually edit files in `.next/`.
 
@@ -53,7 +53,7 @@ A task is complete only when the primary gate passes cleanly:
 
 - **Scope**: Keep changes and PRs tightly focused on the requested task.
 - **Feature Isolation**: Work on dedicated feature branches (e.g., `feature/<task-name>`). Avoid editing shared files (`globals.css`, `providers.tsx`) unless strictly necessary.
-- **Automated PR Creation**: When completing work on a feature branch, push to `origin` and open a PR against `main` with a clear summary of changes, problem addressed, and verification results.
+- **Automated PR Creation**: When completing work on a feature branch, push to `origin` and open a PR against `main` (exception: frontend-rework tickets target `feature/frontend-rework`, see ADR 0007) with a clear summary of changes, problem addressed, and verification results.
 - **Test Authoring Guardrail**:
   - New unit and integration tests are allowed wherever they fit the work.
   - Do not create or edit files in `tests/e2e/`, and do not write, generate, or add Playwright or E2E tests, unless explicitly requested by the user.

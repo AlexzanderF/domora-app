@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from "./types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 
 export function getRoleDashboardPath(
   role?: string | null,

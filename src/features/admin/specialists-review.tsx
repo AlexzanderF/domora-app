@@ -2,11 +2,22 @@
 
 import { useMemo, useState } from "react";
 import { useAuth } from "@/features/auth/auth-provider";
-import { UserStatus } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { formatCompany, formatExperience } from "./specialist-format";
-import styles from "./specialists-review.module.css";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import {
+  CardHeaderRow,
+  CategoryPill,
+  DetailGrid,
+  DetailItem,
+  DetailLabel,
+  DetailValue,
+} from "./admin-ui";
 
 type FilterTab = "ALL" | UserStatus;
 
@@ -22,14 +33,34 @@ const TABS: TabDefinition[] = [
   { key: UserStatus.Rejected, label: "Отказани" },
 ];
 
+const statusPill = "rounded-md border py-[3px]";
+
 function getStatusBadge(status: UserStatus) {
   switch (status) {
     case UserStatus.Pending:
-      return <span className={styles.badgePending}>Чака преглед</span>;
+      return (
+        <Badge
+          variant="warning"
+          className={cn(statusPill, "border-tone-fed7aa")}
+        >
+          Чака преглед
+        </Badge>
+      );
     case UserStatus.Active:
-      return <span className={styles.badgeActive}>Одобрен</span>;
+      return (
+        <Badge className={cn(statusPill, "border-tone-bbf7d0")}>Одобрен</Badge>
+      );
     case UserStatus.Rejected:
-      return <span className={styles.badgeRejected}>Отказан</span>;
+      return (
+        <Badge
+          className={cn(
+            statusPill,
+            "border-tone-fecaca bg-tone-fee2e2 text-tone-991b1b",
+          )}
+        >
+          Отказан
+        </Badge>
+      );
     default:
       return null;
   }
@@ -133,31 +164,26 @@ export function SpecialistsReview({
   };
 
   return (
-    <div className={styles.container}>
+    <div className="flex flex-col gap-5">
       {/* Quick stats cards */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <span>Общо кандидатури</span>
-          <span className={styles.statValue}>{counts.ALL}</span>
-        </div>
-        <div className={styles.statCard}>
-          <span>Чакащи одобрение</span>
-          <span className={styles.statValue} style={{ color: "#b45309" }}>
-            {counts.PENDING}
-          </span>
-        </div>
-        <div className={styles.statCard}>
-          <span>Одобрени специалисти</span>
-          <span className={styles.statValue} style={{ color: "var(--green)" }}>
-            {counts.ACTIVE}
-          </span>
-        </div>
+      <div className="mb-2 grid grid-cols-3 gap-4 max-md:grid-cols-1">
+        <StatCard label="Общо кандидатури" value={counts.ALL} />
+        <StatCard
+          label="Чакащи одобрение"
+          value={counts.PENDING}
+          valueClassName="text-tone-b45309"
+        />
+        <StatCard
+          label="Одобрени специалисти"
+          value={counts.ACTIVE}
+          valueClassName="text-primary"
+        />
       </div>
 
       {/* Toolbar: tabs and search */}
-      <div className={styles.toolbar}>
+      <div className="flex flex-wrap items-center justify-between gap-4 py-2">
         <div
-          className={styles.tabs}
+          className="flex flex-wrap gap-1.5 rounded-[10px] bg-tone-ebf0ec p-1"
           role="tablist"
           aria-label="Филтър по статус на специалист"
         >
@@ -170,39 +196,54 @@ export function SpecialistsReview({
                 role="tab"
                 aria-selected={isSelected}
                 aria-label={tab.label}
-                className={isSelected ? styles.tabActive : styles.tab}
+                className={cn(
+                  "inline-flex cursor-pointer items-center gap-2 rounded-[7px] border-0 px-3.5 py-2 text-sm",
+                  isSelected
+                    ? "bg-white font-[650] text-primary shadow-[0_1px_3px_rgba(0,0,0,0.08)]"
+                    : "bg-transparent font-semibold text-muted-foreground transition-all duration-150 hover:text-foreground",
+                )}
                 onClick={() => setActiveTab(tab.key)}
               >
                 <span>{tab.label}</span>
-                <span className={styles.tabCount}>{counts[tab.key]}</span>
+                <span
+                  className={cn(
+                    "rounded-xl px-[7px] py-0.5 text-xs font-bold text-primary",
+                    isSelected ? "bg-tone-eaf2ec" : "bg-tone-e1e9e2",
+                  )}
+                >
+                  {counts[tab.key]}
+                </span>
               </button>
             );
           })}
         </div>
 
-        <div className={styles.searchBox}>
-          <span className={styles.searchIcon} aria-hidden="true">
+        <div className="relative max-w-[380px] min-w-[260px] flex-1">
+          <span
+            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground"
+            aria-hidden="true"
+          >
             🔍
           </span>
-          <input
+          <Input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Търсене по име, сфера, район..."
-            className={styles.searchInput}
+            className="rounded-lg border-border py-[9px] pr-3.5 pl-9 text-sm text-foreground outline-none focus:border-primary"
             aria-label="Търсене на специалисти"
           />
         </div>
       </div>
 
       {/* Specialist application cards list */}
-      <div className={styles.list}>
+      <div className="flex flex-col gap-4">
         {filteredSpecialists.length === 0 ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon} aria-hidden="true">
+          <div className="rounded-xl border border-border bg-white px-6 py-12 text-center text-muted-foreground">
+            <div className="mb-3 text-[32px]" aria-hidden="true">
               📋
             </div>
-            <div className={styles.emptyTitle}>
+            <div className="mb-1 text-base font-semibold text-foreground">
               Няма намерени кандидатури на специалисти
             </div>
             <p>
@@ -226,116 +267,115 @@ export function SpecialistsReview({
             return (
               <article
                 key={spec.id}
-                className={styles.card}
+                className="rounded-xl border border-border bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-[border-color] duration-200 hover:border-tone-cbd7cf"
                 aria-label={`Кандидатура на ${spec.name}`}
               >
-                <div className={styles.cardHeader}>
-                  <div className={styles.authorWrapper}>
-                    <div className={styles.avatar} aria-hidden="true">
+                <CardHeaderRow className="gap-4 max-md:flex-col max-md:items-stretch">
+                  <div className="flex items-center gap-3.5">
+                    <div
+                      className="grid size-12 shrink-0 place-items-center rounded-full bg-tone-e9efdc text-xl font-bold text-primary"
+                      aria-hidden="true"
+                    >
                       {initial}
                     </div>
-                    <div className={styles.authorMeta}>
-                      <h2 className={styles.authorName}>{spec.name}</h2>
-                      <div className={styles.badgesRow}>
+                    <div className="flex flex-col gap-1">
+                      <h2 className="m-0 text-lg font-bold text-foreground">
+                        {spec.name}
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-2">
                         {profile?.category && (
-                          <span className={styles.categoryBadge}>
-                            {profile.category}
-                          </span>
+                          <CategoryPill>{profile.category}</CategoryPill>
                         )}
                         {getStatusBadge(spec.status)}
                       </div>
                     </div>
                   </div>
 
-                  <div className={styles.actionsGroup}>
-                    <button
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
                       type="button"
                       onClick={() => handleApprove(spec)}
                       disabled={
                         isProcessing || spec.status === UserStatus.Active
                       }
-                      className={styles.approveButton}
+                      className="px-[18px] py-2 text-sm"
                     >
                       {spec.status === UserStatus.Active
                         ? "Одобрен ✓"
                         : "Одобри"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      variant="secondary"
                       onClick={() => handleReject(spec)}
                       disabled={
                         isProcessing || spec.status === UserStatus.Rejected
                       }
-                      className={styles.rejectButton}
+                      className="border-tone-fecaca px-[18px] py-2 text-sm text-tone-991b1b hover:bg-tone-fee2e2"
                     >
                       {spec.status === UserStatus.Rejected
                         ? "Отказан ✕"
                         : "Откажи"}
-                    </button>
+                    </Button>
                   </div>
-                </div>
+                </CardHeaderRow>
 
-                <div className={styles.detailsGrid}>
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Имейл адрес</span>
+                <DetailGrid className="mt-[18px] grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-x-[18px] gap-y-3 bg-tone-fbfdfa p-4 max-md:grid-cols-1">
+                  <DetailItem label="Имейл адрес">
                     <a
                       href={`mailto:${spec.email}`}
-                      className={styles.detailLink}
+                      className="text-sm font-medium break-words text-primary no-underline hover:underline"
                     >
                       {spec.email}
                     </a>
-                  </div>
+                  </DetailItem>
 
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Телефонен номер</span>
-                    <a href={`tel:${spec.phone}`} className={styles.detailLink}>
+                  <DetailItem label="Телефонен номер">
+                    <a
+                      href={`tel:${spec.phone}`}
+                      className="text-sm font-medium break-words text-primary no-underline hover:underline"
+                    >
                       {spec.phone}
                     </a>
-                  </div>
+                  </DetailItem>
 
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Сфера на дейност</span>
-                    <span className={styles.detailValue}>
+                  <DetailItem label="Сфера на дейност">
+                    <DetailValue className="text-sm">
                       {profile?.category || "—"}
-                    </span>
-                  </div>
+                    </DetailValue>
+                  </DetailItem>
 
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>
-                      Район на обслужване
-                    </span>
-                    <span className={styles.detailValue}>
+                  <DetailItem label="Район на обслужване">
+                    <DetailValue className="text-sm">
                       {profile?.area || "—"}
-                    </span>
-                  </div>
+                    </DetailValue>
+                  </DetailItem>
 
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>
-                      Професионален опит
-                    </span>
-                    <span className={styles.detailValue}>
+                  <DetailItem label="Професионален опит">
+                    <DetailValue className="text-sm">
                       {formatExperience(profile?.experienceYears)}
-                    </span>
-                  </div>
+                    </DetailValue>
+                  </DetailItem>
 
-                  <div className={styles.detailItem}>
-                    <span className={styles.detailLabel}>Фирма / ЕИК</span>
-                    <span className={styles.detailValue}>
+                  <DetailItem label="Фирма / ЕИК">
+                    <DetailValue className="text-sm">
                       {formatCompany(profile?.companyName, profile?.eik)}
-                    </span>
-                  </div>
-                </div>
+                    </DetailValue>
+                  </DetailItem>
+                </DetailGrid>
 
                 {profile?.bio && (
-                  <div className={styles.bioSection}>
-                    <span className={styles.bioLabel}>
+                  <div className="mt-4 border-t border-tone-edf2ed pt-3.5">
+                    <DetailLabel className="mb-1.5 block">
                       Професионално представяне (Био)
-                    </span>
-                    <p className={styles.bioText}>{profile.bio}</p>
+                    </DetailLabel>
+                    <p className="m-0 text-sm leading-[1.55] text-foreground">
+                      {profile.bio}
+                    </p>
                   </div>
                 )}
 
-                <div className={styles.cardFooter}>
+                <div className="mt-4 flex items-center justify-between border-t border-tone-edf2ed pt-3 text-xs text-muted-foreground">
                   <span>
                     Подадена на:{" "}
                     {new Date(spec.createdAt).toLocaleDateString("bg-BG", {
@@ -351,6 +391,27 @@ export function SpecialistsReview({
           })
         )}
       </div>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value: number;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1 rounded-xl border border-border bg-white px-[22px] py-[18px] text-[13px] font-medium text-muted-foreground">
+      <span>{label}</span>
+      <span
+        className={cn("text-[28px] font-bold text-foreground", valueClassName)}
+      >
+        {value}
+      </span>
     </div>
   );
 }

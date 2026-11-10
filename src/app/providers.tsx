@@ -1,7 +1,7 @@
 "use client";
 
-import type { User } from "@/features/auth/types";
-import type { Tariffs } from "@/features/requests/types";
+import type { User } from "@/domain/identity/types";
+import type { Tariffs } from "@/domain/requests/types";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { BookingProvider } from "@/features/bookings/booking-provider";
 import { BookingDialog } from "@/features/bookings/booking-dialog";

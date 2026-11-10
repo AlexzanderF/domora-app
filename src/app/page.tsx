@@ -1,3 +1,4 @@
+import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { FinalCta } from "@/features/landing/final-cta";
@@ -7,10 +8,9 @@ import { LandingFooter } from "@/features/landing/landing-footer";
 import { LandingHeader } from "@/features/landing/landing-header";
 import { ServiceShowcase } from "@/features/landing/service-showcase";
 import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
-import styles from "./landing.module.css";
 
 export const metadata: Metadata = {
   title: "DOMORA — спокойствие за вашия дом",
@@ -37,11 +37,12 @@ export default async function HomePage() {
   }
   return (
     <>
-      <a href="#main" className="skip-link">
-        Към съдържанието
-      </a>
+      <SkipLink />
       <LandingHeader />
-      <main id="main" className={styles.main}>
+      <main
+        id="main"
+        className="mx-auto min-h-0 w-[min(1320px,calc(100%-3rem))] max-w-none px-0 pt-[1.35rem] pb-0 max-[560px]:w-[calc(100%-2rem)] max-[560px]:pt-4"
+      >
         <Hero />
         <HowItWorks />
         <ServiceShowcase />

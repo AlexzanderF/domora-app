@@ -3,11 +3,18 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/auth-provider";
-import { UserStatus } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 import { useToast } from "@/components/ui/toast-provider";
 import { formatCompany, formatExperience } from "./specialist-format";
-import styles from "./pending-specialists-queue.module.css";
+import { Button } from "@/components/ui/button";
+import {
+  CategoryPill,
+  DetailGrid,
+  DetailItem,
+  DetailValue,
+  QueueEmpty,
+} from "./admin-ui";
 
 export interface PendingSpecialistsQueueProps {
   initialSpecialists?: User[] | null;
@@ -58,22 +65,16 @@ export function PendingSpecialistsQueue({
 
   if (pending.length === 0) {
     return (
-      <div className={styles.emptyState}>
-        <span className={styles.emptyIcon} aria-hidden="true">
-          👥
-        </span>
-        <p className={styles.emptyTitle}>
-          Няма чакащи за одобрение специалисти
-        </p>
-        <p className={styles.emptyDescription}>
-          Всички подадени кандидатури вече са прегледани.
-        </p>
-      </div>
+      <QueueEmpty
+        icon="👥"
+        title="Няма чакащи за одобрение специалисти"
+        description="Всички подадени кандидатури вече са прегледани."
+      />
     );
   }
 
   return (
-    <div className={styles.list}>
+    <div className="flex flex-col gap-3.5">
       {pending.map((spec) => {
         const profile = spec.specialistProfile;
         const initial = spec.name.trim().charAt(0).toUpperCase() || "С";
@@ -82,23 +83,26 @@ export function PendingSpecialistsQueue({
         return (
           <article
             key={spec.id}
-            className={styles.card}
+            className="rounded-[10px] border border-border bg-tone-fbfdfa px-5 py-[18px]"
             aria-label={`Кандидатура на ${spec.name}`}
           >
-            <div className={styles.cardHeader}>
-              <div className={styles.authorWrapper}>
-                <div className={styles.avatar} aria-hidden="true">
+            <div className="flex flex-wrap items-start justify-between gap-3.5 max-md:flex-col max-md:items-stretch">
+              <div className="flex items-center gap-3">
+                <div
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-tone-e9efdc text-base font-bold text-primary"
+                  aria-hidden="true"
+                >
                   {initial}
                 </div>
-                <div className={styles.authorMeta}>
-                  <h3 className={styles.authorName}>{spec.name}</h3>
-                  <div className={styles.badgesRow}>
+                <div className="flex flex-col gap-1">
+                  <h3 className="m-0 text-base font-bold text-foreground">
+                    {spec.name}
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2">
                     {profile?.category && (
-                      <span className={styles.categoryBadge}>
-                        {profile.category}
-                      </span>
+                      <CategoryPill>{profile.category}</CategoryPill>
                     )}
-                    <span className={styles.regDate}>
+                    <span className="text-xs text-muted-foreground">
                       Подадена на{" "}
                       {new Date(spec.createdAt).toLocaleDateString("bg-BG", {
                         day: "numeric",
@@ -110,65 +114,67 @@ export function PendingSpecialistsQueue({
                 </div>
               </div>
 
-              <div className={styles.actionsGroup}>
-                <button
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
                   type="button"
                   onClick={() => handleDecision(spec, UserStatus.Active)}
                   disabled={isProcessing}
-                  className={styles.approveButton}
+                  className="px-4 py-[7px] text-[13px]"
                 >
                   Одобри
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => handleDecision(spec, UserStatus.Rejected)}
                   disabled={isProcessing}
-                  className={styles.rejectButton}
+                  className="border-tone-fecaca px-4 py-[7px] text-[13px] text-tone-991b1b hover:bg-tone-fee2e2"
                 >
                   Откажи
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div className={styles.detailsGrid}>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Телефон</span>
-                <a href={`tel:${spec.phone}`} className={styles.detailLink}>
+            <DetailGrid className="mt-4">
+              <DetailItem label="Телефон">
+                <a
+                  href={`tel:${spec.phone}`}
+                  className="text-[13px] font-medium break-words text-primary no-underline hover:underline"
+                >
                   {spec.phone}
                 </a>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Имейл</span>
-                <a href={`mailto:${spec.email}`} className={styles.detailLink}>
+              </DetailItem>
+              <DetailItem label="Имейл">
+                <a
+                  href={`mailto:${spec.email}`}
+                  className="text-[13px] font-medium break-words text-primary no-underline hover:underline"
+                >
                   {spec.email}
                 </a>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Район на обслужване</span>
-                <span className={styles.detailValue}>
-                  {profile?.area || "—"}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Професионален опит</span>
-                <span className={styles.detailValue}>
+              </DetailItem>
+              <DetailItem label="Район на обслужване">
+                <DetailValue>{profile?.area || "—"}</DetailValue>
+              </DetailItem>
+              <DetailItem label="Професионален опит">
+                <DetailValue>
                   {formatExperience(profile?.experienceYears)}
-                </span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Фирма / ЕИК</span>
-                <span className={styles.detailValue}>
+                </DetailValue>
+              </DetailItem>
+              <DetailItem label="Фирма / ЕИК">
+                <DetailValue>
                   {formatCompany(profile?.companyName, profile?.eik)}
-                </span>
-              </div>
-            </div>
+                </DetailValue>
+              </DetailItem>
+            </DetailGrid>
 
             {profile?.bio && (
-              <div className={styles.bioSection}>
-                <span className={styles.bioLabel}>
+              <div className="mt-3.5 border-t border-tone-edf2ed pt-3">
+                <span className="mb-1.5 block text-[11px] font-semibold tracking-[0.5px] text-muted-foreground uppercase">
                   Професионално представяне (Био)
                 </span>
-                <p className={styles.bioText}>{profile.bio}</p>
+                <p className="text-[13px] leading-normal text-foreground">
+                  {profile.bio}
+                </p>
               </div>
             )}
           </article>

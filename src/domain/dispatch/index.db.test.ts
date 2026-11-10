@@ -2,8 +2,8 @@ import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it } from "vitest";
 import { requestEvents, requireDb, requests } from "@/db";
 import type { Actor } from "@/domain/authorization";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { RequestStatus } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import { RequestStatus } from "@/domain/requests/types";
 import {
   createActor,
   insertProfile,

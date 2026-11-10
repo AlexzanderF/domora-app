@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
+import { Card } from "@/components/ui/card";
 import { BookingButton } from "@/features/bookings/booking-button";
 import { RequestList } from "@/features/requests/request-list";
 import { findClientRequests } from "@/features/requests/server/queries";
@@ -24,9 +25,9 @@ export default async function ClientRequestsPage() {
       >
         <BookingButton />
       </PageHeading>
-      <div className="card">
+      <Card>
         <RequestList actions initialRequests={initialRequests} />
-      </div>
+      </Card>
     </>
   );
 }

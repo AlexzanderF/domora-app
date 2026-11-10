@@ -1,5 +1,5 @@
 import { requireActor } from "@/features/auth/server/actor";
-import { UserRole } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
 
 export default async function AdminLayout({
   children,

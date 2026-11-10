@@ -3,9 +3,11 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { StatusBadge } from "@/components/status-badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/auth-provider";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 
 export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
   const { user, status, logout } = useAuth();
@@ -41,44 +43,39 @@ export function HeaderAccount({ initialUser }: { initialUser?: User | null }) {
 
   if (activeUser) {
     return (
-      <div className="account">
-        <span className="avatar" aria-hidden="true">
+      <div className="flex items-center gap-2.5 text-foreground">
+        <span
+          className="inline-grid size-[34px] place-items-center rounded-full bg-tone-e9efdc font-semibold"
+          aria-hidden="true"
+        >
           {initial}
         </span>
         <span>{activeUser.name}</span>
-        <span className="badge">{roleLabel}</span>
-        <button
+        <StatusBadge>{roleLabel}</StatusBadge>
+        <Button
           type="button"
+          variant="link"
           onClick={async () => {
             await logout();
             router.push("/login");
           }}
-          className="textbutton"
-          style={{ marginLeft: "8px", cursor: "pointer" }}
+          className="ml-2 rounded-none px-1.5 py-px text-[14px]"
           aria-label="Изход от профила"
         >
           Изход
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="account" style={{ gap: "10px" }}>
-      <Link
-        href="/login"
-        className="secondary"
-        style={{ textDecoration: "none", padding: "8px 16px" }}
-      >
-        Вход
-      </Link>
-      <Link
-        href="/signup"
-        className="primary"
-        style={{ textDecoration: "none", padding: "8px 16px" }}
-      >
-        Регистрация
-      </Link>
+    <div className="flex items-center gap-2.5 text-foreground">
+      <Button asChild variant="secondary" className="px-4 py-2">
+        <Link href="/login">Вход</Link>
+      </Button>
+      <Button asChild className="px-4 py-2">
+        <Link href="/signup">Регистрация</Link>
+      </Button>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
-} from "./types";
+} from "@/domain/identity/types";
 
 export interface ClientRegistrationErrors {
   name?: string;

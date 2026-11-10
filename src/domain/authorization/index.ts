@@ -1,4 +1,4 @@
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 
 // Role and status always come from the database, never from cookies.
 export interface Actor {

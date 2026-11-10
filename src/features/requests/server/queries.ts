@@ -6,8 +6,8 @@ import type { RequestSelect } from "@/db/schema";
 import { listOpportunities } from "@/domain/dispatch";
 import { listReportPhotoIds } from "@/domain/photos";
 import type { Actor } from "@/domain/authorization";
-import { UserStatus } from "@/features/auth/types";
-import type { CategoryId, ServiceRequest } from "../types";
+import { UserStatus } from "@/domain/identity/types";
+import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 
 // The booked date and time window; rows that predate the columns fall back to
 // when they were created.

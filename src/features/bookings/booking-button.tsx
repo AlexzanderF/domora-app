@@ -1,12 +1,16 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { useBooking } from "@/features/bookings/booking-provider";
 
 export function BookingButton() {
   const { openBooking } = useBooking();
   return (
-    <button className="primary" onClick={() => openBooking({ category: 0 })}>
+    <Button
+      className="max-[700px]:w-full"
+      onClick={() => openBooking({ category: 0 })}
+    >
       + Нова заявка
-    </button>
+    </Button>
   );
 }

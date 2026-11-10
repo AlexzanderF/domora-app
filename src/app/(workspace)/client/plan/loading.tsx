@@ -1,4 +1,4 @@
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 
 export default function ClientPlanLoading() {
   return (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Plan } from "@/features/requests/types";
+import { Plan } from "@/domain/requests/types";
 import {
   calculateQuote,
   defaultTariffs as initialTariffs,

@@ -1,5 +1,5 @@
+import { Card } from "@/components/ui/card";
 import { LandingIcon } from "./landing-icon";
-import styles from "./how-it-works.module.css";
 
 const steps = [
   {
@@ -26,31 +26,50 @@ export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className={styles.section}
+      className="scroll-mt-34 py-[clamp(2.5rem,5vw,4.25rem)] max-[700px]:py-10"
       aria-labelledby="how-it-works-title"
     >
-      <div className={styles.intro}>
-        <p className={styles.eyebrow}>ТРИ ЛЕСНИ СТЪПКИ</p>
-        <h2 id="how-it-works-title">Как работи DOMORA</h2>
-        <p>
+      <div className="mb-[1.65rem] max-w-[680px]">
+        <p className="mt-0 mb-[0.65rem] text-xs font-extrabold tracking-[0.15em] text-primary">
+          ТРИ ЛЕСНИ СТЪПКИ
+        </p>
+        <h2
+          id="how-it-works-title"
+          className="text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]"
+        >
+          Как работи DOMORA
+        </h2>
+        <p className="mt-4 mb-0 text-[1.05rem] text-[#5f7069]">
           От първия избор до свършената работа — всичко е ясно, проследимо и
           подредено.
         </p>
       </div>
 
-      <ol className={styles.steps}>
+      <ol className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[700px]:grid-cols-1">
         {steps.map((step, index) => (
-          <li key={step.title} className={styles.step}>
-            <div className={styles.stepHeader}>
-              <span className={styles.icon} aria-hidden="true">
-                <LandingIcon path={step.icon} />
-              </span>
-              <span className={styles.number} aria-hidden="true">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-            </div>
-            <h3>{step.title}</h3>
-            <p>{step.description}</p>
+          <li key={step.title} className="min-w-0">
+            <Card className="h-full rounded-[18px] border-[#dbe4de] p-[clamp(1.15rem,2.4vw,1.6rem)]">
+              <div className="mb-[1.55rem] flex items-start justify-between max-[700px]:mb-7">
+                <span
+                  className="grid size-[3.25rem] place-items-center rounded-[14px] bg-[#eaf2ec] text-primary"
+                  aria-hidden="true"
+                >
+                  <LandingIcon path={step.icon} className="size-[1.7rem]" />
+                </span>
+                <span
+                  className="text-[0.78rem] font-extrabold tracking-[0.12em] text-[#a5b2ac]"
+                  aria-hidden="true"
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+              </div>
+              <h3 className="text-[1.15rem] leading-[1.35] text-[#182e29]">
+                {step.title}
+              </h3>
+              <p className="mt-3 mb-0 text-[0.94rem] leading-[1.65] text-[#63736d]">
+                {step.description}
+              </p>
+            </Card>
           </li>
         ))}
       </ol>

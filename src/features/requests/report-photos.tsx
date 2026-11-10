@@ -1,12 +1,11 @@
 import Image from "next/image";
-import styles from "./report-photos.module.css";
 
 // Thumbnails of a report's photos. They come through the authenticated
 // /api/photos route, so the optimizer is bypassed; each opens full size.
 export function ReportPhotos({ photoIds }: { photoIds?: number[] }) {
   if (!photoIds?.length) return null;
   return (
-    <div className={styles.photos}>
+    <div className="my-1.5 flex flex-wrap gap-1.5">
       {photoIds.map((id, index) => (
         <a
           key={id}
@@ -15,7 +14,7 @@ export function ReportPhotos({ photoIds }: { photoIds?: number[] }) {
           rel="noopener noreferrer"
         >
           <Image
-            className={styles.photo}
+            className="rounded-md border border-tone-ccd9d1 object-cover"
             src={`/api/photos/${id}`}
             width={80}
             height={80}

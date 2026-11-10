@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
-import { TariffForm } from "@/features/workspace/tariff-form";
+import { PageHeading } from "@/components/page-heading";
+import { TariffForm } from "@/features/admin/tariff-form";
 import { findTariffs } from "@/domain/pricing/tariffs";
 
 export const metadata: Metadata = { title: "Тарифи и ценообразуване" };

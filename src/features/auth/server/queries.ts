@@ -7,7 +7,7 @@ import {
   type SpecialistProfileSelect,
   type UserSelect,
 } from "@/db/schema";
-import type { User, SpecialistProfile } from "../types";
+import type { User, SpecialistProfile } from "@/domain/identity/types";
 import { hashSessionToken } from "./token";
 
 export interface UserWithPassword extends User {

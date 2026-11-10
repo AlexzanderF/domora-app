@@ -14,8 +14,8 @@ import {
   findUserByPhone,
 } from "@/features/auth/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
-import { UserRole } from "@/features/auth/types";
-import type { User } from "@/features/auth/types";
+import { UserRole } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 
 export interface ClientProfileInput {
   name: string;

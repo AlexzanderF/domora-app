@@ -1,10 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { requestPasswordResetAction } from "./server/actions";
 import { validateEmail } from "./validation";
-import styles from "./auth.module.css";
+import {
+  AuthAlert,
+  AuthField,
+  AuthForm,
+  AuthInput,
+  AuthLabel,
+  AuthLink,
+  AuthSubtitle,
+  AuthTitle,
+  FieldError,
+  Required,
+  SubmitButton,
+  SwitchPrompt,
+} from "./auth-ui";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -40,29 +52,25 @@ export function ForgotPasswordForm() {
 
   return (
     <>
-      <h1 className={styles.title}>Забравена парола</h1>
-      <p className={styles.subtitle}>
+      <AuthTitle>Забравена парола</AuthTitle>
+      <AuthSubtitle>
         Въведете вашия имейл адрес, за да получите инструкции за възстановяване
         на паролата.
-      </p>
+      </AuthSubtitle>
 
       {isSubmitted && (
-        <div
-          className={styles.noticeBannerSuccess}
-          role="status"
-          style={{ marginBottom: "20px" }}
-        >
+        <AuthAlert tone="success" role="status" className="mb-5">
           Ако има профил с този имейл адрес, изпратихме на него връзка за смяна
           на паролата. Моля, проверете входящата си поща.
-        </div>
+        </AuthAlert>
       )}
 
-      <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <div className={styles.field}>
-          <label htmlFor="email" className={styles.label}>
-            Имейл адрес <span className={styles.required}>*</span>
-          </label>
-          <input
+      <AuthForm onSubmit={handleSubmit}>
+        <AuthField>
+          <AuthLabel htmlFor="email">
+            Имейл адрес <Required />
+          </AuthLabel>
+          <AuthInput
             id="email"
             name="email"
             type="email"
@@ -76,31 +84,20 @@ export function ForgotPasswordForm() {
               }
             }}
             placeholder="ivan@example.bg"
-            className={error ? styles.inputError : styles.input}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? "email-error" : undefined}
           />
-          {error && (
-            <span id="email-error" className={styles.errorMessage} role="alert">
-              {error}
-            </span>
-          )}
-        </div>
+          {error && <FieldError id="email-error">{error}</FieldError>}
+        </AuthField>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={styles.submitButton}
-        >
+        <SubmitButton type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Изпращане..." : "Изпрати връзка за възстановяване"}
-        </button>
-      </form>
+        </SubmitButton>
+      </AuthForm>
 
-      <p className={styles.switchPrompt}>
-        <Link href="/login" className={styles.link}>
-          Обратно към вход
-        </Link>
-      </p>
+      <SwitchPrompt>
+        <AuthLink href="/login">Обратно към вход</AuthLink>
+      </SwitchPrompt>
     </>
   );
 }

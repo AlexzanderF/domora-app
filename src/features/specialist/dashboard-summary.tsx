@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
 import { isActiveStage } from "@/features/requests/request-rules";
 import { localDate, money } from "@/lib/format";
-import { RequestStatus } from "@/features/requests/types";
-import type { ServiceRequest } from "@/features/requests/types";
-import styles from "./specialist-dashboard.module.css";
+import { RequestStatus } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 
 function computeStats(requests: ServiceRequest[]) {
   const today = localDate();
@@ -31,16 +31,23 @@ export function DashboardSummary({
   const { activeJobs, todaysEarnings } = computeStats(initialRequests);
 
   return (
-    <div className={styles.summaryRow}>
-      <div className={`card ${styles.summaryCard}`}>
-        <span className={styles.summaryLabel}>Активни задачи</span>
-        <strong className={styles.summaryValue}>{activeJobs}</strong>
-      </div>
-      <div className={`card ${styles.summaryCard}`}>
-        <span className={styles.summaryLabel}>Приходи за днес</span>
-        <strong className={styles.summaryValue}>{money(todaysEarnings)}</strong>
-      </div>
-      <Link href="/specialist/history" className={styles.summaryLink}>
+    <div className="mb-7 flex flex-wrap items-stretch gap-4">
+      <Card className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+        <span className="text-[13px] text-muted-foreground">
+          Активни задачи
+        </span>
+        <strong className="text-[28px]">{activeJobs}</strong>
+      </Card>
+      <Card className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+        <span className="text-[13px] text-muted-foreground">
+          Приходи за днес
+        </span>
+        <strong className="text-[28px]">{money(todaysEarnings)}</strong>
+      </Card>
+      <Link
+        href="/specialist/history"
+        className="flex items-center text-sm font-semibold whitespace-nowrap text-primary no-underline hover:underline"
+      >
         История &amp; приходи →
       </Link>
     </div>

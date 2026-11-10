@@ -3,11 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { getDb, isDbConfigured } from "@/db";
 import { tariffs } from "@/db/schema";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { getActor } from "@/features/auth/server/actor";
 import { IdentityError, setSpecialistStatus } from "@/domain/identity";
-import type { CategoryId, Tariffs } from "@/features/requests/types";
+import type { CategoryId, Tariffs } from "@/domain/requests/types";
 
 export interface UpdateSpecialistStatusResult {
   success: boolean;

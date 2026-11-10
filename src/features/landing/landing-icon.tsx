@@ -1,6 +1,17 @@
-export function LandingIcon({ path }: { path: string }) {
+export function LandingIcon({
+  path,
+  className,
+}: {
+  path: string;
+  className?: string;
+}) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
       <path
         d={path}
         stroke="currentColor"

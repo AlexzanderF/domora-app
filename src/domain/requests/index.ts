@@ -9,9 +9,9 @@ import {
   refundVisit,
 } from "@/domain/subscriptions";
 import type { CreateSubscriptionInput } from "@/domain/subscriptions";
-import type { Subscription } from "@/features/subscriptions/types";
+import type { Subscription } from "@/domain/subscriptions/types";
 import type { Action, Actor } from "@/domain/authorization";
-import { UserRole, UserStatus } from "@/features/auth/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
 import {
   canCancelAsClient,
   canConfirmCompletion,
@@ -19,8 +19,8 @@ import {
   isValidRating,
   requiresCompletionReport,
 } from "@/features/requests/request-rules";
-import { RequestPriority, RequestStatus } from "@/features/requests/types";
-import type { CategoryId } from "@/features/requests/types";
+import { RequestPriority, RequestStatus } from "@/domain/requests/types";
+import type { CategoryId } from "@/domain/requests/types";
 
 // Framework-free (no next/*): the requests module is the sole writer of
 // request lifecycle state. Every function takes the Actor first and enforces

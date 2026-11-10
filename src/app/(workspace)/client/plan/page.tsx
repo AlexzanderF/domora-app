@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { PageHeading } from "@/components/ui/page-heading";
+import { PageHeading } from "@/components/page-heading";
 import { ClientPlanView } from "@/features/subscriptions/client-plan-view";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
-import type { Subscription } from "@/features/subscriptions/types";
+import type { Subscription } from "@/domain/subscriptions/types";
 
 export const metadata: Metadata = { title: "Моят абонамент" };
 export const dynamic = "force-dynamic";

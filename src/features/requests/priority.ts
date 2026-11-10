@@ -1,4 +1,4 @@
-import { RequestPriority } from "./types";
+import { RequestPriority } from "@/domain/requests/types";
 
 export function isUrgentPriority(priority?: RequestPriority | null): boolean {
   return (

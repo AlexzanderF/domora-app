@@ -4,8 +4,8 @@ import { outboxEvents, requireDb, users } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import { registerSpecialist, setSpecialistStatus } from "@/domain/identity";
-import { UserRole, UserStatus } from "@/features/auth/types";
-import { RequestStatus } from "@/features/requests/types";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import { RequestStatus } from "@/domain/requests/types";
 import {
   createActor,
   insertProfile,

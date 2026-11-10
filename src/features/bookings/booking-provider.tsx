@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { BookingSelection } from "@/features/requests/types";
+import type { BookingSelection } from "@/domain/requests/types";
 
 interface BookingContextValue {
   booking: BookingSelection | null;

@@ -2,10 +2,62 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth-provider";
-import { UserRole, UserStatus } from "./types";
-import styles from "./auth.module.css";
+import { UserRole, UserStatus } from "@/domain/identity/types";
+import {
+  AuthAlert,
+  AuthSubtitle,
+  AuthTitle,
+  SecondaryButton,
+  SubmitButton,
+} from "./auth-ui";
+
+const badgeTones = {
+  pending: "border-tone-fde68a bg-tone-fef3c7 text-tone-92400e",
+  active: "border-tone-a7f3d0 bg-tone-def7ec text-tone-03543f",
+  rejected: "border-tone-fecaca bg-tone-fdf2f2 text-tone-991b1b",
+};
+
+function ApprovalBadge({
+  tone,
+  children,
+}: {
+  tone: keyof typeof badgeTones;
+  children: string;
+}) {
+  return (
+    <Badge
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-bold tracking-[0.3px]",
+        badgeTones[tone],
+      )}
+    >
+      {children}
+    </Badge>
+  );
+}
+
+function SummaryRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between border-b border-tone-eef2ef py-2 text-[14px] last:border-b-0 last:pb-0">
+      <span className="font-medium text-muted-foreground">{label}</span>
+      <span className="max-w-[60%] text-right font-semibold [word-break:break-word] text-foreground">
+        {children}
+      </span>
+    </div>
+  );
+}
 
 export function PendingApprovalCard() {
   const router = useRouter();
@@ -64,8 +116,8 @@ export function PendingApprovalCard() {
 
   if (status === "loading") {
     return (
-      <div style={{ textAlign: "center", padding: "36px 0" }}>
-        <p style={{ color: "var(--muted)" }}>
+      <div className="py-9 text-center">
+        <p className="text-muted-foreground">
           Зареждане на данни за профила...
         </p>
       </div>
@@ -74,23 +126,18 @@ export function PendingApprovalCard() {
 
   if (status === "unauthenticated" || !user) {
     return (
-      <div style={{ textAlign: "center", padding: "20px 0" }}>
-        <h1 className={styles.title}>Няма активна сесия</h1>
-        <p className={styles.subtitle}>
+      <div className="py-5 text-center">
+        <AuthTitle>Няма активна сесия</AuthTitle>
+        <AuthSubtitle>
           Моля, влезте в профила си, за да проверите статуса на вашата
           кандидатура.
-        </p>
-        <Link
-          href="/login"
-          className={styles.submitButton}
-          style={{
-            display: "inline-block",
-            textDecoration: "none",
-            textAlign: "center",
-          }}
+        </AuthSubtitle>
+        <Button
+          asChild
+          className="mt-1.5 inline-block w-full py-[13px] text-[16px] hover:bg-primary-hover"
         >
-          Към вход
-        </Link>
+          <Link href="/login">Към вход</Link>
+        </Button>
       </div>
     );
   }
@@ -98,171 +145,112 @@ export function PendingApprovalCard() {
   const profile = user.specialistProfile;
   const isRejected = user.status === UserStatus.Rejected;
   const isActive = user.status === UserStatus.Active;
+  const tone = isActive ? "active" : isRejected ? "rejected" : "pending";
 
   return (
     <>
-      <div className={styles.pendingHeader}>
+      <div className="mb-5 text-center">
         <div
-          className={styles.pendingIconWrapper}
-          style={
-            isRejected ? { background: "#fee2e2", color: "#b91c1c" } : undefined
-          }
+          className={cn(
+            "mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-tone-fef3c7 text-[28px] text-tone-d97706",
+            isRejected && "bg-tone-fee2e2 text-tone-b91c1c",
+          )}
           aria-hidden="true"
         >
           {isRejected ? "✕" : isActive ? "✓" : "⏳"}
         </div>
-        <h1 className={styles.title}>
+        <AuthTitle>
           {isRejected
             ? "Кандидатурата е отказана"
             : isActive
               ? "Кандидатурата е одобрена"
               : "Вашата кандидатура се обработва"}
-        </h1>
+        </AuthTitle>
         <div>
-          <span
-            className={
-              isActive
-                ? styles.statusBadgeActive
-                : isRejected
-                  ? styles.statusBadgeRejected
-                  : styles.statusBadgePending
-            }
-          >
+          <ApprovalBadge tone={tone}>
             {isActive
               ? "✓ Одобрен"
               : isRejected
                 ? "✕ Отказан"
                 : "● Чака одобрение"}
-          </span>
+          </ApprovalBadge>
         </div>
       </div>
 
-      <p
-        className={styles.subtitle}
-        style={{ textAlign: "center", marginBottom: "20px" }}
-      >
+      <AuthSubtitle className="text-center mb-5">
         {isRejected
           ? "За съжаление вашата кандидатура като специалист в DOMORA не беше одобрена. За допълнителна информация или въпроси можете да се свържете с екипа ни."
           : isActive
             ? "Профилът ви е успешно одобрен! Можете да преминете към специализираното работно пространство."
             : "Благодарим ви за кандидатстването като специалист в DOMORA! Нашият екип разглежда вашите документи и професионална квалификация. След одобрение ще получите пълен достъп до специализирания панел за поръчки."}
-      </p>
+      </AuthSubtitle>
 
       {notice && (
-        <div
-          className={
-            noticeType === "success"
-              ? styles.noticeBannerSuccess
-              : noticeType === "error"
-                ? styles.alertError
-                : styles.noticeBanner
-          }
+        <AuthAlert
+          tone={noticeType}
+          className={cn(
+            noticeType !== "error" && "mb-4",
+            noticeType === "info" && "flex items-center gap-2",
+          )}
           role="status"
         >
           <span>{notice}</span>
-        </div>
+        </AuthAlert>
       )}
 
       {/* Summary card of submitted details */}
-      <div className={styles.summaryCard}>
-        <h2 className={styles.summaryTitle}>Подадени данни за профила</h2>
+      <Card className="my-5 rounded-xl bg-tone-fbfdfb px-5 py-[18px] max-[700px]:px-5 max-[700px]:py-[18px]">
+        <h2 className="m-0 mb-3 text-[13px] font-bold tracking-[0.5px] text-foreground uppercase">
+          Подадени данни за профила
+        </h2>
 
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Име и фамилия</span>
-          <span className={styles.summaryValue}>{user.name}</span>
-        </div>
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Сфера на дейност</span>
-          <span className={styles.summaryValue}>
-            {profile?.category || "Не е посочена"}
-          </span>
-        </div>
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Район на обслужване</span>
-          <span className={styles.summaryValue}>
-            {profile?.area || "Не е посочен"}
-          </span>
-        </div>
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Професионален опит</span>
-          <span className={styles.summaryValue}>
-            {profile?.experienceYears !== undefined
-              ? `${profile.experienceYears} ${profile.experienceYears === 1 ? "година" : "години"}`
-              : "0 години"}
-          </span>
-        </div>
-
+        <SummaryRow label="Име и фамилия">{user.name}</SummaryRow>
+        <SummaryRow label="Сфера на дейност">
+          {profile?.category || "Не е посочена"}
+        </SummaryRow>
+        <SummaryRow label="Район на обслужване">
+          {profile?.area || "Не е посочен"}
+        </SummaryRow>
+        <SummaryRow label="Професионален опит">
+          {profile?.experienceYears !== undefined
+            ? `${profile.experienceYears} ${profile.experienceYears === 1 ? "година" : "години"}`
+            : "0 години"}
+        </SummaryRow>
         {profile?.companyName && (
-          <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>Фирма</span>
-            <span className={styles.summaryValue}>{profile.companyName}</span>
-          </div>
+          <SummaryRow label="Фирма">{profile.companyName}</SummaryRow>
         )}
-
         {profile?.eik && (
-          <div className={styles.summaryRow}>
-            <span className={styles.summaryLabel}>ЕИК / БУЛСТАТ</span>
-            <span className={styles.summaryValue}>{profile.eik}</span>
-          </div>
+          <SummaryRow label="ЕИК / БУЛСТАТ">{profile.eik}</SummaryRow>
         )}
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Телефонен номер</span>
-          <span className={styles.summaryValue}>{user.phone}</span>
-        </div>
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Имейл адрес</span>
-          <span className={styles.summaryValue}>{user.email}</span>
-        </div>
-
-        <div className={styles.summaryRow}>
-          <span className={styles.summaryLabel}>Статус</span>
-          <span className={styles.summaryValue}>
-            <span
-              className={
-                isActive
-                  ? styles.statusBadgeActive
-                  : isRejected
-                    ? styles.statusBadgeRejected
-                    : styles.statusBadgePending
-              }
-            >
-              {isActive
-                ? "✓ Одобрен"
-                : isRejected
-                  ? "✕ Отказан"
-                  : "⏳ Чака одобрение"}
-            </span>
-          </span>
-        </div>
-      </div>
+        <SummaryRow label="Телефонен номер">{user.phone}</SummaryRow>
+        <SummaryRow label="Имейл адрес">{user.email}</SummaryRow>
+        <SummaryRow label="Статус">
+          <ApprovalBadge tone={tone}>
+            {isActive
+              ? "✓ Одобрен"
+              : isRejected
+                ? "✕ Отказан"
+                : "⏳ Чака одобрение"}
+          </ApprovalBadge>
+        </SummaryRow>
+      </Card>
 
       {/* Action buttons */}
-      <div className={styles.buttonGroup} style={{ flexDirection: "column" }}>
+      <div className="mt-2 flex flex-col gap-2.5">
         {!isRejected && (
-          <button
+          <SubmitButton
             type="button"
             onClick={handleCheckStatus}
             disabled={isRefreshing}
-            className={styles.submitButton}
-            style={{ marginTop: 0 }}
+            className="mt-0"
           >
             {isRefreshing ? "Проверка..." : "Провери статус"}
-          </button>
+          </SubmitButton>
         )}
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          className={styles.secondaryButton}
-          style={{ textAlign: "center" }}
-        >
+        <SecondaryButton type="button" onClick={handleLogout}>
           Изход
-        </button>
+        </SecondaryButton>
       </div>
     </>
   );
