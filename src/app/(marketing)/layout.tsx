@@ -1,6 +1,6 @@
 import { SkipLink } from "@/components/skip-link";
-import { PlansFooter } from "@/features/plans/plans-footer";
-import { PlansHeader } from "@/features/plans/plans-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export default function MarketingLayout({
   children,
@@ -8,9 +8,12 @@ export default function MarketingLayout({
   return (
     <>
       <SkipLink />
-      <PlansHeader />
+      <SiteHeader variant="plans" size="plans" />
       {children}
-      <PlansFooter />
+      <SiteFooter
+        size="plans"
+        note="Демонстрационен прототип · без реално плащане"
+      />
     </>
   );
 }

@@ -2,8 +2,8 @@ import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
-import { LandingFooter } from "@/features/landing/landing-footer";
-import { LandingHeader } from "@/features/landing/landing-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 
 export const metadata: Metadata = {
   title: "Контакти | DOMORA",
@@ -25,7 +25,7 @@ export default function ContactPage() {
   return (
     <div className="bg-[#f5f1e8] text-[#17362f]">
       <SkipLink />
-      <LandingHeader />
+      <SiteHeader />
       <PageContainer
         as="main"
         id="main"
@@ -130,7 +130,7 @@ export default function ContactPage() {
           </div>
         </section>
       </PageContainer>
-      <LandingFooter />
+      <SiteFooter />
     </div>
   );
 }
