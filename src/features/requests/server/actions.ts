@@ -18,6 +18,7 @@ import {
   submitReport,
 } from "@/domain/requests";
 import { withActions } from "@/domain/requests/actions";
+import { presentSpecialistRequest } from "@/features/requests/presenter";
 import { findTariffs } from "@/domain/pricing/tariffs";
 import { PRICE_CHANGED_MESSAGE, runAction } from "@/lib/server/action";
 import type {
@@ -79,22 +80,10 @@ export async function createServiceRequestAction(
         scheduledDate: input.date ?? "",
         scheduledTime: input.time ?? "",
       });
-      return withActions(
-        requireActor(actor),
-        {
-          id: created.id,
-          category: input.category,
-          service: created.title,
-          address: created.address,
-          date: created.scheduledDate ?? "",
-          time: created.scheduledTime ?? "",
-          price: created.price,
-          status: created.status,
-          description: created.description,
-          plan: input.plan,
-        },
-        created,
+      const request = presentSpecialistRequest(
+        withActions(requireActor(actor), created, created),
       );
+      return { ...request, plan: input.plan };
     },
     {
       INVALID_INPUT:
