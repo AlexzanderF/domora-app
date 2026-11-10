@@ -7,12 +7,11 @@ import { AdminKpiCards } from "@/features/admin/admin-kpi-cards";
 import { PendingSpecialistsQueue } from "@/features/admin/pending-specialists-queue";
 import { DisputedRequestsQueue } from "@/features/admin/disputed-requests-queue";
 import { UnassignedRequestsQueue } from "@/features/admin/unassigned-requests-queue";
-import { findAdminKpiMetrics } from "@/features/admin/server/metrics";
 import {
   findResolvedDisputesForAdmin,
   findSpecialistApplications,
 } from "@/features/admin/server/queries";
-import { listTriage } from "@/domain/requests";
+import { listTriage, requestMetrics } from "@/domain/requests";
 import { presentAdminRequest } from "@/features/requests/presenter";
 import { UserRole } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
@@ -54,7 +53,7 @@ export default async function AdminPage() {
     resolvedDisputes,
     initialUnassignedRequests,
   ] = await Promise.all([
-    findAdminKpiMetrics(),
+    isDbConfigured ? requestMetrics(user) : null,
     findSpecialistApplications(),
     isDbConfigured
       ? listTriage(user, "disputed").then((r) => r.map(presentAdminRequest))

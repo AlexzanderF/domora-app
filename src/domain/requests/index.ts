@@ -63,6 +63,8 @@ export type {
   ClientRequest,
   SpecialistSummary,
 } from "./read";
+export { requestMetrics } from "./metrics";
+export type { RequestMetrics } from "./metrics";
 export type { Tx };
 
 export interface CreateRequestInput {
