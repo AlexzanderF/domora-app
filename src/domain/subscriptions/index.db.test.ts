@@ -5,7 +5,7 @@ import type { Actor } from "@/domain/authorization";
 import {
   cancelRequest,
   createRequest,
-  listRequests,
+  listAll,
   startSubscription,
 } from "@/domain/requests";
 import type { CreateRequestInput } from "@/domain/requests";
@@ -299,7 +299,7 @@ describe("startSubscription", () => {
     }
 
     expect((await getCurrentSubscription(client))?.id).toBe(previous.id);
-    expect(await listRequests(admin)).toEqual([]);
+    expect(await listAll(admin)).toEqual([]);
   });
 
   it("leaves nothing behind when the booking is rejected", async () => {

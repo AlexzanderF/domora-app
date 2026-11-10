@@ -23,11 +23,14 @@ export type ActionErrorCode =
   | "EMAIL_TAKEN"
   | "PHONE_TAKEN"
   | "INVALID_CREDENTIALS"
-  | "REJECTED_SPECIALIST";
+  | "REJECTED_SPECIALIST"
+  | "INVALID_TOKEN";
 
 export interface ActionResult<T = never> {
   success: boolean;
   error?: string;
+  // Set on failures that map to a domain/guard code, for callers that branch on it.
+  code?: ActionErrorCode;
   data?: T;
 }
 
@@ -47,6 +50,7 @@ const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   INVALID_CREDENTIALS: "Невалиден имейл/телефон или парола.",
   REJECTED_SPECIALIST:
     "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
+  INVALID_TOKEN: "Връзката е невалидна или е изтекла.",
 };
 
 const GENERIC_ERROR = "Грешка при изпълнение на действието. Опитайте отново.";
@@ -111,7 +115,10 @@ export async function runAction<T = void>({
     messages[code] ?? DEFAULT_MESSAGES[code];
 
   if (!isDbConfigured) {
-    return { success: false, error: message("NO_DATABASE") };
+    return {
+      success: false,
+      error: message("NO_DATABASE"),
+    };
   }
 
   try {
@@ -124,7 +131,7 @@ export async function runAction<T = void>({
       : { success: true, data: data as Exclude<T, void | undefined> };
   } catch (error) {
     const code = domainErrorCode(error);
-    if (code) return { success: false, error: message(code) };
+    if (code) return { success: false, error: message(code), code };
     console.error("Server Action failed:", error);
     return { success: false, error: GENERIC_ERROR };
   }

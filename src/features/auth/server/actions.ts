@@ -128,36 +128,19 @@ export async function requestPasswordResetAction(
 export async function resetPasswordAction(
   token: string,
   password: string,
-): Promise<
-  { success: true } | { success: false; error: string; invalidLink?: true }
-> {
+): Promise<ActionResult> {
   const validationError = validatePassword(password);
   if (validationError) {
     return { success: false, error: validationError };
   }
-
-  const invalidLink = {
-    success: false,
-    error: "Връзката е невалидна или е изтекла.",
-    invalidLink: true,
-  } as const;
-  const result = await runAction<typeof invalidLink | void>({
+  return runAction({
     messages: { NO_DATABASE: "Грешка при свързване с базата данни." },
     run: async () => {
       // Checked first so a made-up token never costs a password hash.
-      if (!(await isPasswordResetTokenValid(token))) return invalidLink;
-      try {
-        await resetPassword(token, await bcrypt.hash(password, 10));
-      } catch (error) {
-        if (error instanceof IdentityError && error.code === "INVALID_TOKEN") {
-          return invalidLink;
-        }
-        throw error;
+      if (!(await isPasswordResetTokenValid(token))) {
+        throw new IdentityError("INVALID_TOKEN", "Reset link is not valid.");
       }
+      await resetPassword(token, await bcrypt.hash(password, 10));
     },
   });
-  if (result.data) return result.data;
-  return result.success
-    ? { success: true }
-    : { success: false, error: result.error ?? GENERIC_ERROR };
 }

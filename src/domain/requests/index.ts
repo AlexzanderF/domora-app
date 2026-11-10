@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   requestEvents,
   requests,
@@ -19,7 +19,6 @@ import {
 import type { CreateSubscriptionInput } from "@/domain/subscriptions";
 import type { Subscription } from "@/domain/subscriptions/types";
 import type { Action, Actor } from "@/domain/authorization";
-import { UserRole, UserStatus } from "@/domain/identity/types";
 import {
   canCancelAsClient,
   canHandBack,
@@ -346,38 +345,6 @@ export async function getRequest(
   if (!row) throw new RequestError("NOT_FOUND", "Request not found.");
   if (!can(actor, "request.view", resourceOf(row))) forbidden();
   return toDto(row);
-}
-
-// The requests an actor owns or works on: a client's own, a specialist's
-// assigned, and everything for admins. Pending/Rejected specialists see none.
-export async function listRequests(
-  actorOrNull: Actor | null,
-): Promise<RequestDto[]> {
-  const actor = requireActor(actorOrNull);
-  const db = requireDb();
-
-  let where;
-  switch (actor.role) {
-    case UserRole.Admin:
-      where = undefined;
-      break;
-    case UserRole.Client:
-      where = eq(requests.clientId, actor.id);
-      break;
-    case UserRole.Specialist:
-      if (actor.status !== UserStatus.Active) return [];
-      where = eq(requests.specialistId, actor.id);
-      break;
-    default:
-      return [];
-  }
-
-  const rows = await db
-    .select()
-    .from(requests)
-    .where(where)
-    .orderBy(desc(requests.createdAt), desc(requests.id));
-  return rows.map(toDto);
 }
 
 export function startWork(
