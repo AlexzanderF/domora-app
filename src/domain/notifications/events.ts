@@ -9,9 +9,15 @@ import type { Tariffs } from "@/domain/requests/types";
 export interface EventPayloads {
   "request.created": { requestId: number };
   "request.accepted": { requestId: number };
+  "request.assigned": { requestId: number };
+  "request.recommendation_declined": { requestId: number };
+  "request.started": { requestId: number };
   "request.recommended": { requestId: number; specialistId: number };
   "request.report_submitted": { requestId: number };
   "request.completed": { requestId: number };
+  "request.rated": { requestId: number };
+  "request.cancelled": { requestId: number };
+  "request.released": { requestId: number };
   "request.dispute_raised": { requestId: number; disputeId: number };
   "request.dispute_resolved": { requestId: number; resolutionNote: string };
   "specialist.registered": { userId: number };

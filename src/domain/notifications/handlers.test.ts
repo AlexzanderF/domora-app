@@ -6,6 +6,12 @@ describe("worker handler map", () => {
     const expected = [
       "request.created",
       "request.accepted",
+      "request.assigned",
+      "request.recommendation_declined",
+      "request.started",
+      "request.rated",
+      "request.cancelled",
+      "request.released",
       "request.recommended",
       "request.report_submitted",
       "request.completed",

@@ -6,6 +6,7 @@ import { requestPhotos, requireDb, requests } from "@/db";
 import type { RequestPhotoSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import type { Actor } from "@/domain/authorization";
+import { forbidden, requireActor } from "@/domain/requests/errors";
 import { RequestStatus } from "@/domain/requests/types";
 import {
   MAX_PHOTOS_PER_REQUEST,
@@ -61,14 +62,6 @@ function toDto(row: RequestPhotoSelect): PhotoDto {
     createdAt: row.createdAt.toISOString(),
   };
 }
-
-function requireActor(actor: Actor | null): Actor {
-  if (!actor) throw new PhotoError("UNAUTHENTICATED", "Sign-in is required.");
-  return actor;
-}
-
-const forbidden = () =>
-  new PhotoError("FORBIDDEN", "This actor may not do that.");
 
 // Never decode an absurdly large image into memory.
 const MAX_INPUT_PIXELS = 50_000_000;
@@ -185,7 +178,7 @@ async function attach(
     .from(requests)
     .where(eq(requests.id, requestId));
   if (!request) throw new PhotoError("NOT_FOUND", "Request not found.");
-  if (!can(actor, ATTACH_ACTION[kind], request)) throw forbidden();
+  if (!can(actor, ATTACH_ACTION[kind], request)) forbidden();
   const prepared = await prepare(files);
 
   const written: string[] = [];
@@ -303,7 +296,7 @@ export async function getPhoto(
     .innerJoin(requests, eq(requests.id, requestPhotos.requestId))
     .where(eq(requestPhotos.id, photoId));
   if (!found) throw new PhotoError("NOT_FOUND", "Photo not found.");
-  if (!can(actor, "request.view_photo", found)) throw forbidden();
+  if (!can(actor, "request.view_photo", found)) forbidden();
 
   const stream = await store.get(found.storageKey);
   if (!stream) throw new PhotoError("NOT_FOUND", "Photo not found.");
