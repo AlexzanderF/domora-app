@@ -5,56 +5,35 @@ import { getDb, isDbConfigured } from "@/db";
 import { tariffs } from "@/db/schema";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
-import { getActor } from "@/features/auth/server/actor";
-import { IdentityError, setSpecialistStatus } from "@/domain/identity";
+import { setSpecialistStatus } from "@/domain/identity";
+import { runAction } from "@/lib/server/action";
+import type { ActionResult } from "@/lib/server/action";
 import type { CategoryId, Tariffs } from "@/domain/requests/types";
 
-export interface UpdateSpecialistStatusResult {
-  success: boolean;
-  error?: string;
-}
+export type UpdateSpecialistStatusResult = ActionResult;
 
 export interface UpdateTariffsResult {
   success: boolean;
   error?: string;
 }
 
-function specialistStatusError(error: IdentityError): string {
-  switch (error.code) {
-    case "UNAUTHENTICATED":
-    case "FORBIDDEN":
-      return "Неоторизиран достъп. Изискват се администраторски права.";
-    case "NOT_FOUND":
-      return "Специалистът не е намерен.";
-    default:
-      return "Невалиден статус на специалист.";
-  }
-}
-
 export async function updateSpecialistStatusAction(
   userId: number,
   status: UserStatus,
 ): Promise<UpdateSpecialistStatusResult> {
-  if (!isDbConfigured) {
-    return { success: false, error: "Няма връзка с базата данни." };
-  }
-
-  const actor = await getActor();
-  try {
-    await setSpecialistStatus(actor, userId, status);
-  } catch (error) {
-    if (error instanceof IdentityError) {
-      return { success: false, error: specialistStatusError(error) };
-    }
-    throw error;
-  }
-
-  revalidatePath("/admin/specialists");
-  revalidatePath("/admin");
-  revalidatePath("/pending-approval");
-  revalidatePath("/specialist");
-
-  return { success: true };
+  return runAction({
+    messages: {
+      UNAUTHENTICATED:
+        "Неоторизиран достъп. Изискват се администраторски права.",
+      FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
+      NOT_FOUND: "Специалистът не е намерен.",
+      INVALID_INPUT: "Невалиден статус на специалист.",
+    },
+    revalidate: ["specialists"],
+    run: async (actor) => {
+      await setSpecialistStatus(actor, userId, status);
+    },
+  });
 }
 
 export async function updateTariffsAction(
