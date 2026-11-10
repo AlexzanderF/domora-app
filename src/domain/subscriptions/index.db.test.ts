@@ -5,6 +5,7 @@ import type { Actor } from "@/domain/authorization";
 import {
   cancelRequest,
   createRequest,
+  listAll,
   startSubscription,
 } from "@/domain/requests";
 import type { CreateRequestInput } from "@/domain/requests";
@@ -25,11 +26,11 @@ const homePlan = {
 };
 
 const booking: CreateRequestInput = {
-  category: 4,
+  category: 0,
   service: "Абонамент За дома",
   description: "Редовно почистване",
   address: "София, ул. Тест 1",
-  price: 45,
+  expectedPrice: 45,
   scheduledDate: "2030-05-17",
   scheduledTime: "09:00 - 12:00",
 };
@@ -266,7 +267,8 @@ describe("cancelling a request booked against a subscription", () => {
 });
 
 describe("startSubscription", () => {
-  const firstVisit = booking;
+  // 80 m² x 1.50 lev x 2 visits = 240 for the plan, so 120 per visit.
+  const firstVisit = { ...booking, expectedPrice: 240 };
 
   it("saves the subscription and books the first visit against it", async () => {
     const { subscription, request } = await startSubscription(
@@ -277,6 +279,27 @@ describe("startSubscription", () => {
 
     expect(request.subscriptionId).toBe(subscription.id);
     expect(await visitsLeft(subscription.id)).toBe(1);
+  });
+
+  it("prices the first visit on the server from the Tariffs", async () => {
+    const { request } = await startSubscription(client, homePlan, firstVisit);
+
+    expect(request.price).toBe(120);
+  });
+
+  it("rejects a stale or tampered price and leaves nothing behind", async () => {
+    const previous = await createSubscription(client, homePlan);
+
+    for (const expectedPrice of [1, 120, 0, 3_000_000_000]) {
+      expect(
+        await rejection(
+          startSubscription(client, homePlan, { ...firstVisit, expectedPrice }),
+        ),
+      ).toBe("PRICE_CHANGED");
+    }
+
+    expect((await getCurrentSubscription(client))?.id).toBe(previous.id);
+    expect(await listAll(admin)).toEqual([]);
   });
 
   it("leaves nothing behind when the booking is rejected", async () => {

@@ -80,7 +80,7 @@ describe("tariffsFromRows", () => {
       0: 50,
       4: 70,
     });
-    expect(tariffs.home).toBe(20);
+    expect(tariffs.home).toBe(2);
     expect(tariffs.entry).toBe(22);
   });
 
@@ -92,5 +92,23 @@ describe("tariffsFromRows", () => {
     expect(tariffsFromRows([row("9", 1), row("other", 1)])).toEqual(
       initialTariffs,
     );
+  });
+});
+
+describe("calculateQuote with pricing settings", () => {
+  const custom = {
+    ...initialTariffs,
+    diagnosticFee: 40,
+    volumeDiscountMinVisits: 2,
+    volumeDiscountPercent: 50,
+  };
+
+  it("uses the configured diagnostic fee", () => {
+    expect(calculateQuote(custom, 2, 1)).toBe(40);
+  });
+
+  it("applies the configured discount from the configured visit count", () => {
+    expect(calculateQuote(custom, 4, 0, Plan.Entry, 10, 1)).toBe(180);
+    expect(calculateQuote(custom, 4, 0, Plan.Entry, 10, 2)).toBe(180);
   });
 });

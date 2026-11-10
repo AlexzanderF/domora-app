@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { desc, eq, isNotNull } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { getDb, isDbConfigured } from "@/db";
 import {
@@ -9,53 +9,6 @@ import {
 } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/domain/identity/types";
 import { UserRole } from "@/domain/identity/types";
-import { listReportPhotoIds } from "@/domain/photos";
-import { isUrgentPriority } from "@/features/requests/priority";
-import { RequestStatus } from "@/domain/requests/types";
-import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
-
-type AdminRequestRow = {
-  request: typeof requests.$inferSelect;
-  specialist?: typeof users.$inferSelect | null;
-  client?: typeof users.$inferSelect | null;
-};
-
-function mapAdminRequestRow(
-  { request, specialist, client }: AdminRequestRow,
-  reportPhotoIds?: number[],
-): ServiceRequest {
-  const rawCategory = Number(request.category);
-  const category: CategoryId =
-    rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-
-  return {
-    id: request.id,
-    category,
-    service: request.title,
-    address: request.address,
-    date: request.createdAt.toISOString().split("T")[0],
-    time: request.createdAt.toLocaleTimeString("bg-BG", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    price: request.price,
-    status: request.status,
-    priority: request.priority,
-    description: request.description,
-    cancelled: request.cancelled,
-    report: request.report ?? undefined,
-    reportPhotoIds,
-    rating: request.rating ?? undefined,
-    issue: request.issue || undefined,
-    issueNote: request.issueNote ?? undefined,
-    recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
-    dispatchedByAdmin: request.dispatchedByAdmin || undefined,
-    specialist: specialist?.name,
-    specialistPhone: specialist?.phone,
-    clientName: client?.name,
-    clientPhone: request.clientPhone,
-  };
-}
 
 function mapToDomainProfile(
   profile: typeof specialistProfiles.$inferSelect | null,
@@ -100,74 +53,6 @@ export async function findSpecialistApplications(): Promise<User[] | null> {
     createdAt: row.user.createdAt.toISOString(),
     updatedAt: row.user.updatedAt.toISOString(),
   }));
-}
-
-export async function findDisputedRequestsForAdmin(): Promise<
-  ServiceRequest[] | null
-> {
-  if (!isDbConfigured) {
-    return null;
-  }
-
-  const db = getDb();
-  if (!db) return null;
-
-  const specialists = alias(users, "specialists");
-  const clients = alias(users, "clients");
-
-  const rows = await db
-    .select({
-      request: requests,
-      specialist: specialists,
-      client: clients,
-    })
-    .from(requests)
-    .leftJoin(specialists, eq(requests.specialistId, specialists.id))
-    .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(eq(requests.issue, true))
-    .orderBy(desc(requests.updatedAt));
-  const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
-
-  return rows.map((row) =>
-    mapAdminRequestRow(row, reportPhotos.get(row.request.id)),
-  );
-}
-
-export async function findUnassignedRequestsForAdmin(): Promise<
-  ServiceRequest[] | null
-> {
-  if (!isDbConfigured) {
-    return null;
-  }
-
-  const db = getDb();
-  if (!db) return null;
-
-  const clients = alias(users, "clients");
-
-  const rows = await db
-    .select({
-      request: requests,
-      client: clients,
-    })
-    .from(requests)
-    .leftJoin(clients, eq(requests.clientId, clients.id))
-    .where(
-      and(
-        eq(requests.status, RequestStatus.Created),
-        eq(requests.cancelled, false),
-      ),
-    )
-    .orderBy(desc(requests.createdAt));
-
-  const mapped = rows.map((row) => mapAdminRequestRow(row));
-
-  // Urgent and emergency requests first, then newest first.
-  return mapped.sort((a, b) => {
-    const aUrgent = isUrgentPriority(a.priority) ? 0 : 1;
-    const bUrgent = isUrgentPriority(b.priority) ? 0 : 1;
-    return aUrgent - bUrgent;
-  });
 }
 
 // One closed dispute for the triage history: the client's note, how the admin

@@ -1,15 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { isDbConfigured } from "@/db";
-import { RequestError, startSubscription } from "@/domain/requests";
-import {
-  SubscriptionError,
-  cancelSubscription,
-  createSubscription,
-} from "@/domain/subscriptions";
-import type { SubscriptionErrorCode } from "@/domain/subscriptions";
-import { getActor } from "@/features/auth/server/actor";
+import { startSubscription } from "@/domain/requests";
+import { findTariffs } from "@/domain/pricing/tariffs";
+import type { Tariffs } from "@/domain/requests/types";
+import { cancelSubscription, createSubscription } from "@/domain/subscriptions";
+import { PRICE_CHANGED_MESSAGE, runAction } from "@/lib/server/action";
+import type { ActionResult } from "@/lib/server/action";
 import type {
   Subscription,
   SubscriptionPlan,
@@ -30,63 +26,33 @@ export interface StartSubscriptionInput extends SubscribeInput {
     description: string;
     date: string;
     time: string;
-    // Price of that one visit.
-    price: number;
   };
+  // The plan total the configurator displayed; the server re-quotes it.
+  expectedPrice: number;
 }
 
-export interface SubscriptionActionResult {
-  success: boolean;
-  error?: string;
-  subscription?: Subscription;
-}
-
-// Subscription visits are booked under the general-maintenance category.
-const SUBSCRIPTION_CATEGORY = 4;
-
-const UNAVAILABLE =
-  "Абонаментите са временно недостъпни. Опитайте отново по-късно.";
-
-const ERRORS: Record<SubscriptionErrorCode, string> = {
-  UNAUTHENTICATED: "Влезте в профила си, за да управлявате абонамент.",
-  FORBIDDEN: "Само клиенти могат да имат абонамент.",
-  INVALID_INPUT: "Моля, въведете валиден адрес и размер на имота.",
+export type SubscriptionActionResult = ActionResult<Subscription> & {
+  // Fresh Tariffs, sent when the quoted price was stale so the client re-quotes.
+  tariffs?: Tariffs;
 };
 
-function revalidateSubscriptionPages(): void {
-  revalidatePath("/client/plan");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-}
-
-function failure(error: unknown): SubscriptionActionResult {
-  if (error instanceof SubscriptionError) {
-    return { success: false, error: ERRORS[error.code] };
-  }
-  if (error instanceof RequestError) {
-    return {
-      success: false,
-      error:
-        error.code === "INVALID_INPUT"
-          ? "Моля, проверете датата, часовия диапазон и бележките."
-          : "Абонаментът не можа да бъде създаден. Опитайте отново.",
-    };
-  }
-  throw error;
-}
+const MESSAGES = {
+  UNAUTHENTICATED: "Влезте в профила си, за да управлявате абонамент.",
+  FORBIDDEN: "Само клиенти могат да имат абонамент.",
+  INVALID_INPUT:
+    "Моля, проверете адреса, размера на имота, датата, часовия диапазон и бележките.",
+  INVALID_STATE: "Абонаментът не можа да бъде създаден. Опитайте отново.",
+  NO_DATABASE: "Абонаментите са временно недостъпни. Опитайте отново по-късно.",
+};
 
 export async function createSubscriptionAction(
   input: SubscribeInput,
 ): Promise<SubscriptionActionResult> {
-  if (!isDbConfigured) return { success: false, error: UNAVAILABLE };
-
-  try {
-    const subscription = await createSubscription(await getActor(), input);
-    revalidateSubscriptionPages();
-    return { success: true, subscription };
-  } catch (error) {
-    return failure(error);
-  }
+  return runAction({
+    messages: MESSAGES,
+    revalidate: ["subscriptions"],
+    run: (actor) => createSubscription(actor, input),
+  });
 }
 
 // The plans configurator: saves the subscription, then books the first visit
@@ -94,35 +60,33 @@ export async function createSubscriptionAction(
 export async function startSubscriptionAction(
   input: StartSubscriptionInput,
 ): Promise<SubscriptionActionResult> {
-  if (!isDbConfigured) return { success: false, error: UNAVAILABLE };
-
-  try {
-    const actor = await getActor();
-    const { firstVisit, ...plan } = input;
-    const { subscription } = await startSubscription(actor, plan, {
-      category: SUBSCRIPTION_CATEGORY,
-      service: firstVisit.service,
-      description: firstVisit.description,
-      address: input.propertyAddress,
-      price: firstVisit.price,
-      scheduledDate: firstVisit.date,
-      scheduledTime: firstVisit.time,
-    });
-    revalidateSubscriptionPages();
-    return { success: true, subscription };
-  } catch (error) {
-    return failure(error);
-  }
+  const result = await runAction({
+    messages: MESSAGES,
+    revalidate: ["subscriptions"],
+    run: async (actor) => {
+      const { firstVisit, expectedPrice, ...plan } = input;
+      const { subscription } = await startSubscription(actor, plan, {
+        service: firstVisit.service,
+        description: firstVisit.description,
+        address: input.propertyAddress,
+        expectedPrice,
+        scheduledDate: firstVisit.date,
+        scheduledTime: firstVisit.time,
+      });
+      return subscription;
+    },
+  });
+  return !result.success && result.error === PRICE_CHANGED_MESSAGE
+    ? { ...result, tariffs: await findTariffs() }
+    : result;
 }
 
 export async function cancelSubscriptionAction(): Promise<SubscriptionActionResult> {
-  if (!isDbConfigured) return { success: false, error: UNAVAILABLE };
-
-  try {
-    await cancelSubscription(await getActor());
-    revalidateSubscriptionPages();
-    return { success: true };
-  } catch (error) {
-    return failure(error);
-  }
+  return runAction({
+    messages: MESSAGES,
+    revalidate: ["subscriptions"],
+    run: async (actor) => {
+      await cancelSubscription(actor);
+    },
+  });
 }

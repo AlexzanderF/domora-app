@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button";
 import { ServiceIcon } from "@/features/services/service-icon";
 import { categories } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
-import { assignSpecialistAction } from "@/features/requests/server/actions";
+import {
+  assignSpecialistAction,
+  declineRecommendationAction,
+} from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
 import { RequestPriority } from "@/domain/requests/types";
 import type { ServiceRequest } from "@/domain/requests/types";
@@ -42,7 +45,7 @@ export function OpportunityFeed({
   const router = useRouter();
   const notify = useToast();
   const [dismissedIds, setDismissedIds] = useState<Set<number>>(new Set());
-  const [acceptingId, setAcceptingId] = useState<number | null>(null);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   const visible = initialOpportunities.filter(
     (request) => !dismissedIds.has(request.id),
@@ -50,7 +53,7 @@ export function OpportunityFeed({
   const items = limit ? visible.slice(0, limit) : visible;
 
   async function accept(request: ServiceRequest) {
-    setAcceptingId(request.id);
+    setBusyId(request.id);
     try {
       const result = await assignSpecialistAction(request.id);
       if (!result.success) {
@@ -62,7 +65,24 @@ export function OpportunityFeed({
     } catch {
       notify("Грешка при приемане на заявката. Опитайте отново.");
     } finally {
-      setAcceptingId(null);
+      setBusyId(null);
+    }
+  }
+
+  async function decline(request: ServiceRequest) {
+    setBusyId(request.id);
+    try {
+      const result = await declineRecommendationAction(request.id);
+      if (!result.success) {
+        notify(result.error ?? "Грешка при отказ на препоръката.");
+        return;
+      }
+      notify("Препоръката е отказана. Заявката остава за преразпределяне.");
+      router.refresh();
+    } catch {
+      notify("Грешка при отказ на препоръката. Опитайте отново.");
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -110,14 +130,27 @@ export function OpportunityFeed({
               </StatusBadge>
             )}
             <RequestActions>
-              <Button
-                size="compact"
-                className={actionButton}
-                disabled={acceptingId === request.id}
-                onClick={() => void accept(request)}
-              >
-                {acceptingId === request.id ? "Приемане…" : "Приеми"}
-              </Button>
+              {request.actions.includes("claim") && (
+                <Button
+                  size="compact"
+                  className={actionButton}
+                  disabled={busyId === request.id}
+                  onClick={() => void accept(request)}
+                >
+                  {busyId === request.id ? "Приемане…" : "Приеми"}
+                </Button>
+              )}
+              {request.actions.includes("declineRecommendation") && (
+                <Button
+                  size="compact"
+                  className={actionButton}
+                  variant="secondary"
+                  disabled={busyId === request.id}
+                  onClick={() => void decline(request)}
+                >
+                  Откажи препоръката
+                </Button>
+              )}
               <Button
                 size="compact"
                 className={actionButton}

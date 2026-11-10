@@ -1,3 +1,5 @@
+import type { ActionKind } from "./actions";
+
 export const Role = {
   Client: "client",
   Specialist: "specialist",
@@ -59,6 +61,8 @@ export interface ServiceRequest {
   subscriptionId?: number;
   clientName?: string;
   clientPhone?: string;
+  // What the viewing actor may do with this request right now.
+  actions: ActionKind[];
 }
 
 export interface Tariff {
@@ -75,22 +79,14 @@ export interface Tariffs {
   categories: Record<CategoryId, number>;
   home: number;
   entry: number;
+  // Pricing settings: the flat fee for a diagnostic visit and the discount
+  // given from a minimum number of monthly visits.
+  diagnosticFee: number;
+  volumeDiscountMinVisits: number;
+  volumeDiscountPercent: number;
 }
 
 export interface BookingSelection {
   category: CategoryId;
   plan?: Plan;
 }
-
-export type RequestAction =
-  | { type: "cancel" }
-  | { type: "advance"; report?: string }
-  | { type: "accept"; specialist?: string }
-  | { type: "dismiss" }
-  | { type: "decline" }
-  | { type: "admin-assign"; specialist: string }
-  | { type: "admin-recommend"; specialistId: number }
-  | { type: "complete" }
-  | { type: "dispute"; note?: string }
-  | { type: "resolve-dispute"; resolutionNote?: string }
-  | { type: "rate"; rating: number };

@@ -43,10 +43,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
       const result = await resetPasswordAction(token, password);
       if (result.success) {
         setOutcome("done");
-      } else if (result.invalidLink) {
+      } else if (result.code === "INVALID_TOKEN") {
         setOutcome("invalidLink");
       } else {
-        setError(result.error);
+        setError(result.error ?? "Възникна грешка. Моля, опитайте отново.");
       }
     } catch {
       setError("Възникна грешка. Моля, опитайте отново.");

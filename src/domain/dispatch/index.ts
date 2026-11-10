@@ -2,21 +2,23 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { requireDb, requests, specialistProfiles, users } from "@/db";
 import type { RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
-import { enqueueEvent } from "@/domain/notifications";
-import type { OutboxEventInput } from "@/domain/notifications";
+import type { OutboxEvent } from "@/domain/notifications/events";
 import type { Actor } from "@/domain/authorization";
 import {
   RequestError,
   forbidden,
   invalidState,
-  recordEvent,
   requireActor,
   resourceOf,
   toDto,
 } from "@/domain/requests";
-import type { RequestDto, Tx } from "@/domain/requests";
+import type { RequestDto } from "@/domain/requests";
+import { withActions } from "@/domain/requests/actions";
+import type { ActionKind } from "@/domain/requests/actions";
+import { transitionRequest } from "@/domain/requests/transition";
+import type { Change, Tx } from "@/domain/requests/transition";
 import { UserRole, UserStatus } from "@/domain/identity/types";
-import { canClaim } from "@/features/requests/request-rules";
+import { canClaim } from "@/domain/requests/lifecycle";
 import { RequestStatus } from "@/domain/requests/types";
 
 // Framework-free (no next/*): dispatch decides who may take an open request.
@@ -68,12 +70,17 @@ async function profileOf(
   return profile;
 }
 
+export interface OpportunityRequest extends RequestDto {
+  // What the viewing actor may do with this request right now.
+  actions: ActionKind[];
+}
+
 // Open requests the actor could take: matching trade and area for an Active
 // specialist (recommended ones first), every open request for an admin, and
 // nothing for anyone else, Pending/Rejected specialists included.
 export async function listOpportunities(
   actorOrNull: Actor | null,
-): Promise<RequestDto[]> {
+): Promise<OpportunityRequest[]> {
   const actor = requireActor(actorOrNull);
   const isAdmin = actor.role === UserRole.Admin;
   const isActiveSpecialist =
@@ -101,7 +108,9 @@ export async function listOpportunities(
     : rows.filter((row) => matchesProfile(row, profile));
   const rank = (row: RequestSelect) =>
     row.recommendedSpecialistId === actor.id ? 0 : 1;
-  return visible.sort((a, b) => rank(a) - rank(b)).map(toDto);
+  return visible
+    .sort((a, b) => rank(a) - rank(b))
+    .map((row) => withActions(actor, toDto(row), row));
 }
 
 function isDispatcher(actor: Actor): boolean {
@@ -111,57 +120,34 @@ function isDispatcher(actor: Actor): boolean {
   );
 }
 
-// Locks the request, requires it to still be open for taking (so a losing
-// racer gets INVALID_STATE), and lets `apply` authorize and describe the change.
+// Requires the request to still be open for taking (so a losing racer gets
+// INVALID_STATE); `apply` authorizes and describes the change.
 async function dispatchChange(
   actorOrNull: Actor | null,
   requestId: number,
-  apply: (
-    row: RequestSelect,
-    actor: Actor,
-    tx: Tx,
-  ) => Promise<{
-    type: string;
-    values: Partial<typeof requests.$inferInsert>;
-    // Side effect to deliver once this change commits.
-    outbox?: OutboxEventInput;
-  }>,
+  apply: (row: RequestSelect, actor: Actor, tx: Tx) => Promise<Change>,
 ): Promise<RequestDto> {
-  const actor = requireActor(actorOrNull);
-  return requireDb().transaction(async (tx) => {
-    const [row] = await tx
-      .select()
-      .from(requests)
-      .where(eq(requests.id, requestId))
-      .for("update");
-    if (!row) throw new RequestError("NOT_FOUND", "Request not found.");
-    // Only admins and Active specialists may touch dispatch at all, so others
-    // never learn whether a request is still open.
-    if (!isDispatcher(actor)) forbidden();
-    if (!canClaim(row)) invalidState("The request is no longer available.");
-    const change = await apply(row, actor, tx);
-    const [updated] = await tx
-      .update(requests)
-      .set({ ...change.values, updatedAt: new Date() })
-      .where(eq(requests.id, row.id))
-      .returning();
-    await recordEvent(tx, {
-      requestId: row.id,
-      actorId: actor.id,
-      type: change.type,
-      fromStatus: row.status,
-      toStatus: updated.status,
-    });
-    if (change.outbox) await enqueueEvent(tx, change.outbox);
-    return toDto(updated);
-  });
+  const updated = await transitionRequest(
+    actorOrNull,
+    requestId,
+    {
+      // Only admins and Active specialists may touch dispatch at all, so
+      // others never learn whether a request is still open.
+      guard: (row, actor) => {
+        if (!isDispatcher(actor)) forbidden();
+        if (!canClaim(row)) invalidState("The request is no longer available.");
+      },
+    },
+    apply,
+  );
+  return toDto(updated!);
 }
 
 // Claiming and admin assignment both leave the request accepted.
-const acceptedEvent = (requestId: number): OutboxEventInput => ({
-  type: "request.accepted",
-  payload: { requestId },
-});
+const eventOf = (
+  type: "request.accepted" | "request.assigned",
+  requestId: number,
+): OutboxEvent => ({ type, payload: { requestId } });
 
 const NO_RECOMMENDATION = {
   recommendedSpecialistId: null,
@@ -169,8 +155,8 @@ const NO_RECOMMENDATION = {
   recommendedAt: null,
 } as const;
 
-// A specialist takes an open request; an admin may take any. Specialists must
-// be Active and match the request's trade and area.
+// A specialist takes an open request; admins dispatch instead. Specialists
+// must be Active and match the request's trade and area.
 export function claimRequest(
   actor: Actor | null,
   requestId: number,
@@ -184,13 +170,12 @@ export function claimRequest(
       forbidden();
     }
     return {
-      type: "request.accepted",
+      event: eventOf("request.accepted", row.id),
       values: {
         specialistId: who.id,
         status: RequestStatus.Accepted,
         ...NO_RECOMMENDATION,
       },
-      outbox: acceptedEvent(row.id),
     };
   });
 }
@@ -225,14 +210,13 @@ export function assignSpecialist(
     if (!can(who, "request.assign", resourceOf(row))) forbidden();
     await requireActiveSpecialist(tx, specialistId);
     return {
-      type: "request.assigned",
+      event: eventOf("request.assigned", row.id),
       values: {
         specialistId,
         status: RequestStatus.Accepted,
         dispatchedByAdmin: true,
         ...NO_RECOMMENDATION,
       },
-      outbox: acceptedEvent(row.id),
     };
   });
 }
@@ -247,15 +231,14 @@ export function recommendRequest(
     if (!can(who, "request.assign", resourceOf(row))) forbidden();
     await requireActiveSpecialist(tx, specialistId);
     return {
-      type: "request.recommended",
+      event: {
+        type: "request.recommended",
+        payload: { requestId: row.id, specialistId },
+      },
       values: {
         recommendedSpecialistId: specialistId,
         recommendedById: who.id,
         recommendedAt: new Date(),
-      },
-      outbox: {
-        type: "request.recommended",
-        payload: { requestId: row.id, specialistId },
       },
     };
   });
@@ -275,7 +258,10 @@ export function declineRecommendation(
       forbidden();
     }
     return {
-      type: "request.recommendation_declined",
+      event: {
+        type: "request.recommendation_declined",
+        payload: { requestId: row.id },
+      },
       values: NO_RECOMMENDATION,
     };
   });

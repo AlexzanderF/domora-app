@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { QueueSection, QueueTag } from "@/features/admin/admin-ui";
@@ -7,15 +6,13 @@ import { AdminKpiCards } from "@/features/admin/admin-kpi-cards";
 import { PendingSpecialistsQueue } from "@/features/admin/pending-specialists-queue";
 import { DisputedRequestsQueue } from "@/features/admin/disputed-requests-queue";
 import { UnassignedRequestsQueue } from "@/features/admin/unassigned-requests-queue";
-import { findAdminKpiMetrics } from "@/features/admin/server/metrics";
 import {
-  findDisputedRequestsForAdmin,
   findResolvedDisputesForAdmin,
   findSpecialistApplications,
-  findUnassignedRequestsForAdmin,
 } from "@/features/admin/server/queries";
-import { UserRole } from "@/domain/identity/types";
-import { getServerSession } from "@/features/auth/server/session";
+import { listTriage, requestMetrics } from "@/domain/requests";
+import { presentAdminRequest } from "@/features/requests/presenter";
+import { getActor } from "@/features/auth/server/actor";
 import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = {
@@ -37,15 +34,7 @@ function QueueLink({ href, children }: { href: string; children: string }) {
 }
 
 export default async function AdminPage() {
-  const user = await getServerSession();
-  if (isDbConfigured) {
-    if (!user) {
-      redirect("/api/auth/logout?next=/login");
-    }
-    if (user.role !== UserRole.Admin) {
-      redirect(user.role === UserRole.Specialist ? "/specialist" : "/client");
-    }
-  }
+  const actor = isDbConfigured ? await getActor() : null;
 
   const [
     initialMetrics,
@@ -54,11 +43,15 @@ export default async function AdminPage() {
     resolvedDisputes,
     initialUnassignedRequests,
   ] = await Promise.all([
-    findAdminKpiMetrics(),
+    actor ? requestMetrics(actor) : null,
     findSpecialistApplications(),
-    findDisputedRequestsForAdmin(),
+    actor
+      ? listTriage(actor, "disputed").then((r) => r.map(presentAdminRequest))
+      : null,
     findResolvedDisputesForAdmin(),
-    findUnassignedRequestsForAdmin(),
+    actor
+      ? listTriage(actor, "unassigned").then((r) => r.map(presentAdminRequest))
+      : null,
   ]);
 
   return (

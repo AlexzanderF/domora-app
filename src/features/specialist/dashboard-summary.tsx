@@ -1,35 +1,14 @@
-"use client";
-
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { isActiveStage } from "@/features/requests/request-rules";
-import { localDate, money } from "@/lib/format";
-import { RequestStatus } from "@/domain/requests/types";
-import type { ServiceRequest } from "@/domain/requests/types";
-
-function computeStats(requests: ServiceRequest[]) {
-  const today = localDate();
-  const activeJobs = requests.filter(
-    (request) => !request.cancelled && isActiveStage(request.status),
-  ).length;
-  const todaysEarnings = requests
-    .filter(
-      (request) =>
-        !request.cancelled &&
-        request.status === RequestStatus.Completed &&
-        request.date === today,
-    )
-    .reduce((sum, request) => sum + (request.price || 0), 0);
-  return { activeJobs, todaysEarnings };
-}
+import { money } from "@/lib/format";
 
 export function DashboardSummary({
-  initialRequests,
+  activeJobs,
+  todaysEarnings,
 }: {
-  initialRequests: ServiceRequest[];
+  activeJobs: number;
+  todaysEarnings: number;
 }) {
-  const { activeJobs, todaysEarnings } = computeStats(initialRequests);
-
   return (
     <div className="mb-7 grid grid-cols-2 gap-3 md:flex md:flex-wrap md:items-stretch md:gap-4">
       <Card className="flex min-w-0 flex-col gap-1.5 md:min-w-[180px] md:flex-1">

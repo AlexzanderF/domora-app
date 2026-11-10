@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { PageHeading } from "@/components/page-heading";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { isDbConfigured } from "@/db";
-import { getServerSession } from "@/features/auth/server/session";
+import { getActor, getUser } from "@/features/auth/server/actor";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { ClientProfileForm } from "@/features/client-profile/client-profile-form";
-import { findClientRequests } from "@/features/requests/server/queries";
+import { listClientRequests } from "@/domain/requests";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 
 export const metadata: Metadata = { title: "Моят профил" };
@@ -43,15 +42,13 @@ function getStatusLabel(status: UserStatus) {
 }
 
 export default async function ClientProfilePage() {
-  const user = await getServerSession();
-  if (isDbConfigured && !user) {
-    redirect("/api/auth/logout?next=/login");
-  }
+  const user = isDbConfigured ? await getUser() : null;
+  const actor = user ? await getActor() : null;
 
-  const [subscription, requests] = user
+  const [subscription, requests] = actor
     ? await Promise.all([
-        findUserSubscription(user),
-        findClientRequests(user.id),
+        findUserSubscription(actor),
+        listClientRequests(actor),
       ])
     : [null, null];
 

@@ -1,5 +1,6 @@
 import { PhotoError } from "@/domain/photos";
 import type { PhotoErrorCode } from "@/domain/photos";
+import { RequestError } from "@/domain/requests/errors";
 import {
   MAX_BODY_BYTES,
   MAX_PHOTOS_PER_REQUEST,
@@ -45,8 +46,16 @@ const RESPONSES: Record<PhotoErrorCode, { status: number; message: string }> = {
 // The client-facing response for a domain rejection, or null when the error
 // is not one of ours (let it surface as a 500).
 export function photoErrorResponse(error: unknown): Response | null {
-  if (!(error instanceof PhotoError)) return null;
-  const { status, message } = RESPONSES[error.code];
+  // The shared Actor guards throw RequestError for these two codes.
+  const code =
+    error instanceof PhotoError
+      ? error.code
+      : error instanceof RequestError &&
+          (error.code === "UNAUTHENTICATED" || error.code === "FORBIDDEN")
+        ? error.code
+        : null;
+  if (!code) return null;
+  const { status, message } = RESPONSES[code];
   return Response.json({ error: message }, { status });
 }
 

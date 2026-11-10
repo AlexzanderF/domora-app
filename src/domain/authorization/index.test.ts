@@ -8,6 +8,7 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.claim",
   "request.work",
   "request.cancel",
+  "request.release",
   "request.confirm",
   "request.rate",
   "request.assign",
@@ -17,6 +18,20 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.attach_report_photo",
   "request.view_photo",
 ];
+
+describe("profile.update", () => {
+  const owner = { id: 7, role: UserRole.Client, status: UserStatus.Active };
+  const own = { clientId: 7, specialistId: null };
+
+  it("allows only the owning client, never an admin or another user", () => {
+    expect(can(owner, "profile.update", own)).toBe(true);
+    expect(can({ ...owner, id: 8 }, "profile.update", own)).toBe(false);
+    expect(can({ ...owner, role: UserRole.Admin }, "profile.update", own)).toBe(
+      false,
+    );
+    expect(can(owner, "profile.update")).toBe(false);
+  });
+});
 
 const ACTOR_ID = 7;
 const OTHER_ID = 99;
@@ -55,10 +70,15 @@ const resources: Record<string, RequestResource> = {
   assignedOnly: { clientId: OTHER_ID, specialistId: ACTOR_ID },
 };
 
-// Only the request's client raises a dispute or attaches booking photos; only
-// its assigned specialist attaches report photos; only an admin resolves a
-// dispute.
+// Administrators dispatch (cancel, assign, recommend) and resolve disputes;
+// they never claim or execute work, and the client's own acts (dispute,
+// confirm, rate, photos) are never done on their behalf.
 const NEVER_ADMIN: readonly Action[] = [
+  "request.claim",
+  "request.work",
+  "request.confirm",
+  "request.rate",
+  "request.release",
   "request.dispute",
   "request.attach_photo",
   "request.attach_report_photo",
@@ -96,14 +116,14 @@ const expectations: Record<keyof typeof actors, Allowed> = {
     ownedAndAssigned: [
       "request.view",
       "request.work",
-      "request.cancel",
+      "request.release",
       "request.attach_report_photo",
       "request.view_photo",
     ],
     assignedOnly: [
       "request.view",
       "request.work",
-      "request.cancel",
+      "request.release",
       "request.attach_report_photo",
       "request.view_photo",
     ],
@@ -157,4 +177,20 @@ describe("can() policy matrix", () => {
       });
     });
   }
+});
+
+describe("request.list_all", () => {
+  it("is allowed for Administrators only", () => {
+    for (const [name, actor] of Object.entries(actors)) {
+      expect(can(actor, "request.list_all"), name).toBe(name === "admin");
+    }
+  });
+});
+
+describe("tariffs.update", () => {
+  it("is allowed for Administrators only", () => {
+    for (const [name, actor] of Object.entries(actors)) {
+      expect(can(actor, "tariffs.update"), name).toBe(name === "admin");
+    }
+  });
 });

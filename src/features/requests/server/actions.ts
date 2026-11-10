@@ -1,9 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { getDb, isDbConfigured } from "@/db";
-import { requests } from "@/db/schema";
 import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import {
   assignSpecialist,
@@ -12,25 +8,31 @@ import {
   recommendRequest,
 } from "@/domain/dispatch";
 import {
-  RequestError,
+  requireActor,
   cancelRequest,
+  releaseRequest,
   confirmCompletion,
   createRequest,
-  getRequest,
   rateRequest,
   startWork,
   submitReport,
 } from "@/domain/requests";
-import type { RequestErrorCode } from "@/domain/requests";
+import { withActions } from "@/domain/requests/actions";
+import { presentSpecialistRequest } from "@/features/requests/presenter";
+import { findTariffs } from "@/domain/pricing/tariffs";
+import { PRICE_CHANGED_MESSAGE, runAction } from "@/lib/server/action";
+import type {
+  ActionErrorCode,
+  ActionResult,
+  RevalidationSet,
+} from "@/lib/server/action";
 import type { Actor } from "@/domain/authorization";
-import { getActor } from "@/features/auth/server/actor";
-import { UserRole } from "@/domain/identity/types";
-import { RequestPriority, RequestStatus } from "@/domain/requests/types";
+import type { RequestPriority } from "@/domain/requests/types";
 import type {
   CategoryId,
   Plan,
-  RequestAction,
   ServiceRequest,
+  Tariffs,
 } from "@/domain/requests/types";
 
 export interface CreateServiceRequestInput {
@@ -40,93 +42,63 @@ export interface CreateServiceRequestInput {
   description: string;
   date?: string;
   time?: string;
-  price: number;
+  // The price the dialog displayed; the server prices the booking itself.
+  expectedPrice: number;
+  serviceIndex?: number;
+  quantity?: number;
   plan?: Plan;
   priority?: RequestPriority;
 }
 
-export interface ServiceRequestActionResult {
-  success: boolean;
-  error?: string;
-  request?: ServiceRequest;
-}
-
-function revalidateWorkspaceRequests(): void {
-  revalidatePath("/requests");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-  revalidatePath("/specialist");
-  revalidatePath("/admin");
-}
-
-const DEFAULT_ERRORS: Record<RequestErrorCode, string> = {
-  UNAUTHENTICATED: "Неоторизиран достъп.",
-  FORBIDDEN: "Нямате право да извършите това действие.",
-  NOT_FOUND: "Заявката не е намерена.",
-  INVALID_INPUT: "Невалидни данни.",
-  INVALID_STATE: "Действието не е възможно на този етап от заявката.",
+export type ServiceRequestActionResult = ActionResult<ServiceRequest> & {
+  // Fresh Tariffs, returned when a booking was rejected for a stale price.
+  tariffs?: Tariffs;
 };
 
-// Runs a domain call as the signed-in actor and maps its outcome to the
-// action result shape; domain rejections become Bulgarian messages.
-async function runAsActor(
-  run: (actor: Actor | null) => Promise<ServiceRequest | void>,
-  messages: Partial<Record<RequestErrorCode, string>> = {},
-): Promise<ServiceRequestActionResult> {
-  try {
-    const request = await run(await getActor());
-    revalidateWorkspaceRequests();
-    return request ? { success: true, request } : { success: true };
-  } catch (error) {
-    if (error instanceof RequestError) {
-      return {
-        success: false,
-        error: messages[error.code] ?? DEFAULT_ERRORS[error.code],
-      };
-    }
-    throw error;
-  }
-}
+const run = (
+  action: (actor: Actor | null) => Promise<ServiceRequest | void>,
+  messages: Partial<Record<ActionErrorCode, string>> = {},
+  revalidate: readonly RevalidationSet[] = ["requests"],
+): Promise<ServiceRequestActionResult> =>
+  runAction({ run: action, messages, revalidate });
 
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  const result = await run(
     async (actor) => {
       const created = await createRequest(actor, {
         category: input.category,
         service: input.service,
         description: input.description,
         address: input.address,
-        price: input.price,
+        expectedPrice: input.expectedPrice,
+        serviceIndex: input.serviceIndex,
+        plan: input.plan,
+        quantity: input.quantity,
         priority: input.priority,
         scheduledDate: input.date ?? "",
         scheduledTime: input.time ?? "",
       });
-      return {
-        id: created.id,
-        category: input.category,
-        service: created.title,
-        address: created.address,
-        date: created.scheduledDate ?? "",
-        time: created.scheduledTime ?? "",
-        price: created.price,
-        status: created.status,
-        description: created.description,
-        plan: input.plan,
-      };
+      const request = presentSpecialistRequest(
+        withActions(requireActor(actor), created, created),
+      );
+      return { ...request, plan: input.plan };
     },
     {
       INVALID_INPUT:
-        "Моля, въведете коректен адрес, услуга, описание с поне 5 символа, дата и час и валидна цена.",
+        "Моля, въведете коректен адрес, услуга, описание с поне 5 символа, дата и час.",
     },
   );
+  return !result.success && result.error === PRICE_CHANGED_MESSAGE
+    ? { ...result, tariffs: await findTariffs() }
+    : result;
 }
 
 export async function assignSpecialistAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await claimRequest(actor, requestId);
     },
@@ -141,7 +113,7 @@ export async function assignSpecialistAction(
 export async function startWorkAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await startWork(actor, requestId);
     },
@@ -149,13 +121,12 @@ export async function startWorkAction(
   );
 }
 
-// The specialist's work completion report. The client's later confirmation
-// goes through the "complete" transition.
+// The specialist's work completion report; the client confirms it later.
 export async function completeWorkAction(
   requestId: number,
   report?: string,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await submitReport(actor, requestId, report ?? "");
     },
@@ -169,7 +140,7 @@ export async function completeWorkAction(
 export async function cancelRequestAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await cancelRequest(actor, requestId);
     },
@@ -177,93 +148,91 @@ export async function cancelRequestAction(
   );
 }
 
-export async function transitionRequestServerAction(
+// The Specialist's Hand-back: the request returns to the open pool.
+export async function releaseRequestAction(
   requestId: number,
-  action: RequestAction,
 ): Promise<ServiceRequestActionResult> {
-  switch (action.type) {
-    case "advance": {
-      const db = getDb();
-      if (!db) return { success: false, error: "Няма връзка с базата данни." };
-      const [req] = await db
-        .select()
-        .from(requests)
-        .where(eq(requests.id, requestId));
-      if (!req) return { success: false, error: "Заявката не е намерена." };
-
-      if (req.status === RequestStatus.Created) {
-        return assignSpecialistAction(requestId);
-      }
-      if (req.status === RequestStatus.InProgress) {
-        return completeWorkAction(requestId, action.report);
-      }
-      return startWorkAction(requestId);
-    }
-    case "complete":
-      return runAsActor(
-        async (actor) => {
-          await confirmCompletion(actor, requestId);
-        },
-        { INVALID_STATE: "Няма завършена работа, която да потвърдите." },
-      );
-    case "cancel":
-      return cancelRequestAction(requestId);
-    case "decline":
-      // A recommended job returns to the open pool; declining anything else
-      // unassigned only dismisses it for this specialist.
-      return runAsActor(
-        async (actor) => {
-          const current = await getRequest(actor, requestId);
-          if (actor?.role === UserRole.Specialist && !current.specialistId) {
-            if (current.recommendedSpecialistId === actor.id) {
-              await declineRecommendation(actor, requestId);
-            }
-            return;
-          }
-          await cancelRequest(actor, requestId);
-        },
-        { INVALID_STATE: "Заявката вече не може да бъде отказана." },
-      );
-    case "rate":
-      return runAsActor(
-        async (actor) => {
-          await rateRequest(actor, requestId, action.rating);
-        },
-        {
-          INVALID_INPUT: "Оценката трябва да е цяло число от 1 до 5.",
-          INVALID_STATE: "Тази заявка не може да бъде оценена.",
-        },
-      );
-    case "dispute":
-      return runAsActor(
-        async (actor) => {
-          await raiseDispute(actor, requestId, action.note ?? "");
-        },
-        {
-          FORBIDDEN: "Само клиентът на заявката може да подаде сигнал.",
-          INVALID_INPUT: "Моля, опишете проблема (до 2000 символа).",
-          INVALID_STATE:
-            "Сигнал за проблем може да се подаде след приключване на работата.",
-        },
-      );
-    case "resolve-dispute":
-      return runAsActor(
-        async (actor) => {
-          await resolveDispute(actor, requestId, action.resolutionNote);
-        },
-        {
-          FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
-          INVALID_INPUT: "Бележката към решението е твърде дълга.",
-          NOT_FOUND: "Заявката не е намерена.",
-          INVALID_STATE: "Няма активен сигнал по тази заявка.",
-        },
-      );
-    default:
-      return { success: true };
-  }
+  return run(
+    async (actor) => {
+      await releaseRequest(actor, requestId);
+    },
+    { INVALID_STATE: "Заявката вече не може да бъде отказана." },
+  );
 }
 
-const DISPATCH_ERRORS: Partial<Record<RequestErrorCode, string>> = {
+export async function declineRecommendationAction(
+  requestId: number,
+): Promise<ServiceRequestActionResult> {
+  return run(
+    async (actor) => {
+      await declineRecommendation(actor, requestId);
+    },
+    { INVALID_STATE: "Заявката вече не може да бъде отказана." },
+  );
+}
+
+export async function confirmCompletionAction(
+  requestId: number,
+): Promise<ServiceRequestActionResult> {
+  return run(
+    async (actor) => {
+      await confirmCompletion(actor, requestId);
+    },
+    { INVALID_STATE: "Няма завършена работа, която да потвърдите." },
+  );
+}
+
+export async function rateRequestAction(
+  requestId: number,
+  rating: number,
+): Promise<ServiceRequestActionResult> {
+  return run(
+    async (actor) => {
+      await rateRequest(actor, requestId, rating);
+    },
+    {
+      INVALID_INPUT: "Оценката трябва да е цяло число от 1 до 5.",
+      INVALID_STATE: "Тази заявка не може да бъде оценена.",
+    },
+  );
+}
+
+export async function raiseDisputeAction(
+  requestId: number,
+  note: string,
+): Promise<ServiceRequestActionResult> {
+  return run(
+    async (actor) => {
+      await raiseDispute(actor, requestId, note);
+    },
+    {
+      FORBIDDEN: "Само клиентът на заявката може да подаде сигнал.",
+      INVALID_INPUT: "Моля, опишете проблема (до 2000 символа).",
+      INVALID_STATE:
+        "Сигнал за проблем може да се подаде след приключване на работата.",
+    },
+  );
+}
+
+export async function resolveDisputeAction(
+  requestId: number,
+  resolutionNote?: string,
+): Promise<ServiceRequestActionResult> {
+  return run(
+    async (actor) => {
+      await resolveDispute(actor, requestId, resolutionNote);
+    },
+    {
+      FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
+      INVALID_INPUT: "Бележката към решението е твърде дълга.",
+      NOT_FOUND: "Заявката не е намерена.",
+      INVALID_STATE: "Няма активен сигнал по тази заявка.",
+    },
+  );
+}
+
+const DISPATCH_MESSAGES: Partial<Record<ActionErrorCode, string>> = {
+  NO_DATABASE: "Административният панел изисква база данни.",
   FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
   INVALID_INPUT: "Избраният специалист не е активен.",
   INVALID_STATE: "Заявката вече е разпределена.",
@@ -273,32 +242,24 @@ export async function adminAssignSpecialistAction(
   requestId: number,
   specialistId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Административният панел изисква база данни.",
-    };
-  }
-  const result = await runAsActor(async (actor) => {
-    await assignSpecialist(actor, requestId, specialistId);
-  }, DISPATCH_ERRORS);
-  if (result.success) revalidatePath("/specialist/opportunities");
-  return result;
+  return run(
+    async (actor) => {
+      await assignSpecialist(actor, requestId, specialistId);
+    },
+    DISPATCH_MESSAGES,
+    ["dispatch"],
+  );
 }
 
 export async function adminRecommendSpecialistAction(
   requestId: number,
   specialistId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Административният панел изисква база данни.",
-    };
-  }
-  const result = await runAsActor(async (actor) => {
-    await recommendRequest(actor, requestId, specialistId);
-  }, DISPATCH_ERRORS);
-  if (result.success) revalidatePath("/specialist/opportunities");
-  return result;
+  return run(
+    async (actor) => {
+      await recommendRequest(actor, requestId, specialistId);
+    },
+    DISPATCH_MESSAGES,
+    ["dispatch"],
+  );
 }

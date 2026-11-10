@@ -66,9 +66,9 @@ export function AuthProvider({
     async (input: ClientRegistrationInput): Promise<User> => {
       const actionResult = await registerClientAction(input);
       if (actionResult.success) {
-        setUser(actionResult.user);
+        setUser(actionResult.data!);
         setStatus("authenticated");
-        return actionResult.user;
+        return actionResult.data!;
       }
       throw new Error(actionResult.error);
     },
@@ -79,9 +79,9 @@ export function AuthProvider({
     async (input: SpecialistRegistrationInput): Promise<User> => {
       const actionResult = await registerSpecialistAction(input);
       if (actionResult.success) {
-        setUser(actionResult.user);
+        setUser(actionResult.data!);
         setStatus("authenticated");
-        return actionResult.user;
+        return actionResult.data!;
       }
       throw new Error(actionResult.error);
     },
@@ -98,11 +98,11 @@ export function AuthProvider({
       try {
         const actionResult = await loginAction(identifier, password);
         if (actionResult.success) {
-          setUser(actionResult.user);
+          setUser(actionResult.data!);
           setStatus("authenticated");
           return {
             success: true,
-            user: actionResult.user,
+            user: actionResult.data!,
           };
         }
         return {
@@ -135,10 +135,10 @@ export function AuthProvider({
   const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
       const res = await refreshUserAction();
-      if (res.success && res.user) {
-        setUser(res.user);
+      if (res.success && res.data) {
+        setUser(res.data);
         setStatus("authenticated");
-        return res.user;
+        return res.data;
       }
       setUser(null);
       setStatus("unauthenticated");

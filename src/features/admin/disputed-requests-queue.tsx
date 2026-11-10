@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import { resolveDisputeAction } from "@/features/requests/server/actions";
 import { useToast } from "@/components/ui/toast-provider";
 import { categories, requestStages } from "@/features/services/catalog";
 import { ReportPhotos } from "@/features/requests/report-photos";
@@ -44,10 +44,7 @@ export function DisputedRequestsQueue({
     if (resolutionNote === null) return;
     try {
       setProcessingId(request.id);
-      const res = await transitionRequestServerAction(request.id, {
-        type: "resolve-dispute",
-        resolutionNote,
-      });
+      const res = await resolveDisputeAction(request.id, resolutionNote);
       if (!res.success) {
         notify(res.error ?? "Възникна грешка при разрешаване на сигнала.");
         return;

@@ -2,10 +2,10 @@
 
 import { Card } from "@/components/ui/card";
 import { money } from "@/lib/format";
-import type { AdminKpiMetrics } from "./server/metrics";
+import type { RequestMetrics } from "@/domain/requests";
 
 export interface AdminKpiCardsProps {
-  initialMetrics: AdminKpiMetrics | null;
+  initialMetrics: RequestMetrics | null;
 }
 
 interface KpiCardProps {

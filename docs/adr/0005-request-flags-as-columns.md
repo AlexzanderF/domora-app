@@ -19,8 +19,8 @@ with no single owner and live dialect drift between them.
   `CHECK (rating BETWEEN 1 AND 5)` constraint (a score is ordinal numeric
   data, so an enum is the wrong type); `recommended_specialist_id` as a real
   foreign key with `ON DELETE SET NULL`.
-- Lifecycle rules live once in `request-rules.ts`, shared by the in-memory
-  transition seam and the database-backed server actions.
+- Lifecycle rules live once in `src/domain/requests/lifecycle.ts`, shared by the
+  database-backed domain modules.
 - `description` returns to pure client text. No backfill was needed: every
   existing row was mock seed data, so the database was wiped and reseeded.
 

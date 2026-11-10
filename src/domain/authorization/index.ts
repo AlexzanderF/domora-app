@@ -13,6 +13,8 @@ export type Action =
   | "request.claim"
   | "request.work"
   | "request.cancel"
+  // Hand-back: the assigned specialist returns an accepted request to the pool.
+  | "request.release"
   | "request.confirm"
   | "request.rate"
   | "request.assign"
@@ -24,7 +26,14 @@ export type Action =
   | "request.attach_photo"
   // The specialist's own evidence on the work completion report.
   | "request.attach_report_photo"
-  | "request.view_photo";
+  | "request.view_photo"
+  // A Client edits only their own profile; the resource's clientId is the
+  // profile's owner.
+  | "profile.update"
+  // The admin views over every request: Triage Queues and all requests.
+  | "request.list_all"
+  // Saving Tariffs is an administrative act, never bound to a request.
+  | "tariffs.update";
 
 export interface RequestResource {
   clientId: number;
@@ -32,17 +41,27 @@ export interface RequestResource {
 }
 
 // Pure policy: client owns request; specialist assigned (or Active and
-// claiming); admin any; Pending/Rejected specialist nothing.
+// claiming); admin dispatches only; Pending/Rejected specialist nothing.
 export function can(
   actor: Actor,
   action: Action,
   resource?: RequestResource,
 ): boolean {
+  if (action === "profile.update") {
+    return actor.role === UserRole.Client && resource?.clientId === actor.id;
+  }
   switch (actor.role) {
     case UserRole.Admin:
-      // Disputes and photos belong to the request's client or assigned
-      // specialist, never added on their behalf.
+      // Administrators dispatch (cancel, assign, recommend) and resolve
+      // disputes. Claiming and execution belong to specialists; disputes,
+      // confirmation, ratings and photos to the request's client or assigned
+      // specialist, never done on their behalf.
       return (
+        action !== "request.claim" &&
+        action !== "request.work" &&
+        action !== "request.confirm" &&
+        action !== "request.rate" &&
+        action !== "request.release" &&
         action !== "request.dispute" &&
         action !== "request.attach_photo" &&
         action !== "request.attach_report_photo"
@@ -89,7 +108,7 @@ function canSpecialist(
     case "request.claim":
       return resource.specialistId === null;
     case "request.work":
-    case "request.cancel":
+    case "request.release":
     case "request.attach_report_photo":
     case "request.view_photo":
       return assigned;

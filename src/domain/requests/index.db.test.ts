@@ -7,10 +7,13 @@ import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
 import {
   cancelRequest,
+  releaseRequest,
   confirmCompletion,
   createRequest,
   getRequest,
-  listRequests,
+  listAgenda,
+  listAll,
+  listClientRequests,
   rateRequest,
   startWork,
   submitReport,
@@ -22,7 +25,7 @@ const booking: CreateRequestInput = {
   service: "Смяна на кран",
   description: "Тече кранът в кухнята",
   address: "София, ул. Тест 1",
-  price: 45,
+  expectedPrice: 45,
   scheduledDate: "2030-05-17",
   scheduledTime: "09:00 - 12:00",
 };
@@ -101,14 +104,12 @@ describe("createRequest", () => {
     expect(await rejection(createRequest(null, booking))).toBe(
       "UNAUTHENTICATED",
     );
-    expect(await listRequests(admin)).toEqual([]);
+    expect(await listAll(admin)).toEqual([]);
   });
 
   it.each([
     ["a blank address", { address: "  " }],
     ["a too-short description", { description: "abc" }],
-    ["a non-positive price", { price: 0 }],
-    ["an oversized price", { price: 3_000_000_000 }],
     ["an invalid date", { scheduledDate: "2030-02-31" }],
     ["a malformed date", { scheduledDate: "17.05.2030" }],
     ["a blank time window", { scheduledTime: " " }],
@@ -117,7 +118,27 @@ describe("createRequest", () => {
     expect(
       await rejection(createRequest(client, { ...booking, ...override })),
     ).toBe("INVALID_INPUT");
-    expect(await listRequests(admin)).toEqual([]);
+    expect(await listAll(admin)).toEqual([]);
+  });
+});
+
+describe("createRequest pricing", () => {
+  it("stores the price computed from the Tariffs, not a client price", async () => {
+    const created = await createRequest(client, {
+      ...booking,
+      category: 1,
+      expectedPrice: 35,
+    });
+    expect(created.price).toBe(35);
+  });
+
+  it("rejects a tampered or stale price and creates nothing", async () => {
+    for (const expectedPrice of [1, 0, 3_000_000_000]) {
+      expect(
+        await rejection(createRequest(client, { ...booking, expectedPrice })),
+      ).toBe("PRICE_CHANGED");
+    }
+    expect(await listAll(admin)).toEqual([]);
   });
 });
 
@@ -131,12 +152,16 @@ describe("visibility", () => {
 
     for (const allowed of [client, specialist, admin]) {
       expect((await getRequest(allowed, id)).id).toBe(id);
-      expect((await listRequests(allowed)).map((r) => r.id)).toEqual([id]);
     }
+    expect((await listClientRequests(client)).map((r) => r.id)).toEqual([id]);
+    expect((await listAgenda(specialist)).map((r) => r.id)).toEqual([id]);
+    expect((await listAll(admin)).map((r) => r.id)).toEqual([id]);
     for (const denied of [otherClient, otherSpecialist, pendingSpecialist]) {
       expect(await rejection(getRequest(denied, id))).toBe("FORBIDDEN");
-      expect(await listRequests(denied)).toEqual([]);
     }
+    expect(await listClientRequests(otherClient)).toEqual([]);
+    expect(await listAgenda(otherSpecialist)).toEqual([]);
+    expect(await listAgenda(pendingSpecialist)).toEqual([]);
     expect(await rejection(getRequest(null, id))).toBe("UNAUTHENTICATED");
   });
 
@@ -170,9 +195,10 @@ describe("startWork", () => {
     ]);
   });
 
-  it("lets an admin start any accepted request", async () => {
+  it("refuses an admin starting work", async () => {
     const id = await accepted();
-    expect((await startWork(admin, id)).status).toBe(RequestStatus.InProgress);
+    expect(await rejection(startWork(admin, id))).toBe("FORBIDDEN");
+    expect((await statusOf(id)).status).toBe(RequestStatus.Accepted);
   });
 
   it("rejects the wrong or an unauthenticated actor without changing anything", async () => {
@@ -191,8 +217,13 @@ describe("startWork", () => {
   });
 
   it("rejects starting a request that is not accepted or is cancelled", async () => {
-    const unassigned = await insertRequest({ clientId: client.id });
-    expect(await rejection(startWork(admin, unassigned))).toBe("INVALID_STATE");
+    const unassigned = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+    });
+    expect(await rejection(startWork(specialist, unassigned))).toBe(
+      "INVALID_STATE",
+    );
 
     const cancelled = await insertRequest({
       clientId: client.id,
@@ -244,7 +275,7 @@ describe("submitReport", () => {
 
   it("rejects the wrong or an unauthenticated actor", async () => {
     const id = await inProgress();
-    for (const wrong of [client, otherSpecialist, pendingSpecialist]) {
+    for (const wrong of [client, admin, otherSpecialist, pendingSpecialist]) {
       expect(await rejection(submitReport(wrong, id, "Готово"))).toBe(
         "FORBIDDEN",
       );
@@ -405,13 +436,25 @@ describe("cancelRequest", () => {
     expect(await rejection(cancelRequest(client, id))).toBe("INVALID_STATE");
   });
 
-  it("lets the assigned specialist release an accepted request back to the pool", async () => {
+  it("no longer accepts a specialist, even the assigned one", async () => {
     const id = await insertRequest({
       clientId: client.id,
       specialistId: specialist.id,
       status: RequestStatus.Accepted,
     });
-    const result = await cancelRequest(specialist, id);
+    expect(await rejection(cancelRequest(specialist, id))).toBe("FORBIDDEN");
+    expect((await statusOf(id)).status).toBe(RequestStatus.Accepted);
+  });
+});
+
+describe("releaseRequest", () => {
+  it("returns an accepted request to the open pool and records an event", async () => {
+    const id = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+    });
+    const result = await releaseRequest(specialist, id);
 
     expect(result).toMatchObject({
       status: RequestStatus.Created,
@@ -428,13 +471,34 @@ describe("cancelRequest", () => {
     ]);
   });
 
-  it("does not let a specialist drop work that is in progress", async () => {
+  it("rejects everyone but the assigned Active specialist", async () => {
     const id = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+    });
+    for (const wrong of [client, admin, otherSpecialist, pendingSpecialist]) {
+      expect(await rejection(releaseRequest(wrong, id))).toBe("FORBIDDEN");
+    }
+    expect(await rejection(releaseRequest(null, id))).toBe("UNAUTHENTICATED");
+  });
+
+  it("rejects work that is in progress or cancelled", async () => {
+    const started = await insertRequest({
       clientId: client.id,
       specialistId: specialist.id,
       status: RequestStatus.InProgress,
     });
-    expect(await rejection(cancelRequest(specialist, id))).toBe(
+    expect(await rejection(releaseRequest(specialist, started))).toBe(
+      "INVALID_STATE",
+    );
+    const cancelled = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+      cancelled: true,
+    });
+    expect(await rejection(releaseRequest(specialist, cancelled))).toBe(
       "INVALID_STATE",
     );
   });

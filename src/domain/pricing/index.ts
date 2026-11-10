@@ -5,22 +5,45 @@ export const defaultTariffs: Tariffs = {
   categories: { 0: 45, 1: 35, 2: 55, 3: 25, 4: 65, 5: 25 },
   home: 1.5,
   entry: 18,
+  diagnosticFee: 25,
+  volumeDiscountMinVisits: 4,
+  volumeDiscountPercent: 10,
 };
 
-// The `home` tariff is stored as an integer in tenths of a lev per m² (15 = 1.50);
-// values of 20 or less are read as already being in lev.
-const HOME_TENTHS_THRESHOLD = 20;
+// The `home` tariff is stored as an integer in tenths of a lev per m² (15 = 1.50).
+export function homeRateToStored(home: number): number {
+  return Math.round(home * 10);
+}
+
+export function homeRateFromStored(stored: number): number {
+  return stored / 10;
+}
 
 export interface TariffRow {
   category: string;
   standardRate: number;
 }
 
-export function tariffsFromRows(rows: readonly TariffRow[]): Tariffs {
+export interface PricingSettingsRow {
+  diagnosticFee: number;
+  volumeDiscountMinVisits: number;
+  volumeDiscountPercent: number;
+}
+
+export function tariffsFromRows(
+  rows: readonly TariffRow[],
+  settings?: PricingSettingsRow | null,
+): Tariffs {
   const result: Tariffs = {
     categories: { ...defaultTariffs.categories },
     home: defaultTariffs.home,
     entry: defaultTariffs.entry,
+    diagnosticFee: settings?.diagnosticFee ?? defaultTariffs.diagnosticFee,
+    volumeDiscountMinVisits:
+      settings?.volumeDiscountMinVisits ??
+      defaultTariffs.volumeDiscountMinVisits,
+    volumeDiscountPercent:
+      settings?.volumeDiscountPercent ?? defaultTariffs.volumeDiscountPercent,
   };
 
   for (const row of rows) {
@@ -28,10 +51,7 @@ export function tariffsFromRows(rows: readonly TariffRow[]): Tariffs {
     if (Number.isInteger(categoryId) && categoryId >= 0 && categoryId <= 5) {
       result.categories[categoryId as CategoryId] = row.standardRate;
     } else if (row.category === "home") {
-      result.home =
-        row.standardRate > HOME_TENTHS_THRESHOLD
-          ? row.standardRate / 10
-          : row.standardRate;
+      result.home = homeRateFromStored(row.standardRate);
     } else if (row.category === "entry") {
       result.entry = row.standardRate;
     }
@@ -59,12 +79,17 @@ export function calculateQuote(
     ) {
       throw new Error("Monthly visits must be between 1 and 8.");
     }
-    const volumeMultiplier = visitsPerMonth >= 4 ? 0.9 : 1;
+    const volumeMultiplier =
+      visitsPerMonth >= tariffs.volumeDiscountMinVisits
+        ? (100 - tariffs.volumeDiscountPercent) / 100
+        : 1;
     return Math.round(
       quantity * tariffs[plan] * visitsPerMonth * volumeMultiplier,
     );
   }
-  return serviceIndex > 0 ? 25 : tariffs.categories[category];
+  return serviceIndex > 0
+    ? tariffs.diagnosticFee
+    : tariffs.categories[category];
 }
 
 export function quoteScope(

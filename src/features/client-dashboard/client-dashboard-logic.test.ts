@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ServiceRequest } from "@/domain/requests/types";
 import {
   getRecentCompletedRequests,
+  getTrackerControls,
   getTrackerSegments,
   getTrackerStageIndex,
   selectActiveRequest,
@@ -23,6 +24,7 @@ function request(
     time: "09:00–12:00",
     price: 45,
     description: "Тестова заявка",
+    actions: [],
   };
 }
 
@@ -83,5 +85,38 @@ describe("client dashboard logic", () => {
         request(6, "COMPLETED"),
       ]).map(({ id }) => id),
     ).toEqual([1, 4, 5]);
+  });
+});
+
+describe("tracker controls", () => {
+  const withActions = (actions: ServiceRequest["actions"]) => ({
+    ...request(1, "AWAITING_CONFIRMATION"),
+    actions,
+  });
+
+  it("offers confirm and dispute only when the request allows them", () => {
+    expect(
+      getTrackerControls(withActions(["confirm", "dispute"]), false),
+    ).toEqual({ confirm: true, dispute: true, rate: false });
+  });
+
+  it("hides the dispute control once a dispute is open", () => {
+    expect(getTrackerControls(withActions(["confirm"]), false)).toEqual({
+      confirm: true,
+      dispute: false,
+      rate: false,
+    });
+  });
+
+  it("shows the rating only while open and still allowed", () => {
+    expect(getTrackerControls(withActions(["rate"]), true).rate).toBe(true);
+    expect(getTrackerControls(withActions(["rate"]), false).rate).toBe(false);
+    expect(getTrackerControls(withActions([]), true).rate).toBe(false);
+  });
+
+  it("hides confirm and dispute while rating is open", () => {
+    expect(
+      getTrackerControls(withActions(["confirm", "dispute", "rate"]), true),
+    ).toEqual({ confirm: false, dispute: false, rate: true });
   });
 });
