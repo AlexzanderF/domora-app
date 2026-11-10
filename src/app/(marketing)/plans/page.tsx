@@ -5,7 +5,7 @@ import { findTariffs } from "@/domain/pricing/tariffs";
 export const metadata: Metadata = {
   title: "Абонаменти",
   description:
-    "Конфигурирайте абонаментна грижа за дома или общите части с ясен месечен график и цена.",
+    "Едно посещение от майстор месечно за дома или редовно почистване на общите части.",
 };
 
 export default async function PlansPage() {
@@ -20,11 +20,11 @@ export default async function PlansPage() {
           АБОНАМЕНТНА ГРИЖА
         </span>
         <h1 className="mt-[0.55rem] mb-[0.8rem] text-[clamp(2.25rem,5vw,4rem)] tracking-normal text-[#153c33] max-[520px]:text-[2.35rem]">
-          Ритъм за по-подреден дом.
+          Грижа за дома. Спокойствие за вас.
         </h1>
         <p className="m-0 max-w-[650px] text-[1.05rem] text-[#5b6f68]">
-          Изберете пространство и честота. Виждате точната месечна цена, преди
-          да изпратите заявката.
+          Майстор за дома или поддържан вход — изберете абонамента, който
+          отговаря на вашите нужди.
         </p>
       </header>
       <PlansConfigurator tariffs={tariffs} />

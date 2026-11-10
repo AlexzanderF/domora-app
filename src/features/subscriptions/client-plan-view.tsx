@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,11 +55,10 @@ const STATUS_LABELS: Record<
 };
 
 const HOME_TIER_FEATURES = [
-  "Редовно почистване на подове, санитарни възли и кухня",
-  "Периодичен технически оглед на ВиК и електроинсталации",
-  "Детайлен доклад и снимков отчет след всяко посещение",
-  "15% постоянна отстъпка за всички извънредни ремонтни дейности",
-  "Приоритетен график и фиксирани доверени специалисти",
+  "1 включено посещение от майстор месечно",
+  "ВиК, електро и климатици",
+  "Ключарски услуги и дребни ремонти",
+  "Всяко допълнително посещение се доплаща",
 ];
 
 const ENTRY_TIER_FEATURES = [
@@ -416,18 +417,12 @@ export function ClientPlanView({
             <TierCard
               featured
               title="За дома"
-              subtitle="Идеален за апартаменти и еднофамилни къщи с редовна поддръжка."
-              price="1.50"
-              unit="лв. / м² месечно"
+              subtitle="Едно посещение от майстор всеки месец за вашия апартамент или къща."
+              priceNote="Месечна цена: предстои обявяване"
               features={HOME_TIER_FEATURES}
             >
-              <Button
-                type="button"
-                className={tierCtaClass}
-                onClick={() => handleSubscribe(SubscriptionPlan.Home)}
-                disabled={isProcessing}
-              >
-                {isProcessing ? "Зареждане..." : "Абонирай се за дома"}
+              <Button asChild className={tierCtaClass}>
+                <Link href="/plans">Разгледай абонамента</Link>
               </Button>
             </TierCard>
 
@@ -468,14 +463,16 @@ function TierCard({
   subtitle,
   price,
   unit,
+  priceNote,
   features,
   children,
 }: {
   featured?: boolean;
   title: string;
   subtitle: string;
-  price: string;
-  unit: string;
+  price?: string;
+  unit?: string;
+  priceNote?: string;
   features: string[];
   children: React.ReactNode;
 }) {
@@ -502,11 +499,19 @@ function TierCard({
       </div>
 
       <div className="flex items-baseline gap-[0.35rem] border-y border-border py-4">
-        <span className="text-[0.85rem] text-muted-foreground">от</span>
-        <span className="text-[2rem] leading-none font-[850] text-primary">
-          {price}
-        </span>
-        <span className="text-[0.85rem] text-muted-foreground">{unit}</span>
+        {priceNote ? (
+          <span className="text-[0.85rem] text-muted-foreground">
+            {priceNote}
+          </span>
+        ) : (
+          <>
+            <span className="text-[0.85rem] text-muted-foreground">от</span>
+            <span className="text-[2rem] leading-none font-[850] text-primary">
+              {price}
+            </span>
+            <span className="text-[0.85rem] text-muted-foreground">{unit}</span>
+          </>
+        )}
       </div>
 
       <CheckList
