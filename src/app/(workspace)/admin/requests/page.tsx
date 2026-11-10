@@ -4,6 +4,7 @@ import { PageHeading } from "@/components/page-heading";
 import { Card } from "@/components/ui/card";
 import { RequestList } from "@/features/requests/request-list";
 import { findAllRequestsForAdmin } from "@/features/admin/server/metrics";
+import { findSpecialistApplications } from "@/features/admin/server/queries";
 import { UserRole } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
 import { isDbConfigured } from "@/db";
@@ -26,7 +27,10 @@ export default async function AdminRequestsPage() {
     }
   }
 
-  const initialRequests = await findAllRequestsForAdmin(user);
+  const [initialRequests, specialists] = await Promise.all([
+    findAllRequestsForAdmin(user),
+    findSpecialistApplications(),
+  ]);
 
   return (
     <>
@@ -36,7 +40,11 @@ export default async function AdminRequestsPage() {
         description="Преглед и филтриране на всички клиентски заявки за услуги в платформата."
       />
       <Card>
-        <RequestList actions initialRequests={initialRequests ?? []} />
+        <RequestList
+          actions
+          initialRequests={initialRequests ?? []}
+          specialists={specialists ?? []}
+        />
       </Card>
     </>
   );

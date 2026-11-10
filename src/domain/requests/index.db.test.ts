@@ -189,9 +189,10 @@ describe("startWork", () => {
     ]);
   });
 
-  it("lets an admin start any accepted request", async () => {
+  it("refuses an admin starting work", async () => {
     const id = await accepted();
-    expect((await startWork(admin, id)).status).toBe(RequestStatus.InProgress);
+    expect(await rejection(startWork(admin, id))).toBe("FORBIDDEN");
+    expect((await statusOf(id)).status).toBe(RequestStatus.Accepted);
   });
 
   it("rejects the wrong or an unauthenticated actor without changing anything", async () => {
@@ -210,8 +211,13 @@ describe("startWork", () => {
   });
 
   it("rejects starting a request that is not accepted or is cancelled", async () => {
-    const unassigned = await insertRequest({ clientId: client.id });
-    expect(await rejection(startWork(admin, unassigned))).toBe("INVALID_STATE");
+    const unassigned = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+    });
+    expect(await rejection(startWork(specialist, unassigned))).toBe(
+      "INVALID_STATE",
+    );
 
     const cancelled = await insertRequest({
       clientId: client.id,
@@ -263,7 +269,7 @@ describe("submitReport", () => {
 
   it("rejects the wrong or an unauthenticated actor", async () => {
     const id = await inProgress();
-    for (const wrong of [client, otherSpecialist, pendingSpecialist]) {
+    for (const wrong of [client, admin, otherSpecialist, pendingSpecialist]) {
       expect(await rejection(submitReport(wrong, id, "Готово"))).toBe(
         "FORBIDDEN",
       );

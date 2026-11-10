@@ -146,8 +146,8 @@ const NO_RECOMMENDATION = {
   recommendedAt: null,
 } as const;
 
-// A specialist takes an open request; an admin may take any. Specialists must
-// be Active and match the request's trade and area.
+// A specialist takes an open request; admins dispatch instead. Specialists
+// must be Active and match the request's trade and area.
 export function claimRequest(
   actor: Actor | null,
   requestId: number,
