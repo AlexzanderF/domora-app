@@ -1,3 +1,5 @@
+import type { Tariffs } from "@/domain/requests/types";
+
 // Framework-free: every outbox event the domain can emit, with its payload.
 // Adding an event here without deciding its notification (see
 // notifications/handlers.ts) fails to compile.
@@ -19,6 +21,7 @@ export interface EventPayloads {
   "password.reset_completed": { userId: number };
   "account.client_registered": { userId: number };
   "account.profile_updated": { userId: number };
+  "tariffs.updated": { actorId: number; tariffs: Tariffs };
 }
 
 export type EventType = keyof EventPayloads;

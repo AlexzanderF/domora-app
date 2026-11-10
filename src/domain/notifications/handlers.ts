@@ -20,4 +20,5 @@ export const eventHandlers: ExhaustiveEventHandlers = {
   "password.reset_completed": null,
   "account.client_registered": null,
   "account.profile_updated": null,
+  "tariffs.updated": null,
 };

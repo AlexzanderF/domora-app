@@ -1,8 +1,9 @@
 import { desc, eq } from "drizzle-orm";
-import { requestEvents, requests, requireDb, users } from "@/db";
+import { requestEvents, requests, requireDb, tariffs, users } from "@/db";
 import type { DomoraDatabase, RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
+import { calculateQuote, tariffsFromRows } from "@/domain/pricing";
 import {
   consumeVisit,
   createSubscription,
@@ -22,7 +23,7 @@ import {
   requiresCompletionReport,
 } from "./lifecycle";
 import { RequestPriority, RequestStatus } from "@/domain/requests/types";
-import type { CategoryId } from "@/domain/requests/types";
+import type { CategoryId, Plan } from "@/domain/requests/types";
 
 // Framework-free (no next/*): the requests module is the sole writer of
 // request lifecycle state. Every function takes the Actor first and enforces
@@ -33,7 +34,8 @@ export type RequestErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "INVALID_INPUT"
-  | "INVALID_STATE";
+  | "INVALID_STATE"
+  | "PRICE_CHANGED";
 
 export class RequestError extends Error {
   constructor(
@@ -50,7 +52,14 @@ export interface CreateRequestInput {
   service: string;
   description: string;
   address: string;
-  price: number;
+  // The price the client was shown; the server computes the real price from
+  // the current Tariffs and rejects the booking when the two differ.
+  expectedPrice: number;
+  // Index of the chosen service within its category (0 = standard service).
+  serviceIndex?: number;
+  // Plan-based quote inputs (area in m² or number of floors).
+  plan?: Plan;
+  quantity?: number;
   priority?: RequestPriority;
   // Preferred visit: a calendar day (YYYY-MM-DD) and the picked time window.
   scheduledDate: string;
@@ -60,6 +69,12 @@ export interface CreateRequestInput {
 }
 
 // Serializable view of a request: timestamps are ISO strings, no Drizzle rows.
+// The fields every booking carries, whoever computes its price.
+type BookingFields = Omit<
+  CreateRequestInput,
+  "expectedPrice" | "serviceIndex" | "plan" | "quantity"
+>;
+
 export interface RequestDto {
   id: number;
   clientId: number;
@@ -156,7 +171,7 @@ function isCalendarDate(value: string): boolean {
 // Keeps the price well inside the integer column.
 const MAX_PRICE = 1_000_000;
 
-function validateBooking(input: CreateRequestInput) {
+function validateBooking(input: BookingFields) {
   const title = input.service.trim();
   const description = input.description.trim();
   const address = input.address.trim();
@@ -166,13 +181,6 @@ function validateBooking(input: CreateRequestInput) {
     throw new RequestError(
       "INVALID_INPUT",
       "Service, address and a description of at least 5 characters are required.",
-    );
-  }
-  const price = Math.round(input.price);
-  if (!(price > 0 && price <= MAX_PRICE)) {
-    throw new RequestError(
-      "INVALID_INPUT",
-      `The price must be between 1 and ${MAX_PRICE}.`,
     );
   }
   if (
@@ -188,7 +196,56 @@ function validateBooking(input: CreateRequestInput) {
   if (!scheduledTime) {
     throw new RequestError("INVALID_INPUT", "A time window is required.");
   }
-  return { title, description, address, scheduledTime, price };
+  return { title, description, address, scheduledTime };
+}
+
+function validatePrice(value: number): number {
+  const price = Math.round(value);
+  if (!(price > 0 && price <= MAX_PRICE)) {
+    throw new RequestError(
+      "INVALID_INPUT",
+      `The price must be between 1 and ${MAX_PRICE}.`,
+    );
+  }
+  return price;
+}
+
+// The server-side price of a one-off booking, from the current Tariffs.
+async function quoteBooking(
+  tx: Tx,
+  input: CreateRequestInput,
+): Promise<number> {
+  const serviceIndex = input.serviceIndex ?? 0;
+  if (!Number.isInteger(serviceIndex) || serviceIndex < 0) {
+    throw new RequestError("INVALID_INPUT", "Unknown service.");
+  }
+  if (
+    !Number.isInteger(input.category) ||
+    input.category < 0 ||
+    input.category > 5
+  ) {
+    throw new RequestError("INVALID_INPUT", "Unknown category.");
+  }
+  let price: number;
+  try {
+    price = calculateQuote(
+      tariffsFromRows(
+        await tx
+          .select({
+            category: tariffs.category,
+            standardRate: tariffs.standardRate,
+          })
+          .from(tariffs),
+      ),
+      input.category,
+      serviceIndex,
+      input.plan,
+      input.quantity,
+    );
+  } catch {
+    throw new RequestError("INVALID_INPUT", "The quote inputs are not valid.");
+  }
+  return validatePrice(price);
 }
 
 export async function recordEvent(
@@ -259,7 +316,8 @@ async function update(
 async function insertRequest(
   tx: Tx,
   actor: Actor,
-  input: CreateRequestInput,
+  input: BookingFields,
+  price: number,
 ): Promise<RequestDto> {
   const booking = validateBooking(input);
   const [owner] = await tx
@@ -290,7 +348,7 @@ async function insertRequest(
       address: booking.address,
       priority: input.priority ?? RequestPriority.Standard,
       status: RequestStatus.Created,
-      price: booking.price,
+      price,
       clientPhone: owner.phone,
       scheduledDate: input.scheduledDate,
       scheduledTime: booking.scheduledTime,
@@ -317,7 +375,16 @@ export async function createRequest(
 ): Promise<RequestDto> {
   const actor = requireActor(actorOrNull);
   if (!can(actor, "request.create")) forbidden();
-  return requireDb().transaction((tx) => insertRequest(tx, actor, input));
+  return requireDb().transaction(async (tx) => {
+    const price = await quoteBooking(tx, input);
+    if (Math.round(input.expectedPrice) !== price) {
+      throw new RequestError(
+        "PRICE_CHANGED",
+        "The price changed since it was quoted.",
+      );
+    }
+    return insertRequest(tx, actor, input, price);
+  });
 }
 
 // Starts a subscription and books its first visit in one transaction, so a
@@ -325,16 +392,18 @@ export async function createRequest(
 export async function startSubscription(
   actorOrNull: Actor | null,
   plan: CreateSubscriptionInput,
-  firstVisit: Omit<CreateRequestInput, "subscriptionId">,
+  firstVisit: Omit<BookingFields, "subscriptionId"> & { price: number },
 ): Promise<{ subscription: Subscription; request: RequestDto }> {
   const actor = requireActor(actorOrNull);
   if (!can(actor, "request.create")) forbidden();
   return requireDb().transaction(async (tx) => {
     const subscription = await createSubscription(actor, plan, tx);
-    const request = await insertRequest(tx, actor, {
-      ...firstVisit,
-      subscriptionId: subscription.id,
-    });
+    const request = await insertRequest(
+      tx,
+      actor,
+      { ...firstVisit, subscriptionId: subscription.id },
+      validatePrice(firstVisit.price),
+    );
     return { subscription, request };
   });
 }
@@ -469,23 +538,12 @@ export function rateRequest(
   });
 }
 
-// Clients and admins cancel the request; the assigned specialist can only
-// hand an accepted request back to the pool (it returns to CREATED).
+// Clients and admins cancel the request.
 export function cancelRequest(
   actor: Actor | null,
   requestId: number,
 ): Promise<RequestDto> {
-  return mutate(actor, requestId, "request.cancel", (row, who) => {
-    if (who.role === UserRole.Specialist) {
-      if (!canHandBack(row)) {
-        invalidState("Only an accepted request can be handed back.");
-      }
-      return {
-        type: "request.released",
-        values: { specialistId: null, status: RequestStatus.Created },
-      };
-    }
-
+  return mutate(actor, requestId, "request.cancel", (row) => {
     if (!canCancelAsClient(row)) {
       invalidState("This request can no longer be cancelled.");
     }
@@ -497,6 +555,23 @@ export function cancelRequest(
       afterWrite: subscriptionId
         ? (tx) => refundVisit(tx, subscriptionId)
         : undefined,
+    };
+  });
+}
+
+// Hand-back: the assigned specialist returns an accepted request to the open
+// pool (it goes back to CREATED, unassigned).
+export function releaseRequest(
+  actor: Actor | null,
+  requestId: number,
+): Promise<RequestDto> {
+  return mutate(actor, requestId, "request.release", (row) => {
+    if (!canHandBack(row)) {
+      invalidState("Only an accepted request can be handed back.");
+    }
+    return {
+      type: "request.released",
+      values: { specialistId: null, status: RequestStatus.Created },
     };
   });
 }

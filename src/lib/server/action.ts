@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { isDbConfigured } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { IdentityError } from "@/domain/identity";
+import { PricingError } from "@/domain/pricing/tariffs";
 import { RequestError } from "@/domain/requests";
 import { SubscriptionError } from "@/domain/subscriptions";
 import { getActor } from "@/features/auth/server/actor";
@@ -55,6 +56,7 @@ const REVALIDATION_SETS = {
     "/admin",
   ],
   subscriptions: ["/client/plan", "/client/requests", "/client"],
+  tariffs: ["/admin", "/plans", "/"],
   specialists: [
     "/admin/specialists",
     "/admin",
@@ -76,7 +78,8 @@ function domainErrorCode(error: unknown): ActionErrorCode | null {
   if (
     error instanceof RequestError ||
     error instanceof SubscriptionError ||
-    error instanceof IdentityError
+    error instanceof IdentityError ||
+    error instanceof PricingError
   ) {
     return error.code in DEFAULT_MESSAGES
       ? (error.code as ActionErrorCode)

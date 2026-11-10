@@ -45,7 +45,7 @@ export function BookingDialog({ tariffs }: { tariffs: Tariffs }) {
 
 function BookingForm({
   selection,
-  tariffs,
+  tariffs: initialTariffs,
 }: {
   selection: BookingSelection;
   tariffs: Tariffs;
@@ -53,6 +53,8 @@ function BookingForm({
   const router = useRouter();
   const { closeBooking } = useBooking();
   const notify = useToast();
+  // Replaced by the server's fresh Tariffs when a booking hits a stale price.
+  const [tariffs, setTariffs] = useState(initialTariffs);
   const [category, setCategory] = useState<CategoryId>(selection.category);
   const [serviceIndex, setServiceIndex] = useState(0);
   const [quantity, setQuantity] = useState(
@@ -114,7 +116,9 @@ function BookingForm({
         description,
         date: dateStr,
         time: timeStr,
-        price,
+        expectedPrice: price,
+        serviceIndex,
+        quantity: plan ? Number(quantity) : undefined,
         plan,
       });
 
@@ -134,6 +138,7 @@ function BookingForm({
         return;
       }
 
+      if (actionResult.tariffs) setTariffs(actionResult.tariffs);
       notify(
         actionResult.error ?? "Възникна грешка при създаване на заявката.",
       );

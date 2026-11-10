@@ -92,6 +92,13 @@
       "when": 1794253155797,
       "tag": "0012_password_reset_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794340530986,
+      "tag": "0013_sweet_valkyrie",
+      "breakpoints": true
     }
   ]
 }

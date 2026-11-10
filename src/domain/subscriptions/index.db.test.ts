@@ -25,11 +25,11 @@ const homePlan = {
 };
 
 const booking: CreateRequestInput = {
-  category: 4,
+  category: 0,
   service: "Абонамент За дома",
   description: "Редовно почистване",
   address: "София, ул. Тест 1",
-  price: 45,
+  expectedPrice: 45,
   scheduledDate: "2030-05-17",
   scheduledTime: "09:00 - 12:00",
 };
@@ -266,7 +266,8 @@ describe("cancelling a request booked against a subscription", () => {
 });
 
 describe("startSubscription", () => {
-  const firstVisit = booking;
+  const { expectedPrice: price, ...rest } = booking;
+  const firstVisit = { ...rest, price };
 
   it("saves the subscription and books the first visit against it", async () => {
     const { subscription, request } = await startSubscription(

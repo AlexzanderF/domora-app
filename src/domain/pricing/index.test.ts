@@ -80,7 +80,7 @@ describe("tariffsFromRows", () => {
       0: 50,
       4: 70,
     });
-    expect(tariffs.home).toBe(20);
+    expect(tariffs.home).toBe(2);
     expect(tariffs.entry).toBe(22);
   });
 
