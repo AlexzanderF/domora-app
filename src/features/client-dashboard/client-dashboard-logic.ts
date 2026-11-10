@@ -25,6 +25,21 @@ export function getTrackerSegments(status: ServiceRequest["status"]) {
   return trackerStages.map((_, index) => index <= stage);
 }
 
+// Which request controls the tracker shows: only what the request's
+// allowed actions offer; the rating prompt replaces confirm/dispute.
+export function getTrackerControls(
+  request: Pick<ServiceRequest, "actions">,
+  ratingOpen: boolean,
+) {
+  const can = (kind: ServiceRequest["actions"][number]) =>
+    request.actions.includes(kind);
+  return {
+    confirm: can("confirm") && !ratingOpen,
+    dispute: can("dispute") && !ratingOpen,
+    rate: can("rate") && ratingOpen,
+  };
+}
+
 export function selectActiveRequest(requests: ServiceRequest[]) {
   const active = requests.filter(
     (request) =>
