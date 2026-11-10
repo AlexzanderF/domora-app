@@ -14,7 +14,7 @@ export default async function ClientRequestsPage() {
   const user = await getServerSession();
   if (!user) redirect("/api/auth/logout?next=/login");
 
-  const initialRequests = (await findClientRequests(user.id)) ?? [];
+  const initialRequests = (await findClientRequests(user)) ?? [];
 
   return (
     <>

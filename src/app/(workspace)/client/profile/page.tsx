@@ -49,10 +49,7 @@ export default async function ClientProfilePage() {
   }
 
   const [subscription, requests] = user
-    ? await Promise.all([
-        findUserSubscription(user),
-        findClientRequests(user.id),
-      ])
+    ? await Promise.all([findUserSubscription(user), findClientRequests(user)])
     : [null, null];
 
   const latestRequestAddress = requests?.find((request) =>

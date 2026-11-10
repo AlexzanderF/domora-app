@@ -6,6 +6,7 @@ import type { RequestSelect } from "@/db/schema";
 import { listOpportunities } from "@/domain/dispatch";
 import { listReportPhotoIds } from "@/domain/photos";
 import type { Actor } from "@/domain/authorization";
+import { withActions } from "@/domain/requests/actions";
 import { UserStatus } from "@/domain/identity/types";
 import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 
@@ -25,7 +26,7 @@ function scheduleOf(request: RequestSelect): { date: string; time: string } {
 }
 
 export async function findClientRequests(
-  clientId: number,
+  actor: Actor,
 ): Promise<ServiceRequest[] | null> {
   if (!isDbConfigured) {
     return null;
@@ -41,7 +42,7 @@ export async function findClientRequests(
     })
     .from(requests)
     .leftJoin(users, eq(requests.specialistId, users.id))
-    .where(eq(requests.clientId, clientId))
+    .where(eq(requests.clientId, actor.id))
     .orderBy(desc(requests.createdAt));
   const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
 
@@ -50,24 +51,28 @@ export async function findClientRequests(
     const category: CategoryId =
       rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
 
-    return {
-      id: request.id,
-      category,
-      service: request.title,
-      address: request.address,
-      ...scheduleOf(request),
-      price: request.price,
-      status: request.status,
-      description: request.description,
-      cancelled: request.cancelled,
-      report: request.report ?? undefined,
-      reportPhotoIds: reportPhotos.get(request.id),
-      rating: request.rating ?? undefined,
-      issue: request.issue || undefined,
-      issueNote: request.issueNote ?? undefined,
-      specialist: specialist?.name,
-      specialistPhone: specialist?.phone,
-    };
+    return withActions(
+      actor,
+      {
+        id: request.id,
+        category,
+        service: request.title,
+        address: request.address,
+        ...scheduleOf(request),
+        price: request.price,
+        status: request.status,
+        description: request.description,
+        cancelled: request.cancelled,
+        report: request.report ?? undefined,
+        reportPhotoIds: reportPhotos.get(request.id),
+        rating: request.rating ?? undefined,
+        issue: request.issue || undefined,
+        issueNote: request.issueNote ?? undefined,
+        specialist: specialist?.name,
+        specialistPhone: specialist?.phone,
+      },
+      request,
+    );
   });
 }
 
@@ -114,30 +119,34 @@ export async function findSpecialistRequests(
       const categoryId: CategoryId =
         rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
 
-      return {
-        id: request.id,
-        category: categoryId,
-        service: request.title,
-        address: request.address,
-        ...scheduleOf(request),
-        price: request.price,
-        status: request.status,
-        priority: request.priority,
-        description: request.description,
-        cancelled: request.cancelled,
-        report: request.report ?? undefined,
-        reportPhotoIds: reportPhotos.get(request.id),
-        rating: request.rating ?? undefined,
-        issue: request.issue || undefined,
-        issueNote: request.issueNote ?? undefined,
-        recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
-        dispatchedByAdmin: request.dispatchedByAdmin || undefined,
-        specialist:
-          request.specialistId === specialistId ? "Вие" : specialist?.name,
-        specialistPhone: specialist?.phone,
-        clientName: client?.name,
-        clientPhone: request.clientPhone,
-      };
+      return withActions(
+        actor,
+        {
+          id: request.id,
+          category: categoryId,
+          service: request.title,
+          address: request.address,
+          ...scheduleOf(request),
+          price: request.price,
+          status: request.status,
+          priority: request.priority,
+          description: request.description,
+          cancelled: request.cancelled,
+          report: request.report ?? undefined,
+          reportPhotoIds: reportPhotos.get(request.id),
+          rating: request.rating ?? undefined,
+          issue: request.issue || undefined,
+          issueNote: request.issueNote ?? undefined,
+          recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
+          dispatchedByAdmin: request.dispatchedByAdmin || undefined,
+          specialist:
+            request.specialistId === specialistId ? "Вие" : specialist?.name,
+          specialistPhone: specialist?.phone,
+          clientName: client?.name,
+          clientPhone: request.clientPhone,
+        },
+        request,
+      );
     })
     .sort((a, b) => {
       // Requests recommended to the viewing specialist float to the top.

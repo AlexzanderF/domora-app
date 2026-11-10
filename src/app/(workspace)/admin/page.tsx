@@ -56,9 +56,9 @@ export default async function AdminPage() {
   ] = await Promise.all([
     findAdminKpiMetrics(),
     findSpecialistApplications(),
-    findDisputedRequestsForAdmin(),
+    findDisputedRequestsForAdmin(user),
     findResolvedDisputesForAdmin(),
-    findUnassignedRequestsForAdmin(),
+    findUnassignedRequestsForAdmin(user),
   ]);
 
   return (

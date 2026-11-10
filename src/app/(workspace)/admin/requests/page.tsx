@@ -26,7 +26,7 @@ export default async function AdminRequestsPage() {
     }
   }
 
-  const initialRequests = await findAllRequestsForAdmin();
+  const initialRequests = await findAllRequestsForAdmin(user);
 
   return (
     <>
@@ -36,11 +36,7 @@ export default async function AdminRequestsPage() {
         description="Преглед и филтриране на всички клиентски заявки за услуги в платформата."
       />
       <Card>
-        <RequestList
-          actions
-          role="admin"
-          initialRequests={initialRequests ?? []}
-        />
+        <RequestList actions initialRequests={initialRequests ?? []} />
       </Card>
     </>
   );

@@ -29,7 +29,7 @@ describe("admin dispute triage queries", () => {
   it("lists an open dispute with its note, then moves it to history", async () => {
     await raiseDispute(client, requestId, "Течът остава");
 
-    const open = await findDisputedRequestsForAdmin();
+    const open = await findDisputedRequestsForAdmin(admin);
     expect(open?.map((r) => [r.id, r.issueNote])).toEqual([
       [requestId, "Течът остава"],
     ]);
@@ -37,7 +37,7 @@ describe("admin dispute triage queries", () => {
 
     await resolveDispute(admin, requestId, "Поправено");
 
-    expect(await findDisputedRequestsForAdmin()).toEqual([]);
+    expect(await findDisputedRequestsForAdmin(admin)).toEqual([]);
     const history = await findResolvedDisputesForAdmin();
     expect(history).toHaveLength(1);
     expect(history?.[0]).toMatchObject({

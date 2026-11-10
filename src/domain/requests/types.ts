@@ -1,3 +1,5 @@
+import type { ActionKind } from "./actions";
+
 export const Role = {
   Client: "client",
   Specialist: "specialist",
@@ -59,6 +61,8 @@ export interface ServiceRequest {
   subscriptionId?: number;
   clientName?: string;
   clientPhone?: string;
+  // What the viewing actor may do with this request right now.
+  actions: ActionKind[];
 }
 
 export interface Tariff {
