@@ -8,16 +8,19 @@ import { money } from "@/lib/format";
 import { ReportPhotos } from "./report-photos";
 import { RequestActions } from "./request-actions";
 import { Plan, RequestStatus } from "@/domain/requests/types";
+import type { User } from "@/domain/identity/types";
 import type { ServiceRequest } from "@/domain/requests/types";
 
 export function RequestList({
   limit,
   actions = false,
   initialRequests,
+  specialists,
 }: {
   limit?: number;
   actions?: boolean;
   initialRequests: ServiceRequest[];
+  specialists?: User[];
 }) {
   const items = limit ? initialRequests.slice(0, limit) : initialRequests;
   if (!items.length)
@@ -70,7 +73,7 @@ export function RequestList({
                 </p>
                 {request.report && <p>Отчет: {request.report}</p>}
                 <ReportPhotos photoIds={request.reportPhotoIds} />
-                <RequestActions request={request} />
+                <RequestActions request={request} specialists={specialists} />
                 {request.issue && (
                   <p className="border-l-[3px] border-tone-9bc092 bg-tone-ebf1e8 px-4 py-3">
                     Подаден сигнал. Очаква преглед от DOMORA.

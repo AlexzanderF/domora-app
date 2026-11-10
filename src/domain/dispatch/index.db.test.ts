@@ -242,14 +242,9 @@ describe("claimRequest", () => {
     expect(await rejection(claimRequest(bare, id))).toBe("FORBIDDEN");
   });
 
-  it("lets an admin act on any request regardless of matching", async () => {
-    const id = await insertRequest({
-      clientId: client.id,
-      category: "1",
-      address: "Варна",
-    });
-    const claimed = await claimRequest(admin, id);
-    expect(claimed.specialistId).toBe(admin.id);
+  it("refuses an admin claiming a request", async () => {
+    const id = await openPlumbing();
+    expect(await rejection(claimRequest(admin, id))).toBe("FORBIDDEN");
   });
 
   it("reports an unknown request", async () => {
