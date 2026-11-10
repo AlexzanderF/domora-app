@@ -1,47 +1,18 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { OpportunityFeed } from "@/features/specialist/opportunity-feed";
-import { UserRole, UserStatus } from "@/domain/identity/types";
-import { getServerSession } from "@/features/auth/server/session";
-import { RequestStatus } from "@/domain/requests/types";
-import { findSpecialistRequests } from "@/features/requests/server/queries";
+import { UserRole } from "@/domain/identity/types";
+import { listOpportunities } from "@/domain/dispatch";
+import { getActor } from "@/features/auth/server/actor";
+import { presentSpecialistRequest } from "@/features/requests/presenter";
 import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = { title: "Нови възможности" };
 export const dynamic = "force-dynamic";
 
 export default async function SpecialistOpportunitiesPage() {
-  const user = await getServerSession();
-  if (isDbConfigured) {
-    if (!user) {
-      redirect("/api/auth/logout?next=/login");
-    }
-    if (
-      user.role === UserRole.Specialist &&
-      user.status === UserStatus.Pending
-    ) {
-      redirect("/pending-approval");
-    }
-    if (user.role === UserRole.Client) {
-      redirect("/client");
-    }
-  }
-
-  const allRequests =
-    user?.role === UserRole.Specialist || user?.role === UserRole.Admin
-      ? await findSpecialistRequests({
-          id: user.id,
-          role: user.role,
-          status: user.status,
-        })
-      : null;
-
-  const initialOpportunities = allRequests
-    ? allRequests.filter(
-        (req) => req.status === RequestStatus.Created && !req.cancelled,
-      )
-    : null;
+  const actor = isDbConfigured ? await getActor() : null;
+  const opportunities = actor ? await listOpportunities(actor) : [];
 
   return (
     <>
@@ -51,8 +22,10 @@ export default async function SpecialistOpportunitiesPage() {
         description="Преглеждайте и приемайте налични заявки, съответстващи на вашия профил."
       />
       <OpportunityFeed
-        initialOpportunities={initialOpportunities ?? []}
-        specialistId={user?.role === UserRole.Specialist ? user.id : undefined}
+        initialOpportunities={opportunities.map(presentSpecialistRequest)}
+        specialistId={
+          actor?.role === UserRole.Specialist ? actor.id : undefined
+        }
       />
     </>
   );

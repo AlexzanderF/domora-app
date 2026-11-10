@@ -50,8 +50,19 @@ export type { RequestErrorCode } from "./errors";
 export { resourceOf };
 export { toDto } from "./dto";
 export type { RequestDto } from "./dto";
-export { listAll, listClientRequests, listTriage } from "./read";
-export type { AdminRequest, ClientRequest } from "./read";
+export {
+  listAgenda,
+  listAll,
+  listClientRequests,
+  listTriage,
+  specialistSummary,
+} from "./read";
+export type {
+  AdminRequest,
+  AgendaRequest,
+  ClientRequest,
+  SpecialistSummary,
+} from "./read";
 export type { Tx };
 
 export interface CreateRequestInput {

@@ -1,4 +1,9 @@
-import type { AdminRequest, ClientRequest } from "@/domain/requests";
+import type { ActionKind } from "@/domain/requests/actions";
+import type {
+  AdminRequest,
+  ClientRequest,
+  RequestDto,
+} from "@/domain/requests";
 import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 
 // The one place a domain request becomes the UI view model: display values and
@@ -46,4 +51,17 @@ export function presentAdminRequest(request: AdminRequest): ServiceRequest {
     clientName: request.clientName ?? undefined,
     clientPhone: request.clientPhone,
   };
+}
+
+// A request as the specialist sees it: an agenda entry or a job opportunity.
+export function presentSpecialistRequest(
+  request: RequestDto & { actions: ActionKind[]; clientName?: string | null },
+): ServiceRequest {
+  return presentAdminRequest({
+    specialistName: null,
+    specialistPhone: null,
+    reportPhotoIds: [],
+    clientName: null,
+    ...request,
+  });
 }
