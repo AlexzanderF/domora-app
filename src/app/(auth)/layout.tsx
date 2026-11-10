@@ -1,7 +1,7 @@
 import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
-import { LandingFooter } from "@/features/landing/landing-footer";
-import { LandingHeader } from "@/features/landing/landing-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
@@ -15,8 +15,8 @@ export default function AuthLayout({
   return (
     <>
       <SkipLink />
-      <LandingHeader />
-      <div className="flex min-h-[calc(100dvh-78px)] flex-col items-center justify-center bg-background px-4 py-12">
+      <SiteHeader variant="auth" />
+      <div className="flex min-h-[calc(100dvh-56px)] flex-col items-center justify-center bg-background px-4 py-12">
         <main
           id="main"
           className="m-auto flex min-h-[65dvh] w-full max-w-[480px] scroll-mt-[72px] flex-col items-center px-[18px] py-6 md:min-h-[calc(100dvh-130px)] md:p-7 lg:px-11 lg:py-[38px] min-[1500px]:pt-[50px]"
@@ -26,7 +26,7 @@ export default function AuthLayout({
           </Card>
         </main>
       </div>
-      <LandingFooter />
+      <SiteFooter />
     </>
   );
 }

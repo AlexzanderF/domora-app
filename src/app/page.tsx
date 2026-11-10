@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { FinalCta } from "@/features/landing/final-cta";
 import { Hero } from "@/features/landing/hero";
 import { HowItWorks } from "@/features/landing/how-it-works";
-import { LandingFooter } from "@/features/landing/landing-footer";
-import { LandingHeader } from "@/features/landing/landing-header";
+import { SiteFooter } from "@/components/layout/site-footer";
+import { SiteHeader } from "@/components/layout/site-header";
 import { ServiceShowcase } from "@/features/landing/service-showcase";
 import { Faq, TrustAndTestimonials } from "@/features/landing/trust-sections";
 import { UserRole, UserStatus } from "@/domain/identity/types";
@@ -39,7 +39,7 @@ export default async function HomePage() {
   return (
     <>
       <SkipLink />
-      <LandingHeader />
+      <SiteHeader />
       <PageContainer as="main" id="main" className="pt-4 pb-0 sm:pt-[1.35rem]">
         <Hero />
         <HowItWorks />
@@ -48,7 +48,7 @@ export default async function HomePage() {
         <Faq />
         <FinalCta />
       </PageContainer>
-      <LandingFooter />
+      <SiteFooter />
     </>
   );
 }

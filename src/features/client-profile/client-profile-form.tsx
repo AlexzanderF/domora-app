@@ -177,7 +177,7 @@ export function ClientProfileForm({
           </Label>
         </div>
 
-        <div className="sticky bottom-0 z-[2] -mx-[1.15rem] grid grid-cols-1 items-center gap-4 border-t border-border bg-white/95 px-[1.15rem] pt-[0.9rem] pb-4 shadow-[0_-12px_24px_rgba(24,43,38,0.08)] md:-mx-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-6 md:py-4">
+        <div className="sticky bottom-0 z-[2] -mx-[1.15rem] grid grid-cols-1 items-center gap-4 border-t border-border bg-white/95 px-[1.15rem] pt-[0.9rem] pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-12px_24px_rgba(24,43,38,0.08)] md:-mx-6 md:grid-cols-[minmax(0,1fr)_auto] md:px-6 md:py-4">
           <div className="min-w-0">
             {formError && (
               <p
@@ -197,7 +197,7 @@ export function ClientProfileForm({
             )}
           </div>
           <Button
-            className="inline-flex min-h-[42px] items-center justify-center rounded-lg px-4 py-[0.65rem] font-bold disabled:opacity-70 w-full md:w-auto"
+            className="rounded-lg px-4 font-bold disabled:opacity-70 w-full md:w-auto"
             type="submit"
             disabled={isPending}
           >
