@@ -153,11 +153,11 @@ function BookingForm({
       <DialogContent
         showCloseButton={false}
         aria-describedby={undefined}
-        className="max-h-[min(96vh,820px)] w-[min(720px,94vw)] rounded-[14px] p-[22px] max-[640px]:p-[18px]"
+        className="max-h-[min(96dvh,820px)] w-[min(720px,94vw)] rounded-[14px] p-[18px] sm:p-[22px]"
       >
         <div className="mb-4 flex items-start justify-between gap-[18px]">
           <div>
-            <span className="text-[0.68rem] font-extrabold tracking-[0.06em] text-tone-668078">
+            <span className="text-xs font-extrabold tracking-[0.06em] text-tone-668078">
               DOMORA / НОВА ЗАЯВКА
             </span>
             <DialogTitle className="mt-[5px] mb-0 text-[1.35rem] leading-[1.18] text-tone-17372f">
@@ -291,7 +291,7 @@ function BookingForm({
             </Field>
           )}
           <div
-            className="quote flex items-center justify-between gap-4 rounded-[7px] border border-tone-dbe5df bg-tone-edf4e8 px-3.5 py-[13px] max-[640px]:flex-col max-[640px]:items-start max-[640px]:gap-1.5 [&>span]:max-w-[260px] [&>span]:text-right [&>span]:text-[0.78rem] [&>span]:text-tone-40564f max-[640px]:[&>span]:max-w-none max-[640px]:[&>span]:text-left [&_small]:text-[0.72rem] [&_small]:text-tone-687b75 [&_strong]:block [&_strong]:text-[1.38rem] [&_strong]:leading-[1.1] [&_strong]:text-tone-17372f"
+            className="quote flex flex-col items-start gap-1.5 rounded-[7px] border border-tone-dbe5df bg-tone-edf4e8 px-3.5 py-[13px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 [&>span]:text-left [&>span]:text-[0.78rem] [&>span]:text-tone-40564f sm:[&>span]:max-w-[260px] sm:[&>span]:text-right [&_small]:text-xs [&_small]:text-tone-687b75 [&_strong]:block [&_strong]:text-[1.38rem] [&_strong]:leading-[1.1] [&_strong]:text-tone-17372f"
             aria-live="polite"
           >
             <div>
@@ -321,7 +321,7 @@ function BookingForm({
   );
 }
 
-const fieldGridClass = "grid grid-cols-2 gap-[0.8rem] max-[640px]:grid-cols-1";
+const fieldGridClass = "grid grid-cols-1 gap-[0.8rem] sm:grid-cols-2";
 
 function Field({
   label,

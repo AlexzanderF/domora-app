@@ -7,7 +7,7 @@ export function BookingButton() {
   const { openBooking } = useBooking();
   return (
     <Button
-      className="max-[700px]:w-full"
+      className="w-full md:w-auto"
       onClick={() => openBooking({ category: 0 })}
     >
       + Нова заявка
