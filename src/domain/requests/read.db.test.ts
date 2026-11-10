@@ -4,7 +4,7 @@ import { raiseDispute } from "@/domain/disputes";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
-import { listClientRequests } from "./read";
+import { listAgenda, listClientRequests, specialistSummary } from "./read";
 
 let client: Actor;
 let otherClient: Actor;
@@ -81,6 +81,98 @@ describe("listClientRequests", () => {
     });
     await expect(listClientRequests(null)).rejects.toMatchObject({
       code: "UNAUTHENTICATED",
+    });
+  });
+});
+
+describe("listAgenda", () => {
+  it("shows the specialist only their own accepted and in-flight requests", async () => {
+    const accepted = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+    });
+    const inProgress = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.InProgress,
+    });
+    await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Completed,
+    });
+    await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+      cancelled: true,
+    });
+    await insertRequest({ clientId: client.id });
+    const other = await createActor(UserRole.Specialist);
+    await insertRequest({
+      clientId: client.id,
+      specialistId: other.id,
+      status: RequestStatus.Accepted,
+    });
+
+    const agenda = await listAgenda(specialist);
+
+    expect(agenda.map((r) => r.id)).toEqual([inProgress, accepted]);
+    expect(agenda[1].clientName).toMatch(/^Test CLIENT/i);
+    expect(agenda[1].actions).toEqual(["release", "start"]);
+  });
+
+  it("shows nothing to Pending or Rejected specialists, admins and clients", async () => {
+    const pending = await createActor(UserRole.Specialist, UserStatus.Pending);
+    const rejected = await createActor(
+      UserRole.Specialist,
+      UserStatus.Rejected,
+    );
+    const admin = await createActor(UserRole.Admin);
+    for (const assignee of [pending, rejected]) {
+      await insertRequest({
+        clientId: client.id,
+        specialistId: assignee.id,
+        status: RequestStatus.Accepted,
+      });
+    }
+
+    expect(await listAgenda(pending)).toEqual([]);
+    expect(await listAgenda(rejected)).toEqual([]);
+    expect(await listAgenda(admin)).toEqual([]);
+    expect(await listAgenda(client)).toEqual([]);
+    await expect(listAgenda(null)).rejects.toMatchObject({
+      code: "UNAUTHENTICATED",
+    });
+  });
+});
+
+describe("specialistSummary", () => {
+  it("counts active jobs and the earnings of visits completed today", async () => {
+    await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.InProgress,
+    });
+    await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Completed,
+      scheduledDate: "2030-05-17",
+      price: 60,
+    });
+    await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Completed,
+      scheduledDate: "2030-05-16",
+      price: 99,
+    });
+
+    expect(await specialistSummary(specialist, "2030-05-17")).toEqual({
+      activeJobs: 1,
+      todaysEarnings: 60,
     });
   });
 });

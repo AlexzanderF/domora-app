@@ -13,6 +13,8 @@ import {
   toDto,
 } from "@/domain/requests";
 import type { RequestDto } from "@/domain/requests";
+import { withActions } from "@/domain/requests/actions";
+import type { ActionKind } from "@/domain/requests/actions";
 import { transitionRequest } from "@/domain/requests/transition";
 import type { Change, Tx } from "@/domain/requests/transition";
 import { UserRole, UserStatus } from "@/domain/identity/types";
@@ -68,12 +70,17 @@ async function profileOf(
   return profile;
 }
 
+export interface OpportunityRequest extends RequestDto {
+  // What the viewing actor may do with this request right now.
+  actions: ActionKind[];
+}
+
 // Open requests the actor could take: matching trade and area for an Active
 // specialist (recommended ones first), every open request for an admin, and
 // nothing for anyone else, Pending/Rejected specialists included.
 export async function listOpportunities(
   actorOrNull: Actor | null,
-): Promise<RequestDto[]> {
+): Promise<OpportunityRequest[]> {
   const actor = requireActor(actorOrNull);
   const isAdmin = actor.role === UserRole.Admin;
   const isActiveSpecialist =
@@ -101,7 +108,9 @@ export async function listOpportunities(
     : rows.filter((row) => matchesProfile(row, profile));
   const rank = (row: RequestSelect) =>
     row.recommendedSpecialistId === actor.id ? 0 : 1;
-  return visible.sort((a, b) => rank(a) - rank(b)).map(toDto);
+  return visible
+    .sort((a, b) => rank(a) - rank(b))
+    .map((row) => withActions(actor, toDto(row), row));
 }
 
 function isDispatcher(actor: Actor): boolean {

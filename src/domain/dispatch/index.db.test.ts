@@ -104,6 +104,7 @@ describe("listOpportunities", () => {
     const jobs = await listOpportunities(plumber);
 
     expect(jobs.map((j) => j.id)).toEqual([match]);
+    expect(jobs[0].actions).toEqual(["claim"]);
   });
 
   it("floats jobs recommended to the specialist to the top", async () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ClientRequest } from "@/domain/requests";
 import { RequestPriority, RequestStatus } from "@/domain/requests/types";
-import { presentClientRequest } from "./presenter";
+import { presentClientRequest, presentSpecialistRequest } from "./presenter";
 
 const base: ClientRequest = {
   id: 1,
@@ -54,5 +54,27 @@ describe("presentClientRequest", () => {
     });
     expect(view.date).toBe("2030-01-02");
     expect(view.time).toMatch(/\d{2}:\d{2}/);
+  });
+});
+
+describe("presentSpecialistRequest", () => {
+  it("carries dispatch and client fields for specialist screens", () => {
+    const view = presentSpecialistRequest({
+      ...base,
+      priority: RequestPriority.Urgent,
+      recommendedSpecialistId: 7,
+      dispatchedByAdmin: true,
+      clientName: "Иван",
+      actions: ["claim"],
+    });
+    expect(view).toMatchObject({
+      priority: RequestPriority.Urgent,
+      recommendedSpecialistId: 7,
+      dispatchedByAdmin: true,
+      clientName: "Иван",
+      clientPhone: "0888000000",
+      date: "2030-05-17",
+      actions: ["claim"],
+    });
   });
 });
