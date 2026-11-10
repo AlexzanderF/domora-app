@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { getServerSession } from "@/features/auth/server/session";
 import { findTariffs } from "@/domain/pricing/tariffs";
@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: { default: "DOMORA — грижа за дома", template: "%s | DOMORA" },
   description:
     "Вашите услуги, заявки и абонаменти за дома на едно място. Демонстрационен прототип.",
+};
+
+// Explicit viewport: safe-area insets resolve on iPhones; zoom stays enabled.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({

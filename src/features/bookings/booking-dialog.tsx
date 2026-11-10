@@ -5,16 +5,17 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
+  DialogBody,
   DialogContent,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast-provider";
-import { DatePicker } from "@/features/plans/date-picker";
-import { TimePicker } from "@/features/plans/time-picker";
+import { DateField, TimeRangeSelect } from "@/components/ui/schedule-fields";
 import { useBooking } from "./booking-provider";
 import { calculateQuote, quoteScope } from "@/domain/pricing";
 import { createServiceRequestAction } from "@/features/requests/server/actions";
@@ -26,6 +27,7 @@ import type {
 } from "@/domain/requests/types";
 import { categories, isCategoryId } from "@/features/services/catalog";
 import { localDate, money } from "@/lib/format";
+import { isPastDate } from "@/lib/schedule";
 import { PhotoPicker } from "./photo-picker";
 import { uploadRequestPhotos } from "./upload-photos";
 import { cn } from "@/lib/utils";
@@ -90,7 +92,7 @@ function BookingForm({
       nextErrors.description = "Описанието трябва да е поне 5 символа.";
     if (!address) nextErrors.address = "Въведете адрес на имота.";
     if (!dateStr) nextErrors.date = "Изберете предпочитана дата.";
-    else if (dateStr < today)
+    else if (isPastDate(dateStr, today))
       nextErrors.date = "Датата не може да бъде в миналото.";
     if (!timeStr) nextErrors.time = "Изберете часови диапазон.";
     if (!validQuantity) {
@@ -151,177 +153,172 @@ function BookingForm({
       }}
     >
       <DialogContent
-        showCloseButton={false}
         aria-describedby={undefined}
-        className="max-h-[min(96vh,820px)] w-[min(720px,94vw)] rounded-[14px] p-[22px] max-[640px]:p-[18px]"
+        className="h-[92dvh] sm:h-auto sm:max-h-[min(96dvh,820px)] sm:w-[min(720px,94vw)] sm:rounded-[14px] sm:p-[22px]"
       >
-        <div className="mb-4 flex items-start justify-between gap-[18px]">
-          <div>
-            <span className="text-[0.68rem] font-extrabold tracking-[0.06em] text-tone-668078">
+        <form className="contents" onSubmit={submit} noValidate>
+          <DialogHeader>
+            <span className="text-xs font-extrabold tracking-[0.06em] text-tone-668078">
               DOMORA / НОВА ЗАЯВКА
             </span>
-            <DialogTitle className="mt-[5px] mb-0 text-[1.35rem] leading-[1.18] text-tone-17372f">
+            <DialogTitle className="m-0 text-[1.35rem] leading-[1.18] text-tone-17372f">
               {plan
                 ? `Абонамент ${plan === Plan.Home ? "за дома" : "за входа"}`
                 : "Разкажете ни от какво се нуждаете"}
             </DialogTitle>
-          </div>
-          <DialogClose
-            aria-label="Затвори"
-            className="grid size-[34px] flex-none cursor-pointer place-items-center rounded-[7px] border border-tone-d9e3dd bg-white text-[1.35rem] leading-none text-tone-526b63 hover:border-tone-7fa699 hover:text-tone-17372f focus-visible:border-tone-7fa699 focus-visible:text-tone-17372f"
-          >
-            ×
-          </DialogClose>
-        </div>
-        <form className="grid gap-[0.78rem]" onSubmit={submit} noValidate>
-          <div className={fieldGridClass}>
-            <Label className={fieldClass}>
-              Категория
-              <select
-                disabled={Boolean(plan)}
-                value={category}
-                onChange={(event) => {
-                  const value = Number(event.target.value);
-                  if (isCategoryId(value)) {
-                    setCategory(value);
-                    setServiceIndex(0);
-                  }
-                }}
-              >
-                {categories.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </Label>
-            <Label className={fieldClass}>
-              Услуга
-              <select
-                disabled={Boolean(plan)}
-                value={serviceIndex}
-                onChange={(event) =>
-                  setServiceIndex(Number(event.target.value))
-                }
-              >
-                {plan ? (
-                  <option value={0}>
-                    {plan === Plan.Home
-                      ? "Абонаментно почистване на дома"
-                      : "Абонаментно почистване на общите части"}
-                  </option>
-                ) : (
-                  categories[category].services.map((service, index) => (
-                    <option key={service} value={index}>
-                      {service}
+          </DialogHeader>
+          <DialogBody className="grid content-start gap-[0.78rem]">
+            <div className={fieldGridClass}>
+              <Label className={fieldClass}>
+                Категория
+                <select
+                  disabled={Boolean(plan)}
+                  value={category}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (isCategoryId(value)) {
+                      setCategory(value);
+                      setServiceIndex(0);
+                    }
+                  }}
+                >
+                  {categories.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
                     </option>
-                  ))
-                )}
-              </select>
-            </Label>
-          </div>
-          <Field
-            label="Описание на проблема"
-            error={errors.description}
-            id="description-error"
-          >
-            <Textarea
-              name="description"
-              aria-invalid={Boolean(errors.description)}
-              aria-describedby={
-                errors.description ? "description-error" : undefined
-              }
-              placeholder="Какво трябва да направим?"
-              rows={2}
-            />
-          </Field>
-          <div className="grid gap-[0.45rem]">
-            <PhotoPicker onChange={setPhotos} onBusyChange={setPhotosBusy} />
-          </div>
-          <Field label="Адрес" error={errors.address} id="address-error">
-            <Input
-              name="address"
-              autoComplete="street-address"
-              aria-invalid={Boolean(errors.address)}
-              aria-describedby={errors.address ? "address-error" : undefined}
-              placeholder="Град, улица, номер, вход"
-            />
-          </Field>
-          <div className={fieldGridClass}>
-            <FieldGroup
-              label="Предпочитана дата"
-              error={errors.date}
-              id="date-error"
-            >
-              <DatePicker
-                min={today}
-                invalid={Boolean(errors.date)}
-                describedBy={errors.date ? "date-error" : undefined}
-              />
-            </FieldGroup>
-            <FieldGroup
-              label="Часови диапазон"
-              error={errors.time}
-              id="time-error"
-            >
-              <TimePicker
-                invalid={Boolean(errors.time)}
-                describedBy={errors.time ? "time-error" : undefined}
-              />
-            </FieldGroup>
-          </div>
-          {plan && (
+                  ))}
+                </select>
+              </Label>
+              <Label className={fieldClass}>
+                Услуга
+                <select
+                  disabled={Boolean(plan)}
+                  value={serviceIndex}
+                  onChange={(event) =>
+                    setServiceIndex(Number(event.target.value))
+                  }
+                >
+                  {plan ? (
+                    <option value={0}>
+                      {plan === Plan.Home
+                        ? "Абонаментно почистване на дома"
+                        : "Абонаментно почистване на общите части"}
+                    </option>
+                  ) : (
+                    categories[category].services.map((service, index) => (
+                      <option key={service} value={index}>
+                        {service}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </Label>
+            </div>
             <Field
-              label={plan === Plan.Entry ? "Брой етажи" : "Площ на дома (м²)"}
-              error={errors.quantity}
-              id="quantity-error"
+              label="Описание на проблема"
+              error={errors.description}
+              id="description-error"
             >
-              <Input
-                type="number"
-                min="1"
-                max="1000"
-                step="1"
-                aria-invalid={Boolean(errors.quantity)}
+              <Textarea
+                name="description"
+                aria-invalid={Boolean(errors.description)}
                 aria-describedby={
-                  errors.quantity ? "quantity-error" : undefined
+                  errors.description ? "description-error" : undefined
                 }
-                value={quantity}
-                onChange={(event) => setQuantity(event.target.value)}
+                placeholder="Какво трябва да направим?"
+                rows={2}
               />
             </Field>
-          )}
-          <div
-            className="quote flex items-center justify-between gap-4 rounded-[7px] border border-tone-dbe5df bg-tone-edf4e8 px-3.5 py-[13px] max-[640px]:flex-col max-[640px]:items-start max-[640px]:gap-1.5 [&>span]:max-w-[260px] [&>span]:text-right [&>span]:text-[0.78rem] [&>span]:text-tone-40564f max-[640px]:[&>span]:max-w-none max-[640px]:[&>span]:text-left [&_small]:text-[0.72rem] [&_small]:text-tone-687b75 [&_strong]:block [&_strong]:text-[1.38rem] [&_strong]:leading-[1.1] [&_strong]:text-tone-17372f"
-            aria-live="polite"
-          >
-            <div>
-              <small>Демонстрационна цена</small>
-              <strong>
-                {price === null ? "—" : money(price)}
-                {plan ? " / месец" : ""}
-              </strong>
+            <div className="grid gap-[0.45rem]">
+              <PhotoPicker onChange={setPhotos} onBusyChange={setPhotosBusy} />
             </div>
-            <span>{quoteScope(category, serviceIndex, plan)}</span>
-          </div>
-          <p className="m-0 text-[0.8rem] text-muted-foreground">
-            Часът подлежи на потвърждение. Материали и допълнителна работа се
-            одобряват отделно.
-          </p>
-          <Button
-            className="min-h-11 rounded-[7px] py-0 font-extrabold disabled:opacity-70"
-            type="submit"
-            disabled={isSubmitting || photosBusy}
-            aria-label="Изпрати демо заявка"
-          >
-            {isSubmitting ? "Изпращане..." : "Изпрати демо заявка →"}
-          </Button>
+            <Field label="Адрес" error={errors.address} id="address-error">
+              <Input
+                name="address"
+                autoComplete="street-address"
+                aria-invalid={Boolean(errors.address)}
+                aria-describedby={errors.address ? "address-error" : undefined}
+                placeholder="Град, улица, номер, вход"
+              />
+            </Field>
+            <div className={fieldGridClass}>
+              <FieldGroup
+                label="Предпочитана дата"
+                error={errors.date}
+                id="date-error"
+              >
+                <DateField
+                  min={today}
+                  invalid={Boolean(errors.date)}
+                  describedBy={errors.date ? "date-error" : undefined}
+                />
+              </FieldGroup>
+              <FieldGroup
+                label="Часови диапазон"
+                error={errors.time}
+                id="time-error"
+              >
+                <TimeRangeSelect
+                  invalid={Boolean(errors.time)}
+                  describedBy={errors.time ? "time-error" : undefined}
+                />
+              </FieldGroup>
+            </div>
+            {plan && (
+              <Field
+                label={plan === Plan.Entry ? "Брой етажи" : "Площ на дома (м²)"}
+                error={errors.quantity}
+                id="quantity-error"
+              >
+                <Input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  step="1"
+                  aria-invalid={Boolean(errors.quantity)}
+                  aria-describedby={
+                    errors.quantity ? "quantity-error" : undefined
+                  }
+                  value={quantity}
+                  onChange={(event) => setQuantity(event.target.value)}
+                />
+              </Field>
+            )}
+            <div
+              className="quote flex flex-col items-start gap-1.5 rounded-[7px] border border-tone-dbe5df bg-tone-edf4e8 px-3.5 py-[13px] sm:flex-row sm:items-center sm:justify-between sm:gap-4 [&>span]:text-left [&>span]:text-[0.78rem] [&>span]:text-tone-40564f sm:[&>span]:max-w-[260px] sm:[&>span]:text-right [&_small]:text-xs [&_small]:text-tone-687b75 [&_strong]:block [&_strong]:text-[1.38rem] [&_strong]:leading-[1.1] [&_strong]:text-tone-17372f"
+              aria-live="polite"
+            >
+              <div>
+                <small>Демонстрационна цена</small>
+                <strong>
+                  {price === null ? "—" : money(price)}
+                  {plan ? " / месец" : ""}
+                </strong>
+              </div>
+              <span>{quoteScope(category, serviceIndex, plan)}</span>
+            </div>
+            <p className="m-0 text-[0.8rem] text-muted-foreground">
+              Часът подлежи на потвърждение. Материали и допълнителна работа се
+              одобряват отделно.
+            </p>
+          </DialogBody>
+          <DialogFooter>
+            <Button
+              className="min-h-11 rounded-[7px] py-0 font-extrabold disabled:opacity-70"
+              type="submit"
+              disabled={isSubmitting || photosBusy}
+              aria-label="Изпрати демо заявка"
+            >
+              {isSubmitting ? "Изпращане..." : "Изпрати демо заявка →"}
+            </Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
   );
 }
 
-const fieldGridClass = "grid grid-cols-2 gap-[0.8rem] max-[640px]:grid-cols-1";
+const fieldGridClass = "grid grid-cols-1 gap-[0.8rem] sm:grid-cols-2";
 
 function Field({
   label,

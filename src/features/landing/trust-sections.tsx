@@ -66,14 +66,11 @@ const questions = [
 
 const eyebrow =
   "mt-0 mb-[0.65rem] text-xs font-extrabold tracking-[0.15em] text-primary";
-const sectionTitle = "text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]";
+const sectionTitle = "text-3xl md:text-4xl lg:text-5xl tracking-[-0.035em]";
 
 export function TrustAndTestimonials() {
   return (
-    <section
-      className="py-[clamp(2.5rem,5vw,4.25rem)]"
-      aria-labelledby="trust-title"
-    >
+    <section className="py-12 md:py-16" aria-labelledby="trust-title">
       <div className="mb-[1.65rem] max-w-[700px]">
         <p className={eyebrow}>СПОКОЙСТВИЕ ВЪВ ВСЯКА СТЪПКА</p>
         <h2 id="trust-title" className={sectionTitle}>
@@ -81,7 +78,7 @@ export function TrustAndTestimonials() {
         </h2>
       </div>
 
-      <ul className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[850px]:grid-cols-1">
+      <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
         {benefits.map((benefit) => (
           <li key={benefit.title} className="min-w-0">
             <Card className="flex h-full gap-4 rounded-2xl border-[#dbe4de] p-[1.2rem]">
@@ -99,17 +96,17 @@ export function TrustAndTestimonials() {
         ))}
       </ul>
 
-      <div className="mt-[clamp(2.5rem,5vw,4rem)] mb-[1.4rem] max-w-[690px]">
+      <div className="mt-12 md:mt-16 mb-[1.4rem] max-w-[690px]">
         <p className={eyebrow}>ИСТОРИИ ОТ ДОМОВЕ, ЗА КОИТО СЕ ГРИЖИМ</p>
-        <h3 className="text-[clamp(1.7rem,3.5vw,2.7rem)] tracking-[-0.03em]">
+        <h3 className="text-2xl md:text-3xl lg:text-4xl tracking-[-0.03em]">
           Доверие, изградено с добре свършена работа
         </h3>
       </div>
-      <div className="grid grid-cols-3 gap-4 max-[850px]:grid-cols-1">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {testimonials.map((testimonial) => (
           <article
             key={testimonial.name}
-            className="flex min-w-0 flex-col rounded-[18px] bg-[#174c41] p-[clamp(1.15rem,2.4vw,1.6rem)] text-white"
+            className="flex min-w-0 flex-col rounded-[18px] bg-[#174c41] p-5 md:p-6 text-white"
           >
             <div
               className="text-[0.85rem] tracking-[0.14em] text-accent"
@@ -122,14 +119,14 @@ export function TrustAndTestimonials() {
             </blockquote>
             <footer className="flex items-center gap-3 justify-between px-11 pt-[10px] pb-[22px] text-xs text-muted-foreground">
               <span
-                className="grid size-11 place-items-center max-[700px]:mt-1.5 max-[700px]:block rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
+                className="grid size-11 place-items-center rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
                 aria-hidden="true"
               >
                 {testimonial.initials}
               </span>
               <div className="grid">
                 <strong>{testimonial.name}</strong>
-                <span className="text-[0.78rem] text-[#bdd0c9] max-[700px]:mt-1.5">
+                <span className="text-[0.78rem] text-[#bdd0c9]">
                   {testimonial.context}
                 </span>
               </div>
@@ -145,7 +142,7 @@ export function Faq() {
   return (
     <section
       id="faq"
-      className="grid scroll-mt-34 grid-cols-[minmax(260px,0.7fr)_minmax(0,1.3fr)] gap-[clamp(1.75rem,5vw,4rem)] py-[clamp(2.5rem,5vw,4.25rem)] max-[850px]:grid-cols-1 max-[850px]:gap-8"
+      className="grid scroll-mt-34 grid-cols-1 gap-8 py-12 md:py-16 md:grid-cols-[minmax(260px,0.7fr)_minmax(0,1.3fr)] md:gap-12"
       aria-labelledby="faq-title"
     >
       <div>
@@ -164,7 +161,7 @@ export function Faq() {
             key={item.question}
             className="group border-t border-tone-cedbd3 last:border-b"
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-[1.05rem] text-[1.05rem] font-[750] text-[#182e29] after:grid after:size-7 after:shrink-0 after:place-items-center after:rounded-full after:bg-[#eaf2ec] after:text-primary after:content-['+'] group-open:after:content-['−'] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#84b998] [&::-webkit-details-marker]:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 min-h-11 py-3 text-[1.05rem] font-[750] text-[#182e29] after:grid after:size-7 after:shrink-0 after:place-items-center after:rounded-full after:bg-[#eaf2ec] after:text-primary after:content-['+'] group-open:after:content-['−'] focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-[#84b998] [&::-webkit-details-marker]:hidden">
               {item.question}
             </summary>
             <p className="m-0 max-w-[680px] pr-12 pb-[1.4rem] text-[#61726c]">

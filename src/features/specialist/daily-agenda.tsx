@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { PhotoPicker } from "@/features/bookings/photo-picker";
 import { uploadReportPhotos } from "@/features/bookings/upload-photos";
 import { EmptyState } from "@/components/empty-state";
@@ -9,8 +9,10 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -23,6 +25,9 @@ import {
   completeWorkAction,
   startWorkAction,
 } from "@/features/requests/server/actions";
+import { mapsSearchUrl } from "./maps-link";
+import { hasUnsavedReport } from "./report-draft";
+import { DiscardReportSheet } from "./discard-report-sheet";
 import { money } from "@/lib/format";
 import { RequestStatus } from "@/domain/requests/types";
 import type { ServiceRequest } from "@/domain/requests/types";
@@ -43,10 +48,13 @@ export function DailyAgenda({
   const notify = useToast();
   const [reportTarget, setReportTarget] = useState<ServiceRequest | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [reportText, setReportText] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [photosBusy, setPhotosBusy] = useState(false);
   // Remounts the picker so a previous report's previews do not linger.
   const [pickerKey, setPickerKey] = useState(0);
+  const [discardAsking, setDiscardAsking] = useState(false);
+  const discardAnswer = useRef<((discard: boolean) => void) | null>(null);
 
   const items = initialAgenda;
 
@@ -71,8 +79,22 @@ export function DailyAgenda({
     setReportTarget(request);
   }
 
+  function askDiscard() {
+    setDiscardAsking(true);
+    return new Promise<boolean>((resolve) => {
+      discardAnswer.current = resolve;
+    });
+  }
+
+  function answerDiscard(discard: boolean) {
+    setDiscardAsking(false);
+    discardAnswer.current?.(discard);
+    discardAnswer.current = null;
+  }
+
   function closeReportDialog() {
     setReportTarget(null);
+    setReportText("");
     setPhotos([]);
     setPickerKey((key) => key + 1);
   }
@@ -129,8 +151,16 @@ export function DailyAgenda({
             <h3>{request.service}</h3>
             <p className={rowText}>
               {request.date} · {request.time}
-              <br />
-              {request.address}
+            </p>
+            <p className={rowText}>
+              <a
+                href={mapsSearchUrl(request.address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center text-primary underline"
+              >
+                {request.address}
+              </a>
             </p>
             <StatusBadge>{requestStages[request.status]}</StatusBadge>
             {request.dispatchedByAdmin && (
@@ -140,15 +170,18 @@ export function DailyAgenda({
             )}
             <p className={rowText}>
               {request.clientName ?? "Клиент"}
-              {request.clientPhone && (
-                <>
-                  {" · "}
-                  <a href={`tel:${request.clientPhone}`}>
-                    {request.clientPhone}
-                  </a>
-                </>
-              )}
+              {request.clientPhone && ` · ${request.clientPhone}`}
             </p>
+            {request.clientPhone && (
+              <Button
+                asChild
+                variant="secondary"
+                size="compact"
+                className="mb-2.5 w-full sm:w-auto"
+              >
+                <a href={`tel:${request.clientPhone}`}>Обади се</a>
+              </Button>
+            )}
             {request.issue && (
               <p
                 className={`${rowText} border-l-[3px] border-tone-d9776b bg-tone-fbe9e7 px-3.5 py-2.5`}
@@ -161,6 +194,7 @@ export function DailyAgenda({
             <RequestActions>
               {request.status === RequestStatus.Accepted && (
                 <Button
+                  size="compact"
                   className={actionButton}
                   disabled={busyId === request.id}
                   onClick={() => void startWork(request)}
@@ -170,6 +204,7 @@ export function DailyAgenda({
               )}
               {request.status === RequestStatus.InProgress && (
                 <Button
+                  size="compact"
                   className={actionButton}
                   disabled={busyId === request.id}
                   onClick={() => openReportDialog(request)}
@@ -184,11 +219,15 @@ export function DailyAgenda({
 
       <Dialog
         open={reportTarget !== null}
+        blockOutsideDismiss
+        confirmClose={() =>
+          !hasUnsavedReport(reportText, photos.length) || askDiscard()
+        }
         onOpenChange={(open) => {
           if (!open) closeReportDialog();
         }}
       >
-        <DialogContent>
+        <DialogContent className="min-h-[85dvh] sm:min-h-0">
           <DialogHeader>
             <span className="text-xs font-bold tracking-[1.5px] text-muted-foreground">
               DOMORA / ОТЧЕТ ЗА ИЗВЪРШЕНА РАБОТА
@@ -198,34 +237,45 @@ export function DailyAgenda({
               Опишете извършената работа и добавете снимки по желание.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={submitReport}>
-            <Label htmlFor="report" className="mb-0">
-              Описание на извършената работа
-            </Label>
-            <Textarea
-              id="report"
-              name="report"
-              required
-              minLength={5}
-              placeholder="Какво беше извършено?"
-              rows={4}
-              className="mb-3.5"
-            />
-            <PhotoPicker
-              key={pickerKey}
-              onChange={setPhotos}
-              onBusyChange={setPhotosBusy}
-            />
-            <Button
-              className="w-full"
-              type="submit"
-              disabled={busyId === reportTarget?.id || photosBusy}
-            >
-              Изпрати отчет
-            </Button>
+          <form className="contents" onSubmit={submitReport}>
+            <DialogBody>
+              <Label htmlFor="report" className="mb-0">
+                Описание на извършената работа
+              </Label>
+              <Textarea
+                id="report"
+                name="report"
+                required
+                minLength={5}
+                placeholder="Какво беше извършено?"
+                rows={4}
+                className="mb-3.5"
+                value={reportText}
+                onChange={(event) => setReportText(event.target.value)}
+              />
+              <PhotoPicker
+                key={pickerKey}
+                onChange={setPhotos}
+                onBusyChange={setPhotosBusy}
+              />
+            </DialogBody>
+            <DialogFooter>
+              <Button
+                className="w-full"
+                type="submit"
+                disabled={busyId === reportTarget?.id || photosBusy}
+              >
+                Изпрати отчет
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+      <DiscardReportSheet
+        open={discardAsking}
+        onKeep={() => answerDiscard(false)}
+        onDiscard={() => answerDiscard(true)}
+      />
     </SpecialistSection>
   );
 }

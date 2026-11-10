@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 /* Shared building blocks for the auth screens. */
 
 export const authInputClass =
-  "rounded-lg border-border px-3.5 py-3 text-[15px] leading-[1.55] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/12 aria-invalid:border-tone-c93b2b aria-invalid:focus-visible:ring-tone-c93b2b/12";
+  "rounded-lg border-border px-3.5 py-3 text-base leading-[1.55] focus-visible:border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/12 aria-invalid:border-tone-c93b2b aria-invalid:focus-visible:ring-tone-c93b2b/12";
 
 export const authSelectClass = cn(authInputClass, "cursor-pointer");
 
@@ -49,7 +49,7 @@ export function AuthForm({
   return (
     <form
       noValidate
-      className={cn("flex flex-col gap-[18px]", className)}
+      className={cn("flex flex-col gap-4", className)}
       {...props}
     />
   );
@@ -106,13 +106,13 @@ export function PasswordInput({
     <div className="relative flex w-full items-center">
       <AuthInput
         type={showPassword ? "text" : "password"}
-        className={cn("pr-[76px]", className)}
+        className={cn("pr-[84px]", className)}
         {...props}
       />
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-2 cursor-pointer rounded-md border-0 bg-transparent px-2 py-1.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary"
+        className="absolute right-1 inline-flex h-11 min-w-11 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent px-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary"
         aria-label={showPassword ? "Скрий паролата" : "Покажи паролата"}
       >
         {showPassword ? "Скрий" : "Покажи"}
@@ -129,7 +129,7 @@ export function AuthCheckbox({
     <input
       type="checkbox"
       className={cn(
-        "mt-0.5 size-[18px] shrink-0 cursor-pointer accent-primary",
+        "mt-0.5 size-5 shrink-0 cursor-pointer accent-primary",
         className,
       )}
       {...props}
@@ -200,7 +200,7 @@ export function SwitchPrompt({
   return (
     <p
       className={cn(
-        "mt-[22px] mb-0 text-center text-[14px] text-muted-foreground",
+        "mt-[22px] mb-0 text-center text-[14px] text-muted-foreground [&_a]:-my-3 [&_a]:inline-block [&_a]:py-3",
         className,
       )}
       {...props}

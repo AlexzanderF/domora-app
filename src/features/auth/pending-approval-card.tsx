@@ -50,9 +50,9 @@ function SummaryRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between border-b border-tone-eef2ef py-2 text-[14px] last:border-b-0 last:pb-0">
+    <div className="flex flex-col gap-0.5 border-b border-tone-eef2ef py-2 text-[14px] last:border-b-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
       <span className="font-medium text-muted-foreground">{label}</span>
-      <span className="max-w-[60%] text-right font-semibold [word-break:break-word] text-foreground">
+      <span className="font-semibold [word-break:break-word] text-foreground sm:max-w-[60%] sm:text-right">
         {children}
       </span>
     </div>
@@ -199,7 +199,7 @@ export function PendingApprovalCard() {
       )}
 
       {/* Summary card of submitted details */}
-      <Card className="my-5 rounded-xl bg-tone-fbfdfb px-5 py-[18px] max-[700px]:px-5 max-[700px]:py-[18px]">
+      <Card className="my-5 rounded-xl bg-tone-fbfdfb px-5 py-[18px]">
         <h2 className="m-0 mb-3 text-[13px] font-bold tracking-[0.5px] text-foreground uppercase">
           Подадени данни за профила
         </h2>

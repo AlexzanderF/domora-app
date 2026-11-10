@@ -29,7 +29,7 @@ import { SpecialistProfileStep } from "./signup/specialist-profile-step";
 import { SpecialistStepIndicator } from "./signup/specialist-step-indicator";
 
 const roleSwitchClass =
-  "cursor-pointer border-0 bg-transparent p-0 text-primary hover:underline";
+  "-my-3 inline-block min-h-11 cursor-pointer border-0 bg-transparent px-0 py-3 text-primary hover:underline";
 
 function RoleTab({
   active,
@@ -47,7 +47,7 @@ function RoleTab({
       aria-selected={active}
       onClick={onClick}
       className={cn(
-        "flex-1 cursor-pointer rounded-[7px] border-0 bg-transparent px-3.5 py-2.5 text-center text-[14px] font-semibold text-muted-foreground transition-all hover:text-foreground",
+        "min-h-11 flex-1 cursor-pointer rounded-[7px] border-0 bg-transparent px-3.5 py-2.5 text-center text-[14px] font-semibold text-muted-foreground transition-all hover:text-foreground",
         active &&
           "bg-white text-primary shadow-[0_1px_4px_rgba(0,0,0,0.08)] hover:text-primary",
       )}

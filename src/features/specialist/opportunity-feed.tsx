@@ -98,10 +98,10 @@ export function OpportunityFeed({
           >
             <h3>{request.service}</h3>
             <p className={rowText}>{request.address}</p>
-            <StatusBadge>{categories[request.category].name}</StatusBadge>{" "}
             <StatusBadge tone={isUrgent(request) ? "pending" : "default"}>
               {isUrgent(request) ? "Спешна" : "Стандартна"}
             </StatusBadge>{" "}
+            <StatusBadge>{categories[request.category].name}</StatusBadge>{" "}
             {(specialistId === undefined
               ? request.recommendedSpecialistId !== undefined
               : request.recommendedSpecialistId === specialistId) && (
@@ -111,6 +111,7 @@ export function OpportunityFeed({
             )}
             <RequestActions>
               <Button
+                size="compact"
                 className={actionButton}
                 disabled={acceptingId === request.id}
                 onClick={() => void accept(request)}
@@ -118,6 +119,7 @@ export function OpportunityFeed({
                 {acceptingId === request.id ? "Приемане…" : "Приеми"}
               </Button>
               <Button
+                size="compact"
                 className={actionButton}
                 variant="secondary"
                 onClick={() => dismiss(request)}

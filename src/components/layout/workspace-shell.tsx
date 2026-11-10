@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Sidebar } from "./sidebar";
+import { MobileTopBar } from "./mobile-top-bar";
 import { HeaderAccount } from "./header-account";
 import type { User } from "@/domain/identity/types";
 import { cn } from "@/lib/utils";
@@ -55,31 +56,31 @@ export function WorkspaceShell({
   return (
     <div
       className={cn(
-        "[--sidebar-width:270px]",
         collapsed
           ? "[--sidebar-width:72px]"
-          : "shell-tablet:[--sidebar-width:250px]",
+          : "[--sidebar-width:250px] lg:[--sidebar-width:270px]",
       )}
       data-sidebar-collapsed={collapsed ? "true" : "false"}
     >
+      <MobileTopBar initialUser={initialUser} />
       <Sidebar
         initialUser={initialUser}
         collapsed={collapsed}
         onToggleCollapse={handleToggle}
       />
-      <div className="ml-(--sidebar-width) transition-[margin-left] duration-200 ease-[ease] shell-phone:ml-0">
-        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-end border-b border-border bg-white px-11 text-[14px] text-muted-foreground shell-tablet:px-7 shell-phone:hidden">
+      <div className="transition-[margin-left] duration-200 ease-[ease] lg:ml-(--sidebar-width)">
+        <header className="sticky top-0 z-20 hidden h-[72px] items-center justify-end border-b border-border bg-white px-11 text-[14px] text-muted-foreground lg:flex">
           <HeaderAccount initialUser={initialUser} />
         </header>
         <main
           id="main"
-          className="mx-auto min-h-[calc(100vh-130px)] max-w-[1320px] scroll-mt-[72px] px-11 py-[38px] min-[1500px]:pt-[50px] shell-tablet:p-7 shell-phone:min-h-[65vh] shell-phone:px-[18px] shell-phone:py-6"
+          className="mx-auto min-h-[65svh] max-w-330 scroll-mt-[72px] px-[18px] py-6 md:min-h-[calc(100dvh-130px)] md:p-7 lg:px-11 lg:py-[38px] 2xl:pt-[50px]"
         >
           {children}
         </main>
-        <footer className="flex justify-between px-11 pt-2.5 pb-[22px] text-[12px] text-muted-foreground shell-phone:block shell-phone:px-5 shell-phone:py-4">
+        <footer className="block px-5 py-4 text-[12px] text-muted-foreground md:flex md:justify-between md:px-11 md:pt-2.5 md:pb-[22px]">
           DOMORA © 2026{" "}
-          <span className="shell-phone:mt-1.5 shell-phone:block">
+          <span className="mt-1.5 block md:mt-0 md:inline">
             Прототип · данните са само за текущото разглеждане
           </span>
         </footer>

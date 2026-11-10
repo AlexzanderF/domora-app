@@ -33,7 +33,7 @@ export function RequestList({
       {items.map((request) => (
         <article
           id={`request-${request.id}`}
-          className="flex items-start gap-4 border-b border-border py-[19px] first:pt-0 last:border-b-0 last:pb-0 max-[700px]:gap-2.5 [&_p]:mt-[5px] [&_p]:mb-2.5 [&_p]:text-[14px] [&_p]:text-muted-foreground"
+          className="flex scroll-mt-20 items-start border-b border-border py-[19px] first:pt-0 last:border-b-0 last:pb-0 gap-2.5 md:gap-4 [&_p]:mt-[5px] [&_p]:mb-2.5 [&_p]:text-[14px] [&_p]:text-muted-foreground"
           key={request.id}
           aria-label={request.service}
         >
@@ -81,7 +81,7 @@ export function RequestList({
               </>
             )}
           </div>
-          <span className="amount text-[18px] font-[650] whitespace-nowrap max-[700px]:text-[16px] [&_small]:block [&_small]:text-[12px] [&_small]:font-normal">
+          <span className="amount text-[16px] font-[650] whitespace-nowrap md:text-[18px] [&_small]:block [&_small]:text-[12px] [&_small]:font-normal">
             {money(request.price)}
             {request.plan && <small> / мес.</small>}
           </span>

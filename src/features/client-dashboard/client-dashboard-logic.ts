@@ -20,6 +20,11 @@ export function getTrackerStageIndex(status: ServiceRequest["status"]) {
   return TRACKER_INDEX[status];
 }
 
+export function getTrackerSegments(status: ServiceRequest["status"]) {
+  const stage = getTrackerStageIndex(status);
+  return trackerStages.map((_, index) => index <= stage);
+}
+
 export function selectActiveRequest(requests: ServiceRequest[]) {
   const active = requests.filter(
     (request) =>

@@ -10,15 +10,19 @@ export function PageHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mb-[25px] flex items-center justify-between gap-5 max-[700px]:flex-col max-[700px]:items-start max-[700px]:gap-2">
+    <div className="mb-[25px] flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between md:gap-5">
       <div>
-        <span className="truncate text-[12px] font-bold tracking-[1.5px] text-muted-foreground">
+        <span className="hidden truncate md:inline text-[12px] font-bold tracking-[1.5px] text-muted-foreground">
           {eyebrow}
         </span>
         <h1>{title}</h1>
-        <p className="text-[14px] text-muted-foreground">{description}</p>
+        <p className="hidden text-[14px] text-muted-foreground md:block">
+          {description}
+        </p>
       </div>
-      {children}
+      {children && (
+        <div className="w-full *:w-full md:w-auto md:*:w-auto">{children}</div>
+      )}
     </div>
   );
 }

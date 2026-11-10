@@ -57,13 +57,22 @@ export default async function SpecialistPage() {
         description="Приемайте нови възможности и отчитайте извършената работа по текущите задачи."
       />
       <DashboardSummary initialRequests={allRequests ?? []} />
-      <OpportunityFeed
-        initialOpportunities={initialOpportunities ?? []}
-        limit={5}
-        viewAllHref="/specialist/opportunities"
-        specialistId={user?.role === UserRole.Specialist ? user.id : undefined}
-      />
-      <DailyAgenda initialAgenda={initialAgenda ?? []} />
+      {/* Phones show the agenda first; from lg the desktop order is kept. */}
+      <div className="flex flex-col">
+        <div className="order-2 lg:order-1">
+          <OpportunityFeed
+            initialOpportunities={initialOpportunities ?? []}
+            limit={5}
+            viewAllHref="/specialist/opportunities"
+            specialistId={
+              user?.role === UserRole.Specialist ? user.id : undefined
+            }
+          />
+        </div>
+        <div className="order-1 lg:order-2">
+          <DailyAgenda initialAgenda={initialAgenda ?? []} />
+        </div>
+      </div>
     </>
   );
 }
