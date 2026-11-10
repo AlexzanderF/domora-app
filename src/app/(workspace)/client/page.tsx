@@ -15,7 +15,7 @@ export default async function ClientDashboardPage() {
   const user = await getServerSession();
   if (!user) redirect("/api/auth/logout?next=/login");
   const [initialRequests, initialSubscription] = await Promise.all([
-    findClientRequests(user.id),
+    findClientRequests(user),
     findUserSubscription(user),
   ]);
 

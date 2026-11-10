@@ -12,6 +12,8 @@ import { UserRole } from "@/domain/identity/types";
 import { listReportPhotoIds } from "@/domain/photos";
 import { isUrgentPriority } from "@/features/requests/priority";
 import { RequestStatus } from "@/domain/requests/types";
+import type { Actor } from "@/domain/authorization";
+import { withActions } from "@/domain/requests/actions";
 import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 
 type AdminRequestRow = {
@@ -21,6 +23,7 @@ type AdminRequestRow = {
 };
 
 function mapAdminRequestRow(
+  actor: Actor,
   { request, specialist, client }: AdminRequestRow,
   reportPhotoIds?: number[],
 ): ServiceRequest {
@@ -28,33 +31,37 @@ function mapAdminRequestRow(
   const category: CategoryId =
     rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
 
-  return {
-    id: request.id,
-    category,
-    service: request.title,
-    address: request.address,
-    date: request.createdAt.toISOString().split("T")[0],
-    time: request.createdAt.toLocaleTimeString("bg-BG", {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-    price: request.price,
-    status: request.status,
-    priority: request.priority,
-    description: request.description,
-    cancelled: request.cancelled,
-    report: request.report ?? undefined,
-    reportPhotoIds,
-    rating: request.rating ?? undefined,
-    issue: request.issue || undefined,
-    issueNote: request.issueNote ?? undefined,
-    recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
-    dispatchedByAdmin: request.dispatchedByAdmin || undefined,
-    specialist: specialist?.name,
-    specialistPhone: specialist?.phone,
-    clientName: client?.name,
-    clientPhone: request.clientPhone,
-  };
+  return withActions(
+    actor,
+    {
+      id: request.id,
+      category,
+      service: request.title,
+      address: request.address,
+      date: request.createdAt.toISOString().split("T")[0],
+      time: request.createdAt.toLocaleTimeString("bg-BG", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      price: request.price,
+      status: request.status,
+      priority: request.priority,
+      description: request.description,
+      cancelled: request.cancelled,
+      report: request.report ?? undefined,
+      reportPhotoIds,
+      rating: request.rating ?? undefined,
+      issue: request.issue || undefined,
+      issueNote: request.issueNote ?? undefined,
+      recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
+      dispatchedByAdmin: request.dispatchedByAdmin || undefined,
+      specialist: specialist?.name,
+      specialistPhone: specialist?.phone,
+      clientName: client?.name,
+      clientPhone: request.clientPhone,
+    },
+    request,
+  );
 }
 
 function mapToDomainProfile(
@@ -102,10 +109,10 @@ export async function findSpecialistApplications(): Promise<User[] | null> {
   }));
 }
 
-export async function findDisputedRequestsForAdmin(): Promise<
-  ServiceRequest[] | null
-> {
-  if (!isDbConfigured) {
+export async function findDisputedRequestsForAdmin(
+  actor: Actor | null,
+): Promise<ServiceRequest[] | null> {
+  if (!isDbConfigured || !actor) {
     return null;
   }
 
@@ -129,14 +136,14 @@ export async function findDisputedRequestsForAdmin(): Promise<
   const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
 
   return rows.map((row) =>
-    mapAdminRequestRow(row, reportPhotos.get(row.request.id)),
+    mapAdminRequestRow(actor, row, reportPhotos.get(row.request.id)),
   );
 }
 
-export async function findUnassignedRequestsForAdmin(): Promise<
-  ServiceRequest[] | null
-> {
-  if (!isDbConfigured) {
+export async function findUnassignedRequestsForAdmin(
+  actor: Actor | null,
+): Promise<ServiceRequest[] | null> {
+  if (!isDbConfigured || !actor) {
     return null;
   }
 
@@ -160,7 +167,7 @@ export async function findUnassignedRequestsForAdmin(): Promise<
     )
     .orderBy(desc(requests.createdAt));
 
-  const mapped = rows.map((row) => mapAdminRequestRow(row));
+  const mapped = rows.map((row) => mapAdminRequestRow(actor, row));
 
   // Urgent and emergency requests first, then newest first.
   return mapped.sort((a, b) => {

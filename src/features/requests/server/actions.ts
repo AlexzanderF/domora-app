@@ -13,6 +13,7 @@ import {
 } from "@/domain/dispatch";
 import {
   RequestError,
+  requireActor,
   cancelRequest,
   releaseRequest,
   confirmCompletion,
@@ -22,6 +23,7 @@ import {
   startWork,
   submitReport,
 } from "@/domain/requests";
+import { withActions } from "@/domain/requests/actions";
 import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
 import { findTariffs } from "@/domain/pricing/tariffs";
@@ -117,18 +119,22 @@ export async function createServiceRequestAction(
         scheduledDate: input.date ?? "",
         scheduledTime: input.time ?? "",
       });
-      return {
-        id: created.id,
-        category: input.category,
-        service: created.title,
-        address: created.address,
-        date: created.scheduledDate ?? "",
-        time: created.scheduledTime ?? "",
-        price: created.price,
-        status: created.status,
-        description: created.description,
-        plan: input.plan,
-      };
+      return withActions(
+        requireActor(actor),
+        {
+          id: created.id,
+          category: input.category,
+          service: created.title,
+          address: created.address,
+          date: created.scheduledDate ?? "",
+          time: created.scheduledTime ?? "",
+          price: created.price,
+          status: created.status,
+          description: created.description,
+          plan: input.plan,
+        },
+        created,
+      );
     },
     {
       INVALID_INPUT:

@@ -23,6 +23,7 @@ function request(
     time: "09:00–12:00",
     price: 45,
     description: "Тестова заявка",
+    actions: [],
   };
 }
 
