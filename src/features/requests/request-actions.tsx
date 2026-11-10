@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { IssueDialog } from "./issue-dialog";
-import { canAdvance, requiresCompletionReport } from "./request-rules";
+import {
+  canAdvance,
+  requiresCompletionReport,
+} from "@/domain/requests/lifecycle";
 import { RequestStatus, Role } from "@/domain/requests/types";
 import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 
