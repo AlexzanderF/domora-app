@@ -30,6 +30,8 @@ export type Action =
   // A Client edits only their own profile; the resource's clientId is the
   // profile's owner.
   | "profile.update"
+  // The admin views over every request: Triage Queues and all requests.
+  | "request.list_all"
   // Saving Tariffs is an administrative act, never bound to a request.
   | "tariffs.update";
 

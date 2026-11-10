@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { Card } from "@/components/ui/card";
 import { RequestList } from "@/features/requests/request-list";
-import { findAllRequestsForAdmin } from "@/features/admin/server/metrics";
+import { listAll } from "@/domain/requests";
+import { presentAdminRequest } from "@/features/requests/presenter";
 import { findSpecialistApplications } from "@/features/admin/server/queries";
 import { UserRole } from "@/domain/identity/types";
 import { getServerSession } from "@/features/auth/server/session";
@@ -28,7 +29,9 @@ export default async function AdminRequestsPage() {
   }
 
   const [initialRequests, specialists] = await Promise.all([
-    findAllRequestsForAdmin(user),
+    isDbConfigured
+      ? listAll(user).then((r) => r.map(presentAdminRequest))
+      : null,
     findSpecialistApplications(),
   ]);
 
