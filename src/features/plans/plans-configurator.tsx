@@ -84,8 +84,14 @@ const stepperButton =
 const errorText =
   "mt-[0.3rem] block text-[0.76rem] font-[650] text-tone-a33b3b";
 
-export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
+export function PlansConfigurator({
+  tariffs: initialTariffs,
+}: {
+  tariffs: Tariffs;
+}) {
   const router = useRouter();
+  // Replaced by the server's fresh Tariffs when the quoted price was stale.
+  const [tariffs, setTariffs] = useState(initialTariffs);
   const notify = useToast();
   const [plan, setPlan] = useState<Plan>(Plan.Home);
   const [visits, setVisits] = useState(2);
@@ -157,10 +163,11 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           description,
           date,
           time,
-          price: Math.max(1, Math.round(price / visits)),
         },
+        expectedPrice: price,
       });
       if (!result.success) {
+        if (result.tariffs) setTariffs(result.tariffs);
         notify(result.error ?? "Абонаментът не можа да бъде създаден.");
         return;
       }

@@ -22,8 +22,12 @@ import {
   isValidRating,
   requiresCompletionReport,
 } from "./lifecycle";
-import { RequestPriority, RequestStatus } from "@/domain/requests/types";
-import type { CategoryId, Plan } from "@/domain/requests/types";
+import { Plan, RequestPriority, RequestStatus } from "@/domain/requests/types";
+import type { CategoryId } from "@/domain/requests/types";
+import { SubscriptionPlan } from "@/domain/subscriptions/types";
+
+// Subscription visits are booked under the general-maintenance category.
+const SUBSCRIPTION_CATEGORY = 4;
 
 // Framework-free (no next/*): the requests module is the sole writer of
 // request lifecycle state. Every function takes the Actor first and enforces
@@ -229,14 +233,7 @@ async function quoteBooking(
   let price: number;
   try {
     price = calculateQuote(
-      tariffsFromRows(
-        await tx
-          .select({
-            category: tariffs.category,
-            standardRate: tariffs.standardRate,
-          })
-          .from(tariffs),
-      ),
+      await currentTariffs(tx),
       input.category,
       serviceIndex,
       input.plan,
@@ -246,6 +243,43 @@ async function quoteBooking(
     throw new RequestError("INVALID_INPUT", "The quote inputs are not valid.");
   }
   return validatePrice(price);
+}
+
+async function currentTariffs(tx: Tx) {
+  return tariffsFromRows(
+    await tx
+      .select({
+        category: tariffs.category,
+        standardRate: tariffs.standardRate,
+      })
+      .from(tariffs),
+  );
+}
+
+// The server-side prices of a Subscription: the plan total for its monthly
+// visits, and the first visit's share of it.
+async function quoteSubscription(
+  tx: Tx,
+  plan: CreateSubscriptionInput,
+): Promise<{ total: number; firstVisit: number }> {
+  const visits = plan.visitsPerMonth ?? 1;
+  let total: number;
+  try {
+    total = calculateQuote(
+      await currentTariffs(tx),
+      SUBSCRIPTION_CATEGORY,
+      0,
+      plan.planType === SubscriptionPlan.Home ? Plan.Home : Plan.Entry,
+      plan.propertyArea,
+      visits,
+    );
+  } catch {
+    throw new RequestError("INVALID_INPUT", "The quote inputs are not valid.");
+  }
+  return {
+    total,
+    firstVisit: validatePrice(Math.max(1, Math.round(total / visits))),
+  };
 }
 
 export async function recordEvent(
@@ -392,17 +426,32 @@ export async function createRequest(
 export async function startSubscription(
   actorOrNull: Actor | null,
   plan: CreateSubscriptionInput,
-  firstVisit: Omit<BookingFields, "subscriptionId"> & { price: number },
+  // `expectedPrice` is the plan total the client was shown; the server
+  // computes the real prices from the current Tariffs.
+  firstVisit: Omit<BookingFields, "subscriptionId" | "category"> & {
+    expectedPrice: number;
+  },
 ): Promise<{ subscription: Subscription; request: RequestDto }> {
   const actor = requireActor(actorOrNull);
   if (!can(actor, "request.create")) forbidden();
   return requireDb().transaction(async (tx) => {
+    const quote = await quoteSubscription(tx, plan);
+    if (Math.round(firstVisit.expectedPrice) !== quote.total) {
+      throw new RequestError(
+        "PRICE_CHANGED",
+        "The price changed since it was quoted.",
+      );
+    }
     const subscription = await createSubscription(actor, plan, tx);
     const request = await insertRequest(
       tx,
       actor,
-      { ...firstVisit, subscriptionId: subscription.id },
-      validatePrice(firstVisit.price),
+      {
+        ...firstVisit,
+        category: SUBSCRIPTION_CATEGORY,
+        subscriptionId: subscription.id,
+      },
+      quote.firstVisit,
     );
     return { subscription, request };
   });

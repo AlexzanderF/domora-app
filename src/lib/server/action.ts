@@ -19,6 +19,7 @@ export type ActionErrorCode =
   | "NOT_FOUND"
   | "INVALID_INPUT"
   | "INVALID_STATE"
+  | "PRICE_CHANGED"
   | "EMAIL_TAKEN"
   | "PHONE_TAKEN"
   | "INVALID_CREDENTIALS"
@@ -30,6 +31,9 @@ export interface ActionResult<T = never> {
   data?: T;
 }
 
+export const PRICE_CHANGED_MESSAGE =
+  "Цената е променена, моля прегледайте отново.";
+
 const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   NO_DATABASE: "Няма връзка с базата данни.",
   UNAUTHENTICATED: "Неоторизиран достъп.",
@@ -37,6 +41,7 @@ const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   NOT_FOUND: "Заявката не е намерена.",
   INVALID_INPUT: "Невалидни данни.",
   INVALID_STATE: "Действието не е възможно на този етап от заявката.",
+  PRICE_CHANGED: PRICE_CHANGED_MESSAGE,
   EMAIL_TAKEN: "Вече съществува потребител с този имейл адрес.",
   PHONE_TAKEN: "Вече съществува потребител с този телефонен номер.",
   INVALID_CREDENTIALS: "Невалиден имейл/телефон или парола.",
