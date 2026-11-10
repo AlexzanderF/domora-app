@@ -228,7 +228,7 @@ export function LoginForm() {
         <span className="px-3">или продължете с</span>
       </div>
 
-      <div className="grid w-full grid-cols-2 gap-2.5 max-[420px]:grid-cols-1">
+      <div className="grid w-full grid-cols-1 gap-2.5 sm:grid-cols-2">
         <SocialButton label="Вход с Google" icon={<GoogleIcon />} />
         <SocialButton label="Вход с Apple" icon={<AppleIcon />} />
       </div>

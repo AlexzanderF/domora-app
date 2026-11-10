@@ -199,7 +199,7 @@ export function PendingApprovalCard() {
       )}
 
       {/* Summary card of submitted details */}
-      <Card className="my-5 rounded-xl bg-tone-fbfdfb px-5 py-[18px] max-[700px]:px-5 max-[700px]:py-[18px]">
+      <Card className="my-5 rounded-xl bg-tone-fbfdfb px-5 py-[18px]">
         <h2 className="m-0 mb-3 text-[13px] font-bold tracking-[0.5px] text-foreground uppercase">
           Подадени данни за профила
         </h2>
