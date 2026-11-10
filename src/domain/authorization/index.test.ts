@@ -8,6 +8,7 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.claim",
   "request.work",
   "request.cancel",
+  "request.release",
   "request.confirm",
   "request.rate",
   "request.assign",
@@ -59,6 +60,7 @@ const resources: Record<string, RequestResource> = {
 // its assigned specialist attaches report photos; only an admin resolves a
 // dispute.
 const NEVER_ADMIN: readonly Action[] = [
+  "request.release",
   "request.dispute",
   "request.attach_photo",
   "request.attach_report_photo",
@@ -96,14 +98,14 @@ const expectations: Record<keyof typeof actors, Allowed> = {
     ownedAndAssigned: [
       "request.view",
       "request.work",
-      "request.cancel",
+      "request.release",
       "request.attach_report_photo",
       "request.view_photo",
     ],
     assignedOnly: [
       "request.view",
       "request.work",
-      "request.cancel",
+      "request.release",
       "request.attach_report_photo",
       "request.view_photo",
     ],

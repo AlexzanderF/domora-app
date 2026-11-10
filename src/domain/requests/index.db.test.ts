@@ -7,6 +7,7 @@ import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
 import {
   cancelRequest,
+  releaseRequest,
   confirmCompletion,
   createRequest,
   getRequest,
@@ -423,13 +424,25 @@ describe("cancelRequest", () => {
     expect(await rejection(cancelRequest(client, id))).toBe("INVALID_STATE");
   });
 
-  it("lets the assigned specialist release an accepted request back to the pool", async () => {
+  it("no longer accepts a specialist, even the assigned one", async () => {
     const id = await insertRequest({
       clientId: client.id,
       specialistId: specialist.id,
       status: RequestStatus.Accepted,
     });
-    const result = await cancelRequest(specialist, id);
+    expect(await rejection(cancelRequest(specialist, id))).toBe("FORBIDDEN");
+    expect((await statusOf(id)).status).toBe(RequestStatus.Accepted);
+  });
+});
+
+describe("releaseRequest", () => {
+  it("returns an accepted request to the open pool and records an event", async () => {
+    const id = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+    });
+    const result = await releaseRequest(specialist, id);
 
     expect(result).toMatchObject({
       status: RequestStatus.Created,
@@ -446,13 +459,34 @@ describe("cancelRequest", () => {
     ]);
   });
 
-  it("does not let a specialist drop work that is in progress", async () => {
+  it("rejects everyone but the assigned Active specialist", async () => {
     const id = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+    });
+    for (const wrong of [client, admin, otherSpecialist, pendingSpecialist]) {
+      expect(await rejection(releaseRequest(wrong, id))).toBe("FORBIDDEN");
+    }
+    expect(await rejection(releaseRequest(null, id))).toBe("UNAUTHENTICATED");
+  });
+
+  it("rejects work that is in progress or cancelled", async () => {
+    const started = await insertRequest({
       clientId: client.id,
       specialistId: specialist.id,
       status: RequestStatus.InProgress,
     });
-    expect(await rejection(cancelRequest(specialist, id))).toBe(
+    expect(await rejection(releaseRequest(specialist, started))).toBe(
+      "INVALID_STATE",
+    );
+    const cancelled = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+      cancelled: true,
+    });
+    expect(await rejection(releaseRequest(specialist, cancelled))).toBe(
       "INVALID_STATE",
     );
   });

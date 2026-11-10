@@ -538,23 +538,12 @@ export function rateRequest(
   });
 }
 
-// Clients and admins cancel the request; the assigned specialist can only
-// hand an accepted request back to the pool (it returns to CREATED).
+// Clients and admins cancel the request.
 export function cancelRequest(
   actor: Actor | null,
   requestId: number,
 ): Promise<RequestDto> {
-  return mutate(actor, requestId, "request.cancel", (row, who) => {
-    if (who.role === UserRole.Specialist) {
-      if (!canHandBack(row)) {
-        invalidState("Only an accepted request can be handed back.");
-      }
-      return {
-        type: "request.released",
-        values: { specialistId: null, status: RequestStatus.Created },
-      };
-    }
-
+  return mutate(actor, requestId, "request.cancel", (row) => {
     if (!canCancelAsClient(row)) {
       invalidState("This request can no longer be cancelled.");
     }
@@ -566,6 +555,23 @@ export function cancelRequest(
       afterWrite: subscriptionId
         ? (tx) => refundVisit(tx, subscriptionId)
         : undefined,
+    };
+  });
+}
+
+// Hand-back: the assigned specialist returns an accepted request to the open
+// pool (it goes back to CREATED, unassigned).
+export function releaseRequest(
+  actor: Actor | null,
+  requestId: number,
+): Promise<RequestDto> {
+  return mutate(actor, requestId, "request.release", (row) => {
+    if (!canHandBack(row)) {
+      invalidState("Only an accepted request can be handed back.");
+    }
+    return {
+      type: "request.released",
+      values: { specialistId: null, status: RequestStatus.Created },
     };
   });
 }
