@@ -11,7 +11,7 @@ export interface RuleCheckRequest {
 }
 
 // Stages still in flight (visible in agendas and active counters).
-const ACTIVE_STAGES: readonly RequestStatus[] = [
+export const ACTIVE_STAGES: readonly RequestStatus[] = [
   RequestStatus.Accepted,
   RequestStatus.InProgress,
   RequestStatus.AwaitingConfirmation,

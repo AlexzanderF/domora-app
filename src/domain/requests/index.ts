@@ -52,6 +52,8 @@ export { toDto } from "./dto";
 export type { RequestDto } from "./dto";
 export { listAll, listClientRequests, listTriage } from "./read";
 export type { AdminRequest, ClientRequest } from "./read";
+export { requestMetrics } from "./metrics";
+export type { RequestMetrics } from "./metrics";
 export type { Tx };
 
 export interface CreateRequestInput {
