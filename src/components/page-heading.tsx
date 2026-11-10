@@ -10,7 +10,7 @@ export function PageHeading({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="mb-[25px] flex items-center justify-between gap-5 max-[700px]:flex-col max-[700px]:items-start max-[700px]:gap-2">
+    <div className="mb-[25px] flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between md:gap-5">
       <div>
         <span className="truncate text-[12px] font-bold tracking-[1.5px] text-muted-foreground">
           {eyebrow}

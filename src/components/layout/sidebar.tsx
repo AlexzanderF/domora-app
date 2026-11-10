@@ -26,17 +26,17 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-30 flex w-(--sidebar-width) flex-col border-r border-border bg-white transition-[width,padding] duration-200 ease-[ease] shell-phone:static shell-phone:w-full shell-phone:items-stretch shell-phone:border-0 shell-phone:px-5 shell-phone:py-[18px]",
+        "z-30 flex w-full flex-col items-stretch border-border bg-white px-5 py-[18px] transition-[width,padding] duration-200 ease-[ease] md:fixed md:inset-y-0 md:left-0 md:w-(--sidebar-width) md:border-r",
         collapsed
-          ? "items-center px-2.5 py-[30px] shell-tablet:px-2 shell-tablet:py-6"
-          : "px-[18px] py-6 shell-tablet:px-3.5 shell-tablet:py-[26px]",
+          ? "md:items-center md:px-2 md:py-6 lg:px-2.5 lg:py-[30px]"
+          : "md:px-3.5 md:py-[26px] lg:px-[18px] lg:py-6",
       )}
       aria-label="Странично меню"
     >
       {onToggleCollapse && (
         <button
           type="button"
-          className="absolute top-[92px] -right-3 z-40 flex size-6 cursor-pointer items-center justify-center rounded-md border border-border bg-white p-0 text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[ease] hover:scale-[1.08] hover:border-tone-b7cbbf hover:text-primary hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] shell-phone:hidden"
+          className="absolute top-[92px] -right-3 z-40 hidden size-6 cursor-pointer items-center justify-center rounded-md border border-border bg-white p-0 text-muted-foreground shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[background-color,color,border-color,box-shadow,transform] duration-150 ease-[ease] hover:scale-[1.08] hover:border-tone-b7cbbf hover:text-primary hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
           onClick={onToggleCollapse}
           aria-label={
             collapsed ? "Разгъни страничното меню" : "Свий страничното меню"
@@ -63,7 +63,7 @@ export function Sidebar({
       )}
       <div className="mb-1.5 flex w-full flex-col items-center justify-center text-center">
         <Link
-          className="flex w-full items-center justify-center gap-2.5 text-[26px] font-extrabold tracking-[2px] text-primary no-underline shell-tablet:text-[22px] shell-phone:text-[23px]"
+          className="flex w-full items-center justify-center gap-2.5 text-[23px] font-extrabold tracking-[2px] text-primary no-underline md:text-[22px] lg:text-[26px]"
           href="/"
           title="DOMORA Начало"
         >
@@ -76,7 +76,7 @@ export function Sidebar({
           <span
             className={cn(
               "overflow-hidden text-ellipsis whitespace-nowrap",
-              collapsed && "hidden shell-phone:inline",
+              collapsed && "md:hidden",
             )}
           >
             DOMORA
@@ -84,8 +84,8 @@ export function Sidebar({
         </Link>
         <p
           className={cn(
-            "mt-1 mb-0 w-full overflow-hidden text-center text-[10px] tracking-[1.3px] text-ellipsis whitespace-nowrap shell-tablet:text-[9px] shell-phone:hidden",
-            collapsed && "hidden",
+            "mt-1 mb-0 hidden w-full overflow-hidden text-center text-[12px] tracking-[0.8px] text-ellipsis whitespace-nowrap md:block",
+            collapsed && "md:hidden",
           )}
         >
           WE TAKE CARE OF YOUR HOME
@@ -93,17 +93,17 @@ export function Sidebar({
       </div>
       <nav
         aria-label="Основна навигация"
-        className="mt-0 grid w-full gap-2 shell-phone:flex shell-phone:gap-1.5 shell-phone:overflow-x-auto shell-phone:[scrollbar-width:none]"
+        className="mt-0 flex w-full gap-1.5 overflow-x-auto [scrollbar-width:none] md:grid md:gap-2 md:overflow-visible"
       >
         {navigation.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center rounded-[9px] text-left text-[15px] leading-[1.3] whitespace-nowrap no-underline shell-phone:flex-[1_0_auto] shell-phone:justify-center shell-phone:gap-1.5 shell-phone:px-2.5 shell-phone:py-2 shell-phone:text-[13px]",
+              "flex flex-[1_0_auto] items-center justify-center gap-1.5 rounded-[9px] px-2.5 py-2 text-[13px] leading-[1.3] whitespace-nowrap no-underline md:flex-none md:py-3 md:text-left md:text-[15px]",
               collapsed
-                ? "justify-center gap-0 px-2 py-3"
-                : "gap-3 px-3.5 py-3",
+                ? "md:justify-center md:gap-0 md:px-2"
+                : "md:justify-start md:gap-3 md:px-3.5",
               item.active
                 ? "bg-tone-eaf2ec font-[650] text-primary"
                 : "text-muted-foreground",
@@ -113,8 +113,8 @@ export function Sidebar({
           >
             <span
               className={cn(
-                "inline-flex shrink-0 items-center justify-center shell-phone:w-auto shell-phone:text-[16px]",
-                collapsed ? "w-auto text-[20px]" : "w-[22px] text-[18px]",
+                "inline-flex w-auto shrink-0 items-center justify-center text-[16px]",
+                collapsed ? "md:text-[20px]" : "md:w-[22px] md:text-[18px]",
               )}
               aria-hidden="true"
             >
@@ -123,7 +123,7 @@ export function Sidebar({
             <span
               className={cn(
                 "overflow-hidden text-ellipsis whitespace-nowrap",
-                collapsed && "hidden shell-phone:inline",
+                collapsed && "md:hidden",
               )}
             >
               {item.label}
