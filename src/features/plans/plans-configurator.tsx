@@ -84,8 +84,14 @@ const stepperButton =
 const errorText =
   "mt-[0.3rem] block text-[0.76rem] font-[650] text-tone-a33b3b";
 
-export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
+export function PlansConfigurator({
+  tariffs: initialTariffs,
+}: {
+  tariffs: Tariffs;
+}) {
   const router = useRouter();
+  // Replaced by the server's fresh Tariffs when the quoted price was stale.
+  const [tariffs, setTariffs] = useState(initialTariffs);
   const notify = useToast();
   const [plan, setPlan] = useState<Plan>(Plan.Home);
   const [visits, setVisits] = useState(2);
@@ -113,7 +119,8 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
     ? calculateQuote(tariffs, 4, 0, plan, quantity, visits)
     : null;
   const today = localDate();
-  const discount = visits >= 4;
+  const discount = visits >= tariffs.volumeDiscountMinVisits;
+  const discountPercent = tariffs.volumeDiscountPercent;
 
   function choosePlan(nextPlan: Plan) {
     setPlan(nextPlan);
@@ -157,10 +164,11 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           description,
           date,
           time,
-          price: Math.max(1, Math.round(price / visits)),
         },
+        expectedPrice: price,
       });
       if (!result.success) {
+        if (result.tariffs) setTariffs(result.tariffs);
         notify(result.error ?? "Абонаментът не можа да бъде създаден.");
         return;
       }
@@ -350,7 +358,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           </div>
           {discount && (
             <p className="mt-[0.8rem] mb-0 inline-block rounded-[5px] bg-[#dff0a2] px-[0.55rem] py-[0.35rem] text-[0.78rem] font-[800] text-[#315338]">
-              10% отстъпка за редовна грижа
+              {discountPercent}% отстъпка за редовна грижа
             </p>
           )}
         </div>
@@ -414,7 +422,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             <span className={step}>ВАШИЯТ ПЛАН</span>
             {discount && (
               <strong className="rounded-[4px] bg-[#d7ef77] px-[0.45rem] py-1 text-[0.75rem] text-[#274c3d]">
-                −10%
+                −{discountPercent}%
               </strong>
             )}
           </div>
@@ -440,7 +448,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           <p className="mt-[0.7rem] mb-6 text-[0.76rem] text-tone-687b75">
             {money(tariffs[plan])} × {quantity || "—"} {option.unit} × {visits}{" "}
             посещения
-            {discount && " × 0.90"}
+            {discount && ` × ${((100 - discountPercent) / 100).toFixed(2)}`}
           </p>
 
           {renderForm(false)}

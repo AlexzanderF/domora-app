@@ -27,6 +27,9 @@ export type Action =
   // The specialist's own evidence on the work completion report.
   | "request.attach_report_photo"
   | "request.view_photo"
+  // A Client edits only their own profile; the resource's clientId is the
+  // profile's owner.
+  | "profile.update"
   // Saving Tariffs is an administrative act, never bound to a request.
   | "tariffs.update";
 
@@ -42,6 +45,9 @@ export function can(
   action: Action,
   resource?: RequestResource,
 ): boolean {
+  if (action === "profile.update") {
+    return actor.role === UserRole.Client && resource?.clientId === actor.id;
+  }
   switch (actor.role) {
     case UserRole.Admin:
       // Disputes and photos belong to the request's client or assigned
