@@ -8,14 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast-provider";
-import { DatePicker } from "@/features/plans/date-picker";
-import { TimePicker } from "@/features/plans/time-picker";
+import { DateField, TimeRangeSelect } from "@/components/ui/schedule-fields";
 import { calculateQuote } from "@/domain/pricing";
 import { Plan } from "@/domain/requests/types";
 import type { Tariffs } from "@/domain/requests/types";
 import { startSubscriptionAction } from "@/features/subscriptions/server/actions";
 import { SubscriptionPlan } from "@/domain/subscriptions/types";
 import { localDate, money } from "@/lib/format";
+import { isPastDate } from "@/lib/schedule";
 import { cn } from "@/lib/utils";
 import { HomePlanPreview } from "./home-plan-preview";
 
@@ -109,7 +109,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
 
     if (!address) nextErrors.address = "Въведете адрес на имота.";
     if (!date) nextErrors.date = "Изберете предпочитана начална дата.";
-    else if (date < today)
+    else if (isPastDate(date, today))
       nextErrors.date = "Датата не може да бъде в миналото.";
     if (!time) nextErrors.time = "Изберете часови диапазон.";
     if (!validQuantity) {
@@ -366,8 +366,9 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                 error={errors.date}
                 id="date-error"
               >
-                <DatePicker
+                <DateField
                   min={today}
+                  className={fieldControl}
                   invalid={Boolean(errors.date)}
                   describedBy={errors.date ? "date-error" : undefined}
                 />
@@ -377,7 +378,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                 error={errors.time}
                 id="time-error"
               >
-                <TimePicker
+                <TimeRangeSelect
                   invalid={Boolean(errors.time)}
                   describedBy={errors.time ? "time-error" : undefined}
                 />
