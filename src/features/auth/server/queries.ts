@@ -8,7 +8,7 @@ import {
   type UserSelect,
 } from "@/db/schema";
 import type { User, SpecialistProfile } from "@/domain/identity/types";
-import { hashSessionToken } from "./token";
+import { hashSessionToken } from "@/domain/identity/token";
 
 export interface UserWithPassword extends User {
   passwordHash: string;

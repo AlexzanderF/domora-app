@@ -4,7 +4,7 @@ import { requireDb, sessions, users } from "@/db";
 import { can } from "@/domain/authorization";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { findUserBySessionToken } from "@/features/auth/server/queries";
-import { hashSessionToken } from "@/features/auth/server/token";
+import { hashSessionToken } from "@/domain/identity/token";
 import { createActor } from "../../../tests/db/factories";
 import {
   bootstrapAdmin,

@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { and, count, eq, gt, isNull, lte } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import { and, count, eq, gt, isNull, lte, ne, or } from "drizzle-orm";
 import {
   passwordResetTokens,
   requireDb,
@@ -7,9 +8,9 @@ import {
   specialistProfiles,
   users,
 } from "@/db";
-import type { Actor } from "@/domain/authorization";
+import { can, type Actor } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
-import { hashSessionToken } from "@/features/auth/server/token";
+import { hashSessionToken } from "@/domain/identity/token";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 
 // Framework-free (no next/*): who may use the platform. Specialists sign up as
@@ -21,7 +22,11 @@ export type IdentityErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "INVALID_INPUT"
-  | "INVALID_TOKEN";
+  | "INVALID_TOKEN"
+  | "EMAIL_TAKEN"
+  | "PHONE_TAKEN"
+  | "INVALID_CREDENTIALS"
+  | "REJECTED_SPECIALIST";
 
 export class IdentityError extends Error {
   constructor(
@@ -79,6 +84,149 @@ export async function registerSpecialist(
       payload: { userId: created.id },
     });
     return created.id;
+  });
+}
+
+const PASSWORD_HASH_ROUNDS = 10;
+
+export interface RegisterClientInput {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+}
+
+type Tx = Parameters<
+  Parameters<ReturnType<typeof requireDb>["transaction"]>[0]
+>[0];
+
+// Email and phone identify one account; `ownId` lets a user keep their own.
+async function assertContactFree(
+  tx: Tx,
+  email: string,
+  phone: string,
+  ownId?: number,
+): Promise<void> {
+  const others = ownId === undefined ? undefined : ne(users.id, ownId);
+  const [emailOwner] = await tx
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.email, email), others))
+    .limit(1);
+  if (emailOwner) {
+    throw new IdentityError("EMAIL_TAKEN", "Email is already registered.");
+  }
+  const [phoneOwner] = await tx
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.phone, phone), others))
+    .limit(1);
+  if (phoneOwner) {
+    throw new IdentityError("PHONE_TAKEN", "Phone is already registered.");
+  }
+}
+
+// Creates an Active client; the password is hashed here.
+export async function registerClient(
+  input: RegisterClientInput,
+): Promise<number> {
+  const email = input.email.trim().toLowerCase();
+  const phone = input.phone.trim();
+  const passwordHash = await bcrypt.hash(input.password, PASSWORD_HASH_ROUNDS);
+  return requireDb().transaction(async (tx) => {
+    await assertContactFree(tx, email, phone);
+    const [created] = await tx
+      .insert(users)
+      .values({
+        name: input.name.trim(),
+        email,
+        phone,
+        passwordHash,
+        role: UserRole.Client,
+        status: UserStatus.Active,
+      })
+      .returning({ id: users.id });
+    await enqueueEvent(tx, {
+      type: "account.client_registered",
+      payload: { userId: created.id },
+    });
+    return created.id;
+  });
+}
+
+// Checks email-or-phone plus password and returns the user's id. A wrong
+// password and an unknown account are indistinguishable. Writes no event.
+export async function authenticate(
+  identifier: string,
+  password: string,
+): Promise<number> {
+  const trimmed = identifier.trim();
+  const [user] = await requireDb()
+    .select({
+      id: users.id,
+      passwordHash: users.passwordHash,
+      role: users.role,
+      status: users.status,
+    })
+    .from(users)
+    .where(or(eq(users.email, trimmed.toLowerCase()), eq(users.phone, trimmed)))
+    .limit(1);
+  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+    throw new IdentityError(
+      "INVALID_CREDENTIALS",
+      "Invalid email/phone or password.",
+    );
+  }
+  if (
+    user.role === UserRole.Specialist &&
+    user.status === UserStatus.Rejected
+  ) {
+    throw new IdentityError(
+      "REJECTED_SPECIALIST",
+      "Specialist application was rejected.",
+    );
+  }
+  return user.id;
+}
+
+export interface ClientProfileInput {
+  name: string;
+  email: string;
+  phone: string;
+  propertyAddress: string;
+}
+
+// Only the profile's owner may edit it.
+export async function updateClientProfile(
+  actor: Actor | null,
+  userId: number,
+  input: ClientProfileInput,
+): Promise<void> {
+  if (!actor) {
+    throw new IdentityError("UNAUTHENTICATED", "Sign in required.");
+  }
+  if (!can(actor, "profile.update", { clientId: userId, specialistId: null })) {
+    throw new IdentityError("FORBIDDEN", "Only the owner can edit a profile.");
+  }
+  const email = input.email.trim().toLowerCase();
+  const phone = input.phone.trim();
+
+  await requireDb().transaction(async (tx) => {
+    await assertContactFree(tx, email, phone, userId);
+    await tx
+      .update(users)
+      .set({
+        name: input.name.trim(),
+        email,
+        phone,
+        propertyAddress: input.propertyAddress.trim(),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+    await enqueueEvent(tx, {
+      type: "account.profile_updated",
+      payload: { userId },
+    });
   });
 }
 

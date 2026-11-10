@@ -1,21 +1,23 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { getDb, isDbConfigured } from "@/db";
-import { users } from "@/db/schema";
+import { isDbConfigured } from "@/db";
 import {
   IdentityError,
+  authenticate,
   isPasswordResetTokenValid,
+  registerClient,
   registerSpecialist,
   requestPasswordReset,
   resetPassword,
 } from "@/domain/identity";
-import { UserRole, UserStatus } from "@/domain/identity/types";
 import type {
   ClientRegistrationInput,
   SpecialistRegistrationInput,
   User,
 } from "@/domain/identity/types";
+import { runAction } from "@/lib/server/action";
+import type { ActionResult } from "@/lib/server/action";
 import {
   validateClientRegistration,
   validateEmail,
@@ -23,215 +25,78 @@ import {
   validatePassword,
   validateSpecialistRegistration,
 } from "../validation";
-import {
-  findUserByEmail,
-  findUserById,
-  findUserByPhone,
-  findUserWithPasswordByEmailOrPhone,
-} from "./queries";
+import { findUserByEmail, findUserById, findUserByPhone } from "./queries";
 import { createSession, deleteSession, getServerSession } from "./session";
 
-export type AuthActionResult<T = User> =
-  { success: true; user: T } | { success: false; error: string };
+export type AuthActionResult = ActionResult<User>;
+
+const REGISTRATION_INVALID = "Моля, проверете въведените данни за грешки.";
+
+// Signs the user in and returns them, for every action that ends in a session.
+async function startSession(userId: number): Promise<User> {
+  await createSession(userId);
+  const user = await findUserById(userId);
+  if (!user) throw new Error(`User ${userId} vanished after sign-in`);
+  return user;
+}
 
 export async function loginAction(
   identifier: string,
   password: string,
 ): Promise<AuthActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
-  }
-
-  const validation = validateLogin(identifier, password);
-  if (!validation.isValid) {
+  if (!validateLogin(identifier, password).isValid) {
     return {
       success: false,
       error: "Моля, попълнете всички задължителни полета коректно.",
     };
   }
-
-  const userWithPassword = await findUserWithPasswordByEmailOrPhone(identifier);
-  if (!userWithPassword) {
-    return {
-      success: false,
-      error: "Невалиден имейл/телефон или парола.",
-    };
-  }
-
-  const isPasswordValid = await bcrypt.compare(
-    password,
-    userWithPassword.passwordHash,
-  );
-  if (!isPasswordValid) {
-    return {
-      success: false,
-      error: "Невалиден имейл/телефон или парола.",
-    };
-  }
-
-  if (
-    userWithPassword.role === UserRole.Specialist &&
-    userWithPassword.status === UserStatus.Rejected
-  ) {
-    return {
-      success: false,
-      error:
-        "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
-    };
-  }
-
-  await createSession(userWithPassword.id);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { passwordHash, ...domainUser } = userWithPassword;
-  return {
-    success: true,
-    user: domainUser,
-  };
+  return runAction({
+    run: async () => startSession(await authenticate(identifier, password)),
+  });
 }
 
 export async function registerClientAction(
   input: ClientRegistrationInput,
 ): Promise<AuthActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
+  if (!validateClientRegistration(input).isValid) {
+    return { success: false, error: REGISTRATION_INVALID };
   }
-
-  const validation = validateClientRegistration(input);
-  if (!validation.isValid) {
-    return {
-      success: false,
-      error: "Моля, проверете въведените данни за грешки.",
-    };
-  }
-
-  const existingEmail = await findUserByEmail(input.email);
-  if (existingEmail) {
-    return {
-      success: false,
-      error: "Вече съществува потребител с този имейл адрес.",
-    };
-  }
-
-  const existingPhone = await findUserByPhone(input.phone);
-  if (existingPhone) {
-    return {
-      success: false,
-      error: "Вече съществува потребител с този телефонен номер.",
-    };
-  }
-
-  const db = getDb();
-  if (!db) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
-  }
-
-  const passwordHash = await bcrypt.hash(input.password, 10);
-
-  const [createdUser] = await db
-    .insert(users)
-    .values({
-      name: input.name.trim(),
-      email: input.email.trim().toLowerCase(),
-      phone: input.phone.trim(),
-      passwordHash,
-      role: UserRole.Client,
-      status: UserStatus.Active,
-    })
-    .returning({ id: users.id });
-
-  const userId = createdUser.id;
-
-  await createSession(userId);
-
-  const newUser = await findUserById(userId);
-  if (!newUser) {
-    return {
-      success: false,
-      error: "Възникна грешка при създаването на потребителя.",
-    };
-  }
-
-  return {
-    success: true,
-    user: newUser,
-  };
+  return runAction({
+    run: async () => startSession(await registerClient(input)),
+  });
 }
 
 export async function registerSpecialistAction(
   input: SpecialistRegistrationInput,
 ): Promise<AuthActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Грешка при свързване с базата данни.",
-    };
+  if (!validateSpecialistRegistration(input).isValid) {
+    return { success: false, error: REGISTRATION_INVALID };
   }
-
-  const validation = validateSpecialistRegistration(input);
-  if (!validation.isValid) {
-    return {
-      success: false,
-      error: "Моля, проверете въведените данни за грешки.",
-    };
-  }
-
-  const existingEmail = await findUserByEmail(input.email);
-  if (existingEmail) {
-    return {
-      success: false,
-      error: "Вече съществува потребител с този имейл адрес.",
-    };
-  }
-
-  const existingPhone = await findUserByPhone(input.phone);
-  if (existingPhone) {
-    return {
-      success: false,
-      error: "Вече съществува потребител с този телефонен номер.",
-    };
-  }
-
-  const passwordHash = await bcrypt.hash(input.password, 10);
-
-  const userId = await registerSpecialist({
-    name: input.name,
-    email: input.email,
-    phone: input.phone,
-    passwordHash,
-    profile: {
-      category: input.category,
-      area: input.area,
-      experienceYears: input.experienceYears,
-      bio: input.bio,
-      companyName: input.companyName,
-      eik: input.eik,
+  return runAction({
+    run: async () => {
+      if (await findUserByEmail(input.email)) {
+        throw new IdentityError("EMAIL_TAKEN", "Email is already registered.");
+      }
+      if (await findUserByPhone(input.phone)) {
+        throw new IdentityError("PHONE_TAKEN", "Phone is already registered.");
+      }
+      const userId = await registerSpecialist({
+        name: input.name,
+        email: input.email,
+        phone: input.phone,
+        passwordHash: await bcrypt.hash(input.password, 10),
+        profile: {
+          category: input.category,
+          area: input.area,
+          experienceYears: input.experienceYears,
+          bio: input.bio,
+          companyName: input.companyName,
+          eik: input.eik,
+        },
+      });
+      return startSession(userId);
     },
   });
-
-  await createSession(userId);
-
-  const newUser = await findUserById(userId);
-  if (!newUser) {
-    return {
-      success: false,
-      error: "Възникна грешка при регистрацията на специалист.",
-    };
-  }
-
-  return {
-    success: true,
-    user: newUser,
-  };
 }
 
 export async function refreshUserAction(): Promise<{
