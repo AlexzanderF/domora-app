@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { BookingButton } from "@/features/bookings/booking-button";
@@ -7,20 +6,19 @@ import { isDbConfigured } from "@/db";
 import { listClientRequests } from "@/domain/requests";
 import { presentClientRequest } from "@/features/requests/presenter";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
-import { getServerSession } from "@/features/auth/server/session";
+import { getActor } from "@/features/auth/server/actor";
 
 export const metadata: Metadata = { title: "Табло на клиента" };
 
 export const dynamic = "force-dynamic";
 
 export default async function ClientDashboardPage() {
-  const user = await getServerSession();
-  if (!user) redirect("/api/auth/logout?next=/login");
+  const actor = isDbConfigured ? await getActor() : null;
   const [initialRequests, initialSubscription] = await Promise.all([
-    isDbConfigured
-      ? listClientRequests(user).then((list) => list.map(presentClientRequest))
+    actor
+      ? listClientRequests(actor).then((list) => list.map(presentClientRequest))
       : [],
-    findUserSubscription(user),
+    actor ? findUserSubscription(actor) : null,
   ]);
 
   return (

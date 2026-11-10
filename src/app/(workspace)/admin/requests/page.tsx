@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { Card } from "@/components/ui/card";
@@ -6,8 +5,7 @@ import { RequestList } from "@/features/requests/request-list";
 import { listAll } from "@/domain/requests";
 import { presentAdminRequest } from "@/features/requests/presenter";
 import { findSpecialistApplications } from "@/features/admin/server/queries";
-import { UserRole } from "@/domain/identity/types";
-import { getServerSession } from "@/features/auth/server/session";
+import { getActor } from "@/features/auth/server/actor";
 import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = {
@@ -18,20 +16,10 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminRequestsPage() {
-  const user = await getServerSession();
-  if (isDbConfigured) {
-    if (!user) {
-      redirect("/api/auth/logout?next=/login");
-    }
-    if (user.role !== UserRole.Admin) {
-      redirect(user.role === UserRole.Specialist ? "/specialist" : "/client");
-    }
-  }
+  const actor = isDbConfigured ? await getActor() : null;
 
   const [initialRequests, specialists] = await Promise.all([
-    isDbConfigured
-      ? listAll(user).then((r) => r.map(presentAdminRequest))
-      : null,
+    actor ? listAll(actor).then((r) => r.map(presentAdminRequest)) : null,
     findSpecialistApplications(),
   ]);
 

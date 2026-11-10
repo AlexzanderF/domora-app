@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { ForgotPasswordForm } from "@/features/auth/forgot-password-form";
-import { UserRole, UserStatus } from "@/domain/identity/types";
-import { getServerSession } from "@/features/auth/server/session";
-import { isDbConfigured } from "@/db";
+import { redirectIfSignedIn } from "@/features/auth/server/actor";
 
 export const metadata: Metadata = {
   title: "Забравена парола | DOMORA",
@@ -12,22 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ForgotPasswordPage() {
-  if (isDbConfigured) {
-    const user = await getServerSession();
-    if (user) {
-      if (user.role === UserRole.Admin) {
-        redirect("/admin");
-      }
-      if (user.role === UserRole.Specialist) {
-        redirect(
-          user.status === UserStatus.Pending
-            ? "/pending-approval"
-            : "/specialist",
-        );
-      }
-      redirect("/client");
-    }
-  }
+  await redirectIfSignedIn();
 
   return <ForgotPasswordForm />;
 }
