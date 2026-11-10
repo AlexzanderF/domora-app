@@ -89,6 +89,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
             id="password"
             name="password"
             autoComplete="new-password"
+            enterKeyHint="done"
             required
             value={password}
             onChange={(e) => {

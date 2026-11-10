@@ -75,6 +75,7 @@ export function ForgotPasswordForm() {
             name="email"
             type="email"
             autoComplete="email"
+            enterKeyHint="done"
             required
             value={email}
             onChange={(e) => {

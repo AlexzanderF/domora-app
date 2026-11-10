@@ -49,7 +49,7 @@ export function AuthForm({
   return (
     <form
       noValidate
-      className={cn("flex flex-col gap-[18px]", className)}
+      className={cn("flex flex-col gap-4", className)}
       {...props}
     />
   );
