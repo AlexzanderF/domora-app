@@ -58,8 +58,6 @@ export const MOBILE_ALLOWLIST: Record<string, number> = {
   "src/features/plans/time-picker.tsx::small-input": 1,
   "src/features/requests/request-list.tsx::arbitrary-max": 2,
   "src/features/services/service-grid.tsx::arbitrary-max": 4,
-  "src/features/specialist/section-parts.tsx::arbitrary-max": 3,
-  "src/features/specialist/section-parts.tsx::small-text": 1,
   "src/features/subscriptions/client-plan-view.tsx::arbitrary-max": 5,
   "src/features/subscriptions/client-plan-view.tsx::small-text": 1,
 };
