@@ -158,3 +158,11 @@ describe("can() policy matrix", () => {
     });
   }
 });
+
+describe("tariffs.update", () => {
+  it("is allowed for Administrators only", () => {
+    for (const [name, actor] of Object.entries(actors)) {
+      expect(can(actor, "tariffs.update"), name).toBe(name === "admin");
+    }
+  });
+});

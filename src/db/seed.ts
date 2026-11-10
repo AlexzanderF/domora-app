@@ -119,44 +119,26 @@ const seedTariffs: TariffInsert[] = [
   {
     category: "0",
     standardRate: 45,
-    urgentRate: 68,
-    holidayRate: 79,
-    emergencyRate: 90,
   },
   {
     category: "1",
     standardRate: 35,
-    urgentRate: 53,
-    holidayRate: 61,
-    emergencyRate: 70,
   },
   {
     category: "2",
     standardRate: 55,
-    urgentRate: 83,
-    holidayRate: 96,
-    emergencyRate: 110,
   },
   {
     category: "3",
     standardRate: 25,
-    urgentRate: 38,
-    holidayRate: 44,
-    emergencyRate: 50,
   },
   {
     category: "4",
     standardRate: 65,
-    urgentRate: 98,
-    holidayRate: 114,
-    emergencyRate: 130,
   },
   {
     category: "5",
     standardRate: 25,
-    urgentRate: 38,
-    holidayRate: 44,
-    emergencyRate: 50,
   },
 ];
 
@@ -364,9 +346,6 @@ async function seedReferenceData(db: SeedDb): Promise<void> {
         target: tariffs.category,
         set: {
           standardRate: tariff.standardRate,
-          urgentRate: tariff.urgentRate,
-          holidayRate: tariff.holidayRate,
-          emergencyRate: tariff.emergencyRate,
           updatedAt: new Date(),
         },
       });
