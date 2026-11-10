@@ -1,6 +1,6 @@
 /**
  * Mobile-first convention guard (docs/specs/mobile-responsive.md, ADR 0008).
- * Pure scanning logic; the ratchet test lives in mobile-conventions.test.ts.
+ * Pure scanning logic; the strict test lives in mobile-conventions.test.ts.
  */
 
 export type GuardRule =
@@ -14,8 +14,10 @@ const SHELL_VARIANT = /\bshell-(?:phone|tablet)\b/g;
 const VH_UNIT = /\d(?:\.\d+)?vh\b/g;
 const TAILWIND_TEXT = /\btext-\[(\d*\.?\d+)(px|rem)\]/g;
 const CSS_FONT_SIZE = /font-size:\s*(\d*\.?\d+)(px|rem)/g;
+// "select" only counts as a standalone word, so select-none and aria-selected
+// do not look like form controls.
 const FIELD_HINT =
-  /<(?:input|select|textarea)\b|input|select|textarea|fieldControl/i;
+  /<(?:input|select|textarea)\b|input|textarea|(?<![\w-])select(?![\w-])|fieldControl/i;
 
 const MIN_TEXT_PX = 12;
 const MIN_INPUT_PX = 16;

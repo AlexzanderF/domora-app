@@ -19,7 +19,7 @@ const dayPickerClassNames = {
   button_previous: `${defaults.button_previous} grid size-[1.9rem] place-items-center rounded-md border border-[#dce5df] bg-white p-0 text-[#175246]`,
   button_next: `${defaults.button_next} grid size-[1.9rem] place-items-center rounded-md border border-[#dce5df] bg-white p-0 text-[#175246]`,
   month_grid: `${defaults.month_grid} w-full border-collapse`,
-  weekday: `${defaults.weekday} h-[1.7rem] text-[0.68rem] font-[750] text-[#71827c]`,
+  weekday: `${defaults.weekday} h-[1.7rem] text-xs font-[750] text-[#71827c]`,
   day: `${defaults.day} p-px text-center`,
   day_button: `${defaults.day_button} size-[1.9rem] rounded-md border-0 bg-transparent p-0 text-[#29453e] hover:bg-[#edf3ef]`,
   selected: `${defaults.selected} [&>button]:bg-[#175246] [&>button]:font-extrabold [&>button]:text-white [&>button:hover]:bg-[#175246]`,

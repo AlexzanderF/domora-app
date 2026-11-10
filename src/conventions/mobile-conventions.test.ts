@@ -1,7 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { MOBILE_ALLOWLIST } from "./mobile-allowlist";
 import { findViolations, isGuardedFile } from "./mobile-guard";
 
 describe("findViolations", () => {
@@ -53,6 +52,12 @@ describe("findViolations", () => {
     expect(rules('<select className="text-base" />')).toEqual([]);
     expect(rules('<p className="text-sm">not a field</p>')).toEqual([]);
   });
+
+  it("does not mistake select-none or aria-selected for a form control", () => {
+    expect(rules('"block text-sm select-none"')).toEqual([]);
+    expect(rules('"text-[0.88rem] aria-selected:text-white"')).toEqual([]);
+    expect(rules('<select className="text-sm" />')).toEqual(["small-input"]);
+  });
 });
 
 describe("isGuardedFile", () => {
@@ -76,8 +81,8 @@ function listFiles(dir: string): string[] {
   });
 }
 
-describe("mobile convention guard (ratchet)", () => {
-  it("allows no more violations per file and rule than the allowlist records", () => {
+describe("mobile convention guard (strict)", () => {
+  it("finds no violations in non-admin source", () => {
     const counts = new Map<string, number>();
     for (const file of listFiles("src")) {
       const rel = file.split(path.sep).join("/");
@@ -88,18 +93,13 @@ describe("mobile convention guard (ratchet)", () => {
       }
     }
 
-    const offenders = [...counts]
-      .map(([key, count]) => ({
-        key,
-        count,
-        allowed: MOBILE_ALLOWLIST[key] ?? 0,
-      }))
-      .filter((entry) => entry.count > entry.allowed)
-      .map((e) => `${e.key}: found ${e.count}, allowed ${e.allowed}`);
+    const offenders = [...counts].map(
+      ([key, count]) => `${key}: found ${count}`,
+    );
 
     expect(
       offenders,
-      "New mobile-convention violations. Use Tailwind's standard mobile-first scale (see docs/specs/mobile-responsive.md); do not add to the allowlist.",
+      "New mobile-convention violations. Use Tailwind's standard mobile-first scale (see docs/specs/mobile-responsive.md); there is no allowlist.",
     ).toEqual([]);
   });
 });
