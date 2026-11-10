@@ -7,8 +7,6 @@
  * object. Run `npx vitest run src/conventions` to see what is still found.
  */
 export const MOBILE_ALLOWLIST: Record<string, number> = {
-  "src/app/(auth)/layout.tsx::arbitrary-max": 6,
-  "src/app/(auth)/layout.tsx::vh-unit": 3,
   "src/app/(marketing)/plans/page.tsx::arbitrary-max": 3,
   "src/app/(marketing)/plans/page.tsx::small-text": 1,
   "src/app/(marketing)/plans/page.tsx::vh-unit": 1,
@@ -26,8 +24,6 @@ export const MOBILE_ALLOWLIST: Record<string, number> = {
   "src/components/ui/dialog.tsx::vh-unit": 1,
   "src/components/ui/label.tsx::small-input": 1,
   "src/components/ui/select.tsx::small-input": 1,
-  "src/features/auth/login-form.tsx::arbitrary-max": 1,
-  "src/features/auth/pending-approval-card.tsx::arbitrary-max": 2,
   "src/features/landing/final-cta.tsx::arbitrary-max": 5,
   "src/features/landing/final-cta.tsx::small-text": 1,
   "src/features/landing/hero.tsx::arbitrary-max": 9,
