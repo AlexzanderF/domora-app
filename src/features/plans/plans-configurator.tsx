@@ -119,7 +119,8 @@ export function PlansConfigurator({
     ? calculateQuote(tariffs, 4, 0, plan, quantity, visits)
     : null;
   const today = localDate();
-  const discount = visits >= 4;
+  const discount = visits >= tariffs.volumeDiscountMinVisits;
+  const discountPercent = tariffs.volumeDiscountPercent;
 
   function choosePlan(nextPlan: Plan) {
     setPlan(nextPlan);
@@ -357,7 +358,7 @@ export function PlansConfigurator({
           </div>
           {discount && (
             <p className="mt-[0.8rem] mb-0 inline-block rounded-[5px] bg-[#dff0a2] px-[0.55rem] py-[0.35rem] text-[0.78rem] font-[800] text-[#315338]">
-              10% отстъпка за редовна грижа
+              {discountPercent}% отстъпка за редовна грижа
             </p>
           )}
         </div>
@@ -421,7 +422,7 @@ export function PlansConfigurator({
             <span className={step}>ВАШИЯТ ПЛАН</span>
             {discount && (
               <strong className="rounded-[4px] bg-[#d7ef77] px-[0.45rem] py-1 text-[0.75rem] text-[#274c3d]">
-                −10%
+                −{discountPercent}%
               </strong>
             )}
           </div>
@@ -447,7 +448,7 @@ export function PlansConfigurator({
           <p className="mt-[0.7rem] mb-6 text-[0.76rem] text-tone-687b75">
             {money(tariffs[plan])} × {quantity || "—"} {option.unit} × {visits}{" "}
             посещения
-            {discount && " × 0.90"}
+            {discount && ` × ${((100 - discountPercent) / 100).toFixed(2)}`}
           </p>
 
           {renderForm(false)}

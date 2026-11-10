@@ -94,3 +94,21 @@ describe("tariffsFromRows", () => {
     );
   });
 });
+
+describe("calculateQuote with pricing settings", () => {
+  const custom = {
+    ...initialTariffs,
+    diagnosticFee: 40,
+    volumeDiscountMinVisits: 2,
+    volumeDiscountPercent: 50,
+  };
+
+  it("uses the configured diagnostic fee", () => {
+    expect(calculateQuote(custom, 2, 1)).toBe(40);
+  });
+
+  it("applies the configured discount from the configured visit count", () => {
+    expect(calculateQuote(custom, 4, 0, Plan.Entry, 10, 1)).toBe(180);
+    expect(calculateQuote(custom, 4, 0, Plan.Entry, 10, 2)).toBe(180);
+  });
+});

@@ -1,5 +1,12 @@
 import { desc, eq } from "drizzle-orm";
-import { requestEvents, requests, requireDb, tariffs, users } from "@/db";
+import {
+  requestEvents,
+  requests,
+  pricingSettings,
+  requireDb,
+  tariffs,
+  users,
+} from "@/db";
 import type { DomoraDatabase, RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
@@ -246,14 +253,14 @@ async function quoteBooking(
 }
 
 async function currentTariffs(tx: Tx) {
-  return tariffsFromRows(
-    await tx
-      .select({
-        category: tariffs.category,
-        standardRate: tariffs.standardRate,
-      })
-      .from(tariffs),
-  );
+  const rows = await tx
+    .select({
+      category: tariffs.category,
+      standardRate: tariffs.standardRate,
+    })
+    .from(tariffs);
+  const [settings] = await tx.select().from(pricingSettings);
+  return tariffsFromRows(rows, settings);
 }
 
 // The server-side prices of a Subscription: the plan total for its monthly

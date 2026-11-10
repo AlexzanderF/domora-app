@@ -29,6 +29,9 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
       categories: { ...tariffs.categories },
       home: Number(data.get("home")),
       entry: Number(data.get("entry")),
+      diagnosticFee: Number(data.get("diagnosticFee")),
+      volumeDiscountMinVisits: Number(data.get("volumeDiscountMinVisits")),
+      volumeDiscountPercent: Number(data.get("volumeDiscountPercent")),
     };
     for (const category of categories) {
       next.categories[category.id] = Number(data.get(`rate${category.id}`));
@@ -96,6 +99,39 @@ export function TariffForm({ initialTariffs: tariffs }: TariffFormProps) {
                 max="1000"
                 required
                 defaultValue={tariffs.entry}
+              />
+            </Label>
+            <Label className="mb-3.5">
+              Такса за оглед / диагностика (€)
+              <Input
+                name="diagnosticFee"
+                type="number"
+                min="1"
+                max="10000"
+                required
+                defaultValue={tariffs.diagnosticFee}
+              />
+            </Label>
+            <Label className="mb-3.5">
+              Отстъпка за обем · минимум посещения месечно
+              <Input
+                name="volumeDiscountMinVisits"
+                type="number"
+                min="1"
+                max="8"
+                required
+                defaultValue={tariffs.volumeDiscountMinVisits}
+              />
+            </Label>
+            <Label className="mb-3.5">
+              Отстъпка за обем (%)
+              <Input
+                name="volumeDiscountPercent"
+                type="number"
+                min="0"
+                max="100"
+                required
+                defaultValue={tariffs.volumeDiscountPercent}
               />
             </Label>
           </div>

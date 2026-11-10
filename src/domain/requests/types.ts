@@ -75,6 +75,11 @@ export interface Tariffs {
   categories: Record<CategoryId, number>;
   home: number;
   entry: number;
+  // Pricing settings: the flat fee for a diagnostic visit and the discount
+  // given from a minimum number of monthly visits.
+  diagnosticFee: number;
+  volumeDiscountMinVisits: number;
+  volumeDiscountPercent: number;
 }
 
 export interface BookingSelection {
