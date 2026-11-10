@@ -26,7 +26,7 @@ import {
   trackerStages,
 } from "./client-dashboard-logic";
 
-const sectionCard = "rounded-lg p-6 max-[700px]:p-6 max-[620px]:p-[18px]";
+const sectionCard = "rounded-lg p-[18px] md:p-6";
 const iconTile = "grid place-items-center bg-tone-edf3ef text-primary";
 const textLink = "text-[0.8rem] font-bold text-primary";
 
@@ -44,7 +44,7 @@ function SectionHeading({
   return (
     <div className="mb-5 flex items-start justify-between gap-5">
       <div>
-        <span className="text-[0.68rem] font-extrabold tracking-[1.2px] text-muted-foreground">
+        <span className="text-xs font-extrabold tracking-[1.2px] text-muted-foreground">
           {eyebrow}
         </span>
         <h2 id={id} className="mt-[3px] text-[1.2rem]">
@@ -171,7 +171,7 @@ export function ClientDashboard({
       <Card
         role="region"
         aria-labelledby="quick-title"
-        className={cn(sectionCard, "pt-5 max-[620px]:pt-[18px]")}
+        className={cn(sectionCard, "pt-[18px] md:pt-5")}
       >
         <SectionHeading
           eyebrow="НОВА УСЛУГА"
@@ -182,7 +182,7 @@ export function ClientDashboard({
             Изберете категория
           </span>
         </SectionHeading>
-        <div className="grid grid-cols-6 gap-2.5 max-[960px]:grid-cols-3 max-[620px]:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
           {categories.map((category) => (
             <Button
               key={category.id}
@@ -205,7 +205,7 @@ export function ClientDashboard({
         </div>
       </Card>
 
-      <div className="grid grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-5 max-[960px]:grid-cols-1">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <Card
           role="region"
           aria-labelledby="property-title"
@@ -254,7 +254,7 @@ export function ClientDashboard({
               {recentRequests.map((request) => (
                 <article
                   key={request.id}
-                  className="grid grid-cols-[36px_minmax(0,1fr)_auto] items-center gap-[11px] border-t border-border py-[13px] first:border-t-0 first:pt-0 max-[620px]:grid-cols-[36px_minmax(0,1fr)]"
+                  className="grid grid-cols-[36px_minmax(0,1fr)] items-center gap-[11px] border-t border-border py-[13px] first:border-t-0 first:pt-0 sm:grid-cols-[36px_minmax(0,1fr)_auto]"
                 >
                   <span
                     className={cn(
@@ -272,7 +272,7 @@ export function ClientDashboard({
                   </div>
                   <Link
                     href={`/client/requests#request-${request.id}`}
-                    className={cn(textLink, "max-[620px]:col-start-2")}
+                    className={cn(textLink, "col-start-2 sm:col-start-auto")}
                   >
                     Разписка
                   </Link>
@@ -307,7 +307,7 @@ function ActiveRequest({
 
   return (
     <div className="grid gap-[22px]">
-      <div className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-3.5 max-[620px]:grid-cols-[42px_minmax(0,1fr)]">
+      <div className="grid grid-cols-[42px_minmax(0,1fr)] items-center gap-3.5 sm:grid-cols-[48px_minmax(0,1fr)_auto]">
         <span className={cn(iconTile, "size-12 rounded-lg [&_svg]:size-6")}>
           <ServiceIcon category={request.category} />
         </span>
@@ -319,13 +319,13 @@ function ActiveRequest({
             {request.address}
           </p>
         </div>
-        <strong className="text-[1.05rem] text-primary max-[620px]:col-start-2">
+        <strong className="col-start-2 text-[1.05rem] text-primary sm:col-start-auto">
           {money(request.price)}
         </strong>
       </div>
 
       <ol
-        className="m-0 grid list-none grid-cols-4 p-0 max-[620px]:grid-cols-1 max-[620px]:gap-2"
+        className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-4 sm:gap-0"
         aria-label="Прогрес на услугата"
       >
         {trackerStages.map((label, index) => {
@@ -334,28 +334,26 @@ function ActiveRequest({
             <li
               key={label}
               className={cn(
-                "relative grid justify-items-center gap-[7px] text-center text-tone-8a9994 before:absolute before:top-3.5 before:right-1/2 before:z-0 before:h-0.5 before:w-full before:bg-border before:content-[''] first:before:hidden max-[620px]:grid-cols-[29px_minmax(0,1fr)] max-[620px]:items-center max-[620px]:justify-items-start max-[620px]:text-left max-[620px]:before:top-[-8px] max-[620px]:before:right-auto max-[620px]:before:left-3.5 max-[620px]:before:h-2 max-[620px]:before:w-0.5",
+                "relative grid grid-cols-[29px_minmax(0,1fr)] items-center justify-items-start gap-[7px] text-left text-tone-8a9994 before:absolute before:top-[-8px] before:left-3.5 before:z-0 before:h-2 before:w-0.5 before:bg-border before:content-[''] first:before:hidden sm:grid-cols-none sm:items-stretch sm:justify-items-center sm:text-center sm:before:top-3.5 sm:before:right-1/2 sm:before:left-auto sm:before:h-0.5 sm:before:w-full",
                 reached && "font-bold text-primary before:bg-primary",
               )}
               aria-current={index === stage ? "step" : undefined}
             >
               <span
                 className={cn(
-                  "z-[1] grid size-[29px] place-items-center rounded-full border-2 border-tone-d8e1db bg-white text-[0.72rem] font-extrabold",
+                  "z-[1] grid size-[29px] place-items-center rounded-full border-2 border-tone-d8e1db bg-white text-xs font-extrabold",
                   reached && "border-primary bg-primary text-white",
                 )}
               >
                 {index < stage ? "✓" : index + 1}
               </span>
-              <small className="max-w-[120px] text-[0.69rem] max-[620px]:max-w-none">
-                {label}
-              </small>
+              <small className="text-xs sm:max-w-[120px]">{label}</small>
             </li>
           );
         })}
       </ol>
 
-      <div className="flex items-center justify-between gap-4 border-t border-border pt-[18px] max-[620px]:flex-col max-[620px]:items-start">
+      <div className="flex flex-col items-start justify-between gap-4 border-t border-border pt-[18px] sm:flex-row sm:items-center">
         <div className="flex items-center gap-2.5">
           <span
             className="grid size-[34px] place-items-center rounded-full bg-tone-e9efdc font-extrabold text-primary"
@@ -364,7 +362,7 @@ function ActiveRequest({
             {request.specialist?.charAt(0) ?? "D"}
           </span>
           <div>
-            <small className="block text-[0.68rem] text-muted-foreground">
+            <small className="block text-xs text-muted-foreground">
               Специалист
             </small>
             <strong className="block text-[0.85rem]">
@@ -431,9 +429,7 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between gap-3 border-l-[3px] border-primary bg-tone-f3f7f4 px-3.5 py-3">
-        <span className="text-[0.72rem] text-muted-foreground">
-          Активен план
-        </span>
+        <span className="text-xs text-muted-foreground">Активен план</span>
         <strong className="text-[0.9rem] text-primary">
           План „
           {subscription.planType === SubscriptionPlan.Home ? "Дом" : "Вход"}“
@@ -446,7 +442,7 @@ function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
           ["Оставащи посещения", subscription.visitsRemaining],
         ].map(([term, value]) => (
           <div key={term} className="grid gap-0.5">
-            <dt className="text-[0.68rem] text-muted-foreground">{term}</dt>
+            <dt className="text-xs text-muted-foreground">{term}</dt>
             <dd className="m-0 text-[0.82rem] font-[650]">{value}</dd>
           </div>
         ))}
