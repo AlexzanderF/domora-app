@@ -9,7 +9,7 @@ import {
   users,
 } from "@/db";
 import { MAX_ATTEMPTS, backoffMs, processOutbox } from "@/domain/notifications";
-import { accountFlowHandlers } from "@/domain/notifications/account-flow";
+import { eventHandlers } from "@/domain/notifications/handlers";
 import type {
   Notifier,
   NotificationMessage,
@@ -52,7 +52,7 @@ async function sendMail(
       sent.push(message);
     },
   };
-  await processOutbox({ notifier, handlers: accountFlowHandlers, now });
+  await processOutbox({ notifier, handlers: eventHandlers, now });
   return sent;
 }
 

@@ -5,10 +5,14 @@ import { MAX_ATTEMPTS, backoffMs, enqueueEvent, processOutbox } from "./index";
 import type { EventHandlers } from "./index";
 import type { Notifier, NotificationMessage } from "./notifier";
 
+// Recipients per emitted event, keyed by the event's requestId.
+const recipients = new Map<number, string[]>();
+let nextId = 1;
+
 const handlers: EventHandlers = {
   "request.completed": (event) => {
-    const { to } = event.payload as { to: string[] };
-    return to.map((address) => ({
+    const { requestId } = event.payload as { requestId: number };
+    return (recipients.get(requestId) ?? []).map((address) => ({
       to: address,
       template: "request-completed",
       data: { title: "Смяна на кран" },
@@ -28,8 +32,10 @@ function recordingNotifier(fail?: (m: NotificationMessage) => boolean) {
 }
 
 async function emit(to: string[]) {
+  const requestId = nextId++;
+  recipients.set(requestId, to);
   await requireDb().transaction((tx) =>
-    enqueueEvent(tx, { type: "request.completed", payload: { to } }),
+    enqueueEvent(tx, { type: "request.completed", payload: { requestId } }),
   );
 }
 
@@ -52,7 +58,7 @@ describe("enqueueEvent", () => {
       .transaction(async (tx) => {
         await enqueueEvent(tx, {
           type: "request.completed",
-          payload: { to: [] },
+          payload: { requestId: 0 },
         });
         throw new Error("state change failed");
       })
@@ -106,7 +112,10 @@ describe("processOutbox", () => {
 
   it("ignores events without a handler", async () => {
     await requireDb().transaction((tx) =>
-      enqueueEvent(tx, { type: "unknown.thing", payload: {} }),
+      enqueueEvent(tx, {
+        type: "password.reset_completed",
+        payload: { userId: 1 },
+      }),
     );
     const { notifier, sent } = recordingNotifier();
     await processOutbox({ notifier, handlers, now: T0 });

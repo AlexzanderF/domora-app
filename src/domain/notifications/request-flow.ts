@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { specialistProfiles, users } from "@/db";
+import { requestDisputes, specialistProfiles, users } from "@/db";
 import { matchesProfile } from "@/domain/dispatch";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { RequestPriority } from "@/domain/requests/types";
@@ -7,7 +7,7 @@ import type { EventHandler, EventHandlers, Tx } from "./index";
 import type { NotificationMessage } from "./notifier";
 import { adminEmails, emailOf, loadRequest, payloadOf } from "./recipients";
 
-// Who hears about each step of a request. Recipients are resolved when the
+// Who hears about each step of a request, including Disputes. Recipients are resolved when the
 // worker fans the event out, from the outbox payload plus current rows.
 
 // STANDARD requests wait in the queue without paging admins.
@@ -86,6 +86,38 @@ const onRecommended: EventHandler = async (event, tx) => {
   ];
 };
 
+const onDisputeRaised: EventHandler = async (event, tx) => {
+  const request = await loadRequest(tx, payloadOf(event));
+  if (!request) return [];
+  const [dispute] = await tx
+    .select({ note: requestDisputes.note })
+    .from(requestDisputes)
+    .where(eq(requestDisputes.id, Number(payloadOf(event).disputeId)));
+  const data = { title: request.title, note: dispute?.note ?? "" };
+  const recipients = await adminEmails(tx);
+  if (request.specialistId !== null) {
+    const specialist = await emailOf(tx, request.specialistId);
+    if (specialist) recipients.unshift(specialist);
+  }
+  return recipients.map((to) => ({ to, template: "dispute-raised", data }));
+};
+
+const onDisputeResolved: EventHandler = async (event, tx) => {
+  const request = await loadRequest(tx, payloadOf(event));
+  if (!request) return [];
+  const data = {
+    title: request.title,
+    note: String(payloadOf(event).resolutionNote ?? ""),
+  };
+  const ids = [request.clientId, request.specialistId];
+  const messages: NotificationMessage[] = [];
+  for (const id of ids) {
+    const to = id === null ? undefined : await emailOf(tx, id);
+    if (to) messages.push({ to, template: "dispute-resolved", data });
+  }
+  return messages;
+};
+
 export const requestFlowHandlers: EventHandlers = {
   "request.created": onCreated,
   "request.accepted": (event, tx) =>
@@ -93,4 +125,6 @@ export const requestFlowHandlers: EventHandlers = {
   "request.report_submitted": (event, tx) =>
     toClient("report-submitted", tx, payloadOf(event)),
   "request.recommended": onRecommended,
+  "request.dispute_raised": onDisputeRaised,
+  "request.dispute_resolved": onDisputeResolved,
 };

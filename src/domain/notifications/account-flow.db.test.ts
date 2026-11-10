@@ -13,7 +13,7 @@ import {
 } from "../../../tests/db/factories";
 import { processOutbox } from "./index";
 import type { Notifier, NotificationMessage } from "./notifier";
-import { accountFlowHandlers } from "./account-flow";
+import { eventHandlers } from "./handlers";
 import { renderTemplate } from "./templates";
 
 let client: Actor;
@@ -56,7 +56,7 @@ async function drain(): Promise<NotificationMessage[]> {
       sent.push(message);
     },
   };
-  await processOutbox({ notifier, handlers: accountFlowHandlers });
+  await processOutbox({ notifier, handlers: eventHandlers });
   return sent;
 }
 

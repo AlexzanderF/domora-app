@@ -164,8 +164,8 @@ export function ClientPlanView({
         propertyArea: area,
       });
 
-      if (result.success && result.subscription) {
-        setSubscription(result.subscription);
+      if (result.success && result.data) {
+        setSubscription(result.data);
         setFormError("");
         notify(`Успешно се абонирахте за план "${PLAN_NAMES[planType]}"!`);
       } else if (result.error) {
