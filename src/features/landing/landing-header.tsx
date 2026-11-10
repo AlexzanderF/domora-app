@@ -1,30 +1,32 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageContainer } from "@/components/layout/page-container";
 
 const anchorLink =
-  "flex items-center gap-3 rounded-[9px] p-0 text-[15px] leading-[1.3] font-[650] max-[700px]:flex-[1_0_auto] max-[700px]:justify-center max-[700px]:gap-1.5 max-[700px]:text-[13px] whitespace-nowrap text-[#425750] no-underline hover:text-primary";
+  "flex flex-[1_0_auto] items-center justify-center gap-1.5 rounded-[9px] p-0 text-[13px] leading-[1.3] font-[650] whitespace-nowrap text-[#425750] no-underline hover:text-primary md:flex-none md:justify-start md:gap-3 md:text-[15px]";
 
 export function LandingHeader() {
   return (
     <header className="sticky top-0 z-20 block h-auto text-[14px] text-muted-foreground border-b border-[#e0e7e2] bg-[rgb(255_255_255/94%)] p-0 backdrop-blur-[12px]">
-      <nav
-        className="mx-auto max-[700px]:overflow-x-auto max-[700px]:[scrollbar-width:none] mt-0 grid min-h-[78px] w-[min(1320px,calc(100%-3rem))] grid-cols-[1fr_auto_1fr] items-center gap-8 max-[850px]:grid-cols-[1fr_auto] max-[850px]:gap-x-5 max-[850px]:gap-y-[0.8rem] max-[850px]:py-[0.85rem] max-[560px]:w-[calc(100%-2rem)]"
+      <PageContainer
+        as="nav"
+        className="mt-0 grid grid-cols-[1fr_auto] items-center gap-x-5 gap-y-[0.8rem] overflow-x-auto py-[0.85rem] [scrollbar-width:none] md:overflow-visible lg:min-h-[78px] lg:grid-cols-[1fr_auto_1fr] lg:gap-8 lg:py-0"
         aria-label="Навигация на началната страница"
       >
         <Link
-          className="inline-flex items-center justify-self-start leading-[1.3] whitespace-nowrap no-underline max-[560px]:leading-normal gap-[0.65rem] p-0 text-[1.25rem] font-[850] tracking-[0.12em] text-primary max-[560px]:text-base"
+          className="inline-flex items-center justify-self-start gap-[0.65rem] p-0 text-base leading-normal font-[850] tracking-[0.12em] whitespace-nowrap text-primary no-underline sm:text-[1.25rem] sm:leading-[1.3]"
           href="/"
           aria-label="DOMORA начало"
         >
           <span
-            className="grid size-[2.2rem] w-[22px] shrink-0 max-[700px]:w-auto place-items-center rounded-[10px] bg-primary text-[1.25rem] tracking-normal text-white max-[560px]:h-8"
+            className="grid h-8 w-auto shrink-0 place-items-center rounded-[10px] bg-primary text-[1.25rem] tracking-normal text-white sm:h-[2.2rem] md:w-[22px]"
             aria-hidden="true"
           >
             ⌂
           </span>
           DOMORA
         </Link>
-        <div className="flex items-center gap-6 max-[850px]:col-span-full max-[850px]:row-start-2 max-[850px]:justify-center max-[850px]:gap-[clamp(1rem,8vw,2rem)] max-[850px]:border-t max-[850px]:border-[#e7ece8] max-[850px]:pt-[0.7rem]">
+        <div className="col-span-full row-start-2 flex items-center justify-center gap-4 border-t border-[#e7ece8] pt-[0.7rem] sm:gap-8 lg:col-span-1 lg:row-start-1 lg:gap-6 lg:border-t-0 lg:pt-0">
           <Link className={anchorLink} href="/#how-it-works">
             Как работи
           </Link>
@@ -38,22 +40,22 @@ export function LandingHeader() {
             Контакти
           </Link>
         </div>
-        <div className="flex items-center justify-self-end gap-[0.6rem] max-[560px]:gap-[0.35rem]">
+        <div className="flex items-center justify-self-end gap-[0.35rem] sm:gap-[0.6rem]">
           <Button
             asChild
             variant="secondary"
-            className="inline-flex min-h-[42px] items-center justify-center gap-3 text-[15px] leading-[1.3] whitespace-nowrap no-underline max-[700px]:flex-[1_0_auto] max-[700px]:gap-1.5 max-[700px]:text-[13px] rounded-lg border border-[#d7e0da] bg-white px-4 py-[0.55rem] font-[750] text-[#425750] hover:text-primary max-[560px]:min-h-[38px] max-[560px]:px-[0.65rem] max-[560px]:py-[0.45rem] "
+            className="inline-flex min-h-[38px] flex-[1_0_auto] items-center justify-center gap-1.5 rounded-lg border border-[#d7e0da] bg-white px-[0.65rem] py-[0.45rem] text-[13px] leading-[1.3] font-[750] whitespace-nowrap text-[#425750] no-underline hover:text-primary sm:min-h-[42px] sm:px-4 sm:py-[0.55rem] md:flex-none md:gap-3 md:text-[15px]"
           >
             <Link href="/login">Вход</Link>
           </Button>
           <Button
             asChild
-            className="inline-flex min-h-[42px] items-center justify-center gap-3 text-[15px] leading-[1.3] whitespace-nowrap no-underline max-[700px]:flex-[1_0_auto] max-[700px]:gap-1.5 max-[700px]:text-[13px] rounded-lg bg-primary px-4 py-[0.55rem] font-[750] text-white hover:bg-[#123e34] max-[560px]:min-h-[38px] max-[560px]:px-[0.65rem] max-[560px]:py-[0.45rem] "
+            className="inline-flex min-h-[38px] flex-[1_0_auto] items-center justify-center gap-1.5 rounded-lg bg-primary px-[0.65rem] py-[0.45rem] text-[13px] leading-[1.3] font-[750] whitespace-nowrap text-white no-underline hover:bg-[#123e34] sm:min-h-[42px] sm:px-4 sm:py-[0.55rem] md:flex-none md:gap-3 md:text-[15px]"
           >
             <Link href="/signup">Регистрация</Link>
           </Button>
         </div>
-      </nav>
+      </PageContainer>
     </header>
   );
 }

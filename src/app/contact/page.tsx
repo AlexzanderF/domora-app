@@ -1,5 +1,6 @@
 import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
+import { PageContainer } from "@/components/layout/page-container";
 import { Button } from "@/components/ui/button";
 import { LandingFooter } from "@/features/landing/landing-footer";
 import { LandingHeader } from "@/features/landing/landing-header";
@@ -25,12 +26,14 @@ export default function ContactPage() {
     <div className="bg-[#f5f1e8] text-[#17362f]">
       <SkipLink />
       <LandingHeader />
-      <main
+      <PageContainer
+        as="main"
         id="main"
-        className="mx-auto min-h-[calc(100vh-130px)] max-[700px]:min-h-[65vh] w-[min(1240px,calc(100%-3rem))] max-w-none px-0 pt-[clamp(3rem,7vw,6rem)] pb-[clamp(4rem,9vw,7rem)] max-[560px]:w-[calc(100%-2rem)]"
+        size="contact"
+        className="min-h-[65dvh] pt-[clamp(3rem,7vw,6rem)] pb-[clamp(4rem,9vw,7rem)] md:min-h-[calc(100dvh-130px)]"
       >
         <section
-          className="grid min-h-[min(620px,calc(100vh-78px))] grid-cols-[minmax(0,1fr)_minmax(360px,0.62fr)] items-center gap-[clamp(2rem,5vw,5rem)] max-[900px]:min-h-0 max-[900px]:grid-cols-1 max-[560px]:gap-8"
+          className="grid grid-cols-1 items-center gap-8 sm:gap-[clamp(2rem,5vw,5rem)] lg:min-h-[min(620px,calc(100dvh-78px))] lg:grid-cols-[minmax(0,1fr)_minmax(360px,0.62fr)]"
           aria-labelledby="contact-title"
         >
           <div className="max-w-[760px]">
@@ -69,7 +72,7 @@ export default function ContactPage() {
         </section>
 
         <section
-          className="grid grid-cols-3 border-y border-[#d8e1da] max-[900px]:grid-cols-1"
+          className="grid grid-cols-1 border-y border-[#d8e1da] lg:grid-cols-3"
           aria-label="Информация за контакт"
         >
           {[
@@ -79,7 +82,7 @@ export default function ContactPage() {
           ].map(([label, text]) => (
             <div
               key={label}
-              className="min-w-0 px-5 py-[clamp(1.25rem,3vw,2rem)] not-first:border-l not-first:border-[#d8e1da] max-[900px]:not-first:border-t max-[900px]:not-first:border-l-0"
+              className="min-w-0 px-5 py-[clamp(1.25rem,3vw,2rem)] not-first:border-t not-first:border-[#d8e1da] lg:not-first:border-t-0 lg:not-first:border-l"
             >
               <span className={eyebrow}>{label}</span>
               <p className="mt-[0.7rem] mb-0 text-base leading-[1.55] text-[#17362f]">
@@ -90,7 +93,7 @@ export default function ContactPage() {
         </section>
 
         <section
-          className="grid grid-cols-[minmax(0,0.78fr)_minmax(0,1fr)] items-start gap-[clamp(2rem,5vw,5rem)] pt-[clamp(3rem,7vw,5.5rem)] max-[900px]:grid-cols-1"
+          className="grid grid-cols-1 items-start gap-[clamp(2rem,5vw,5rem)] pt-[clamp(3rem,7vw,5.5rem)] lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1fr)]"
           aria-labelledby="message"
         >
           <div>
@@ -107,7 +110,7 @@ export default function ContactPage() {
               Най-бързо ще ви насочим, ако включите услугата, адреса или района
               на имота и удобен часови диапазон за разговор.
             </p>
-            <div className="mt-7 flex flex-wrap gap-[0.8rem] max-[560px]:flex-col">
+            <div className="mt-7 flex flex-col gap-[0.8rem] sm:flex-row sm:flex-wrap">
               <Button
                 asChild
                 className="inline-flex min-h-12 items-center justify-center px-[1.1rem] py-3 font-extrabold"
@@ -126,7 +129,7 @@ export default function ContactPage() {
             </div>
           </div>
         </section>
-      </main>
+      </PageContainer>
       <LandingFooter />
     </div>
   );

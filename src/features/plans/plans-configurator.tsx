@@ -62,7 +62,7 @@ const planOptions: Record<
 const quickVisits = [1, 2, 4] as const;
 
 const section = "border-b border-[#dce5df] pb-10";
-const step = "text-[0.72rem] font-[850] tracking-[0.12em] text-[#517067]";
+const step = "text-xs font-[850] tracking-[0.12em] text-[#517067]";
 const sectionTitle = "mt-[0.35rem] mb-[1.2rem] text-[1.35rem] text-[#17372f]";
 const fieldLabel =
   "m-0 grid content-start gap-[0.38rem] text-[0.82rem] leading-[1.55] font-bold text-[#40564f]";
@@ -153,7 +153,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
   }
 
   return (
-    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid grid-cols-[minmax(0,1fr)_minmax(330px,420px)] items-start gap-[clamp(2rem,5vw,5rem)] max-[820px]:grid-cols-1">
+    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid grid-cols-1 items-start gap-[clamp(2rem,5vw,5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
       <section className="grid gap-10" aria-labelledby="configure-title">
         <div className={section}>
           <span className={step}>01</span>
@@ -186,7 +186,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           <span className={step}>02</span>
           <h2 className={sectionTitle}>Колко често?</h2>
           <div
-            className="grid grid-cols-3 gap-[0.65rem] max-[520px]:gap-[0.4rem]"
+            className="grid grid-cols-3 gap-[0.4rem] sm:gap-[0.65rem]"
             aria-label="Бърз избор на посещения"
           >
             {quickVisits.map((count) => (
@@ -194,7 +194,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                 key={count}
                 type="button"
                 variant="secondary"
-                className="relative grid min-h-[104px] place-content-center gap-[0.15rem] rounded-lg border-[#ccd9d1] p-0 font-normal text-[#50645e] hover:bg-white max-[520px]:min-h-24 aria-pressed:border-2 aria-pressed:border-[#175246] aria-pressed:bg-[#edf4ef] aria-pressed:text-[#175246] aria-pressed:hover:bg-[#edf4ef]"
+                className="relative grid min-h-24 place-content-center sm:min-h-[104px] gap-[0.15rem] rounded-lg border-[#ccd9d1] p-0 font-normal text-[#50645e] hover:bg-white aria-pressed:border-2 aria-pressed:border-[#175246] aria-pressed:bg-[#edf4ef] aria-pressed:text-[#175246] aria-pressed:hover:bg-[#edf4ef]"
                 aria-pressed={visits === count}
                 onClick={() => setVisits(count)}
               >
@@ -203,14 +203,14 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
                   {count === 1 ? "посещение" : "посещения"}
                 </span>
                 {count === 2 && (
-                  <small className="absolute -top-[0.65rem] left-1/2 -translate-x-1/2 rounded-[4px] bg-[#d7ef77] px-2 py-[0.18rem] text-[0.65rem] font-[800] whitespace-nowrap text-[#29443c]">
+                  <small className="absolute -top-[0.65rem] left-1/2 -translate-x-1/2 rounded-[4px] bg-[#d7ef77] px-2 py-[0.18rem] text-xs font-[800] whitespace-nowrap text-[#29443c]">
                     Препоръчано
                   </small>
                 )}
               </Button>
             ))}
           </div>
-          <div className="mt-4 flex items-center justify-between gap-4 text-[0.9rem] font-[650] text-[#3f554e] max-[520px]:flex-col max-[520px]:items-start">
+          <div className="mt-4 flex flex-col items-start justify-between gap-4 text-[0.9rem] font-[650] text-[#3f554e] sm:flex-row sm:items-center">
             <span>Посещения на месец</span>
             <div className="grid grid-cols-[40px_46px_40px] items-center overflow-hidden rounded-[7px] border border-[#ccd9d1] bg-white">
               <Button
@@ -296,10 +296,10 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
       </section>
 
       <aside
-        className="sticky top-[100px] max-[820px]:static"
+        className="lg:sticky lg:top-[100px]"
         aria-labelledby="summary-title"
       >
-        <Card className="rounded-lg border-[#cad8d0] p-[clamp(1.4rem,3vw,2rem)] shadow-[0_16px_45px_rgb(22_60_50/9%)] max-[700px]:p-[clamp(1.4rem,3vw,2rem)]">
+        <Card className="rounded-lg border-[#cad8d0] p-[clamp(1.4rem,3vw,2rem)] shadow-[0_16px_45px_rgb(22_60_50/9%)]">
           <div className="flex items-center justify-between">
             <span className={step}>ВАШИЯТ ПЛАН</span>
             {discount && (
@@ -339,7 +339,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             noValidate
           >
             <div className="grid gap-[0.15rem]">
-              <span className="text-[0.68rem] font-[800] text-[#668078]">
+              <span className="text-xs font-[800] text-[#668078]">
                 СТЪПКА 04
               </span>
               <h3 className="text-[1.15rem] text-[#17372f]">Заявете старт</h3>
@@ -400,7 +400,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             >
               {saving ? "Обработва се..." : "Заявете абонамент"}
             </Button>
-            <small className="text-center text-[0.7rem] text-[#74847f]">
+            <small className="text-center text-xs text-[#74847f]">
               Демо заявка без плащане. Графикът подлежи на потвърждение.
             </small>
           </form>

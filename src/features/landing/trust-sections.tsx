@@ -81,7 +81,7 @@ export function TrustAndTestimonials() {
         </h2>
       </div>
 
-      <ul className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[850px]:grid-cols-1">
+      <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
         {benefits.map((benefit) => (
           <li key={benefit.title} className="min-w-0">
             <Card className="flex h-full gap-4 rounded-2xl border-[#dbe4de] p-[1.2rem]">
@@ -105,7 +105,7 @@ export function TrustAndTestimonials() {
           Доверие, изградено с добре свършена работа
         </h3>
       </div>
-      <div className="grid grid-cols-3 gap-4 max-[850px]:grid-cols-1">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {testimonials.map((testimonial) => (
           <article
             key={testimonial.name}
@@ -122,14 +122,14 @@ export function TrustAndTestimonials() {
             </blockquote>
             <footer className="flex items-center gap-3 justify-between px-11 pt-[10px] pb-[22px] text-xs text-muted-foreground">
               <span
-                className="grid size-11 place-items-center max-[700px]:mt-1.5 max-[700px]:block rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
+                className="grid size-11 place-items-center rounded-full bg-accent text-[0.8rem] font-[850] text-[#17362f]"
                 aria-hidden="true"
               >
                 {testimonial.initials}
               </span>
               <div className="grid">
                 <strong>{testimonial.name}</strong>
-                <span className="text-[0.78rem] text-[#bdd0c9] max-[700px]:mt-1.5">
+                <span className="text-[0.78rem] text-[#bdd0c9]">
                   {testimonial.context}
                 </span>
               </div>
@@ -145,7 +145,7 @@ export function Faq() {
   return (
     <section
       id="faq"
-      className="grid scroll-mt-34 grid-cols-[minmax(260px,0.7fr)_minmax(0,1.3fr)] gap-[clamp(1.75rem,5vw,4rem)] py-[clamp(2.5rem,5vw,4.25rem)] max-[850px]:grid-cols-1 max-[850px]:gap-8"
+      className="grid scroll-mt-34 grid-cols-1 gap-8 py-[clamp(2.5rem,5vw,4.25rem)] md:grid-cols-[minmax(260px,0.7fr)_minmax(0,1.3fr)] md:gap-[clamp(1.75rem,5vw,4rem)]"
       aria-labelledby="faq-title"
     >
       <div>

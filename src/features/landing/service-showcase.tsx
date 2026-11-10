@@ -16,7 +16,7 @@ export function ServiceShowcase() {
       className="scroll-mt-34 py-[clamp(2.5rem,5vw,4.25rem)]"
       aria-labelledby="services-title"
     >
-      <div className="mb-[1.65rem] flex items-end justify-between gap-8 max-[800px]:flex-col max-[800px]:items-start">
+      <div className="mb-[1.65rem] flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
         <div>
           <p className="mt-0 mb-[0.65rem] text-xs font-extrabold tracking-[0.15em] text-primary">
             ЗА ВСЕКИ ДОМ
@@ -34,7 +34,7 @@ export function ServiceShowcase() {
         </p>
       </div>
 
-      <ul className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[800px]:grid-cols-1">
+      <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
         {landingServiceHighlights.map((highlight) => (
           <li key={highlight.title} className="min-w-0">
             <Card className="flex h-full flex-col items-start rounded-[18px] border-[#dbe4de] p-[clamp(1.15rem,2.4vw,1.6rem)]">
@@ -44,7 +44,7 @@ export function ServiceShowcase() {
               >
                 <ServiceIcon category={highlight.category.id} />
               </div>
-              <span className="text-[0.72rem] font-extrabold tracking-[0.12em] text-[#718079] uppercase">
+              <span className="text-xs font-extrabold tracking-[0.12em] text-[#718079] uppercase">
                 {highlight.category.name}
               </span>
               <h3 className="mt-[0.45rem] text-[1.25rem]">{highlight.title}</h3>
@@ -72,9 +72,9 @@ export function ServiceShowcase() {
         ))}
       </ul>
 
-      <div className="mt-4 flex items-center justify-between gap-8 rounded-[18px] bg-[#174c41] p-[clamp(1.15rem,2.7vw,1.8rem)] text-white max-[800px]:flex-col max-[800px]:items-start">
+      <div className="mt-4 flex flex-col items-start justify-between gap-8 rounded-[18px] bg-[#174c41] p-[clamp(1.15rem,2.7vw,1.8rem)] text-white md:flex-row md:items-center">
         <div>
-          <span className="text-[0.7rem] font-[850] tracking-[0.14em]">
+          <span className="text-xs font-[850] tracking-[0.14em]">
             ПО-МАЛКО ЗАДАЧИ. ПОВЕЧЕ ВРЕМЕ.
           </span>
           <h3 className="mt-[0.4rem] text-[clamp(1.35rem,3vw,2rem)]">
@@ -85,18 +85,14 @@ export function ServiceShowcase() {
             търсене при всяко посещение.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <span className="grid min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-[0.7rem] font-[850] tracking-[0.14em]">
-              <small className="text-[0.7rem] font-bold">
-                Еднократни посещения
-              </small>
+            <span className="grid min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-xs font-[850] tracking-[0.14em]">
+              <small className="text-xs font-bold">Еднократни посещения</small>
               <strong className="text-[0.86rem]">
                 Стандартна цена при всяка заявка
               </strong>
             </span>
-            <span className="grid min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-[0.7rem] font-[850] tracking-[0.14em]">
-              <small className="text-[0.7rem] font-bold">
-                Месечен абонамент
-              </small>
+            <span className="grid min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-xs font-[850] tracking-[0.14em]">
+              <small className="text-xs font-bold">Месечен абонамент</small>
               <strong className="text-[0.86rem]">
                 До 20% по-ниска обща цена
               </strong>
@@ -105,7 +101,7 @@ export function ServiceShowcase() {
         </div>
         <Button
           asChild
-          className="shrink-0 rounded-[9px] bg-accent px-[1.2rem] py-[0.85rem] font-[750] text-[#17362f] hover:bg-[#e5f6a3] max-[800px]:w-full max-[800px]:text-center"
+          className="w-full shrink-0 rounded-[9px] bg-accent px-[1.2rem] py-[0.85rem] text-center font-[750] text-[#17362f] hover:bg-[#e5f6a3] md:w-auto"
         >
           <Link href="/plans">Разгледай абонаментите</Link>
         </Button>

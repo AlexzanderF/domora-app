@@ -1,3 +1,4 @@
+import { PageContainer } from "@/components/layout/page-container";
 import { SkipLink } from "@/components/skip-link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
@@ -39,17 +40,14 @@ export default async function HomePage() {
     <>
       <SkipLink />
       <LandingHeader />
-      <main
-        id="main"
-        className="mx-auto min-h-0 w-[min(1320px,calc(100%-3rem))] max-w-none px-0 pt-[1.35rem] pb-0 max-[560px]:w-[calc(100%-2rem)] max-[560px]:pt-4"
-      >
+      <PageContainer as="main" id="main" className="pt-4 pb-0 sm:pt-[1.35rem]">
         <Hero />
         <HowItWorks />
         <ServiceShowcase />
         <TrustAndTestimonials />
         <Faq />
         <FinalCta />
-      </main>
+      </PageContainer>
       <LandingFooter />
     </>
   );

@@ -26,7 +26,7 @@ export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-34 py-[clamp(2.5rem,5vw,4.25rem)] max-[700px]:py-10"
+      className="scroll-mt-34 py-10 md:py-[clamp(2.5rem,5vw,4.25rem)]"
       aria-labelledby="how-it-works-title"
     >
       <div className="mb-[1.65rem] max-w-[680px]">
@@ -45,11 +45,11 @@ export function HowItWorks() {
         </p>
       </div>
 
-      <ol className="m-0 grid list-none grid-cols-3 gap-4 p-0 max-[700px]:grid-cols-1">
+      <ol className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
         {steps.map((step, index) => (
           <li key={step.title} className="min-w-0">
             <Card className="h-full rounded-[18px] border-[#dbe4de] p-[clamp(1.15rem,2.4vw,1.6rem)]">
-              <div className="mb-[1.55rem] flex items-start justify-between max-[700px]:mb-7">
+              <div className="mb-7 flex items-start justify-between md:mb-[1.55rem]">
                 <span
                   className="grid size-[3.25rem] place-items-center rounded-[14px] bg-[#eaf2ec] text-primary"
                   aria-hidden="true"
@@ -57,7 +57,7 @@ export function HowItWorks() {
                   <LandingIcon path={step.icon} className="size-[1.7rem]" />
                 </span>
                 <span
-                  className="text-[0.78rem] font-extrabold tracking-[0.12em] text-[#a5b2ac]"
+                  className="text-xs font-extrabold tracking-[0.12em] text-[#a5b2ac]"
                   aria-hidden="true"
                 >
                   {String(index + 1).padStart(2, "0")}
