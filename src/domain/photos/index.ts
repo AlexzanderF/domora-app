@@ -18,6 +18,7 @@ import type { PhotoType } from "./limits";
 import { sniffImageType } from "./sniff";
 import { getPhotoStore } from "./store";
 import type { PhotoStore } from "./store";
+import { DomainError } from "@/domain/errors";
 
 // Framework-free (no next/*). Every function takes the Actor first and
 // enforces it via can(); callers pass null for an unauthenticated visitor.
@@ -35,15 +36,7 @@ export type PhotoErrorCode =
   | "UPLOAD_TOO_LARGE"
   | "UNSUPPORTED_TYPE";
 
-export class PhotoError extends Error {
-  constructor(
-    readonly code: PhotoErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "PhotoError";
-  }
-}
+export class PhotoError extends DomainError<PhotoErrorCode> {}
 
 export interface PhotoDto {
   id: number;

@@ -1,10 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { isDbConfigured } from "@/db";
 import type { Actor } from "@/domain/authorization";
-import { IdentityError } from "@/domain/identity";
-import { PricingError } from "@/domain/pricing/tariffs";
-import { RequestError } from "@/domain/requests";
-import { SubscriptionError } from "@/domain/subscriptions";
+import { DomainError } from "@/domain/errors";
 import { getActor } from "@/lib/server/session";
 
 // The one adapter behind Server Actions: resolves the Actor, guards database
@@ -93,12 +90,7 @@ export interface RunActionOptions<T> {
 }
 
 function domainErrorCode(error: unknown): ActionErrorCode | null {
-  if (
-    error instanceof RequestError ||
-    error instanceof SubscriptionError ||
-    error instanceof IdentityError ||
-    error instanceof PricingError
-  ) {
+  if (error instanceof DomainError) {
     return error.code in DEFAULT_MESSAGES
       ? (error.code as ActionErrorCode)
       : "INVALID_INPUT";
