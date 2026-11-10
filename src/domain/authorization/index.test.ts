@@ -19,6 +19,20 @@ const ALL_ACTIONS: readonly Action[] = [
   "request.view_photo",
 ];
 
+describe("profile.update", () => {
+  const owner = { id: 7, role: UserRole.Client, status: UserStatus.Active };
+  const own = { clientId: 7, specialistId: null };
+
+  it("allows only the owning client, never an admin or another user", () => {
+    expect(can(owner, "profile.update", own)).toBe(true);
+    expect(can({ ...owner, id: 8 }, "profile.update", own)).toBe(false);
+    expect(can({ ...owner, role: UserRole.Admin }, "profile.update", own)).toBe(
+      false,
+    );
+    expect(can(owner, "profile.update")).toBe(false);
+  });
+});
+
 const ACTOR_ID = 7;
 const OTHER_ID = 99;
 

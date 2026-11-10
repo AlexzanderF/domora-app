@@ -18,7 +18,11 @@ export type ActionErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "INVALID_INPUT"
-  | "INVALID_STATE";
+  | "INVALID_STATE"
+  | "EMAIL_TAKEN"
+  | "PHONE_TAKEN"
+  | "INVALID_CREDENTIALS"
+  | "REJECTED_SPECIALIST";
 
 export interface ActionResult<T = never> {
   success: boolean;
@@ -33,6 +37,11 @@ const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   NOT_FOUND: "Заявката не е намерена.",
   INVALID_INPUT: "Невалидни данни.",
   INVALID_STATE: "Действието не е възможно на този етап от заявката.",
+  EMAIL_TAKEN: "Вече съществува потребител с този имейл адрес.",
+  PHONE_TAKEN: "Вече съществува потребител с този телефонен номер.",
+  INVALID_CREDENTIALS: "Невалиден имейл/телефон или парола.",
+  REJECTED_SPECIALIST:
+    "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
 };
 
 const GENERIC_ERROR = "Грешка при изпълнение на действието. Опитайте отново.";
