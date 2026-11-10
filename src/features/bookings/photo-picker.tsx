@@ -24,6 +24,7 @@ export function PhotoPicker({
   onBusyChange: (busy: boolean) => void;
 }) {
   const [previews, setPreviews] = useState<string[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const notify = useToast();
   useEffect(
@@ -62,7 +63,15 @@ export function PhotoPicker({
       onBusyChange(false);
     }
     setPreviews(accepted.map((file) => URL.createObjectURL(file)));
+    setFiles(accepted);
     onChange(accepted);
+  }
+
+  function remove(index: number) {
+    const rest = files.filter((_, i) => i !== index);
+    setFiles(rest);
+    setPreviews(rest.map((file) => URL.createObjectURL(file)));
+    onChange(rest);
   }
 
   return (
@@ -82,17 +91,34 @@ export function PhotoPicker({
           }}
         />
       </Label>
-      <div id="previews" className="flex flex-wrap gap-1.5">
+      <div
+        id="previews"
+        className="grid grid-cols-[repeat(auto-fill,72px)] gap-2"
+      >
         {previews.map((url, index) => (
-          <Image
-            className="mb-0 size-[54px] rounded-md object-cover"
-            key={url}
-            src={url}
-            width={70}
-            height={70}
-            unoptimized
-            alt={`Преглед на избрана снимка ${index + 1}`}
-          />
+          <div key={url} className="relative size-[72px]">
+            <Image
+              className="mb-0 size-[72px] rounded-md object-cover"
+              src={url}
+              width={72}
+              height={72}
+              unoptimized
+              alt={`Преглед на избрана снимка ${index + 1}`}
+            />
+            <button
+              type="button"
+              aria-label={`Премахни снимка ${index + 1}`}
+              className="absolute -top-2 -right-2 grid size-11 cursor-pointer place-items-center rounded-full border-0 bg-transparent"
+              onClick={() => remove(index)}
+            >
+              <span
+                aria-hidden="true"
+                className="grid size-6 place-items-center rounded-full bg-foreground text-base leading-none text-white"
+              >
+                ×
+              </span>
+            </button>
+          </div>
         ))}
       </div>
     </>
