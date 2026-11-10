@@ -229,7 +229,14 @@ async function quoteBooking(
   let price: number;
   try {
     price = calculateQuote(
-      tariffsFromRows(await tx.select().from(tariffs)),
+      tariffsFromRows(
+        await tx
+          .select({
+            category: tariffs.category,
+            standardRate: tariffs.standardRate,
+          })
+          .from(tariffs),
+      ),
       input.category,
       serviceIndex,
       input.plan,
