@@ -25,57 +25,6 @@ function scheduleOf(request: RequestSelect): { date: string; time: string } {
   };
 }
 
-export async function findClientRequests(
-  actor: Actor,
-): Promise<ServiceRequest[] | null> {
-  if (!isDbConfigured) {
-    return null;
-  }
-
-  const db = getDb();
-  if (!db) return null;
-
-  const rows = await db
-    .select({
-      request: requests,
-      specialist: users,
-    })
-    .from(requests)
-    .leftJoin(users, eq(requests.specialistId, users.id))
-    .where(eq(requests.clientId, actor.id))
-    .orderBy(desc(requests.createdAt));
-  const reportPhotos = await listReportPhotoIds(rows.map((r) => r.request.id));
-
-  return rows.map(({ request, specialist }) => {
-    const rawCategory = Number(request.category);
-    const category: CategoryId =
-      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-
-    return withActions(
-      actor,
-      {
-        id: request.id,
-        category,
-        service: request.title,
-        address: request.address,
-        ...scheduleOf(request),
-        price: request.price,
-        status: request.status,
-        description: request.description,
-        cancelled: request.cancelled,
-        report: request.report ?? undefined,
-        reportPhotoIds: reportPhotos.get(request.id),
-        rating: request.rating ?? undefined,
-        issue: request.issue || undefined,
-        issueNote: request.issueNote ?? undefined,
-        specialist: specialist?.name,
-        specialistPhone: specialist?.phone,
-      },
-      request,
-    );
-  });
-}
-
 // The specialist's assigned requests plus the open jobs dispatch lets them
 // see (matching trade and area; none for Pending/Rejected specialists).
 export async function findSpecialistRequests(
