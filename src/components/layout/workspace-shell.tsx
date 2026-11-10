@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { Sidebar } from "./sidebar";
+import { MobileTopBar } from "./mobile-top-bar";
 import { HeaderAccount } from "./header-account";
 import type { User } from "@/domain/identity/types";
 import { cn } from "@/lib/utils";
@@ -61,13 +62,14 @@ export function WorkspaceShell({
       )}
       data-sidebar-collapsed={collapsed ? "true" : "false"}
     >
+      <MobileTopBar initialUser={initialUser} />
       <Sidebar
         initialUser={initialUser}
         collapsed={collapsed}
         onToggleCollapse={handleToggle}
       />
-      <div className="transition-[margin-left] duration-200 ease-[ease] md:ml-(--sidebar-width)">
-        <header className="sticky top-0 z-20 hidden h-[72px] items-center justify-end border-b border-border bg-white px-7 text-[14px] text-muted-foreground md:flex lg:px-11">
+      <div className="transition-[margin-left] duration-200 ease-[ease] lg:ml-(--sidebar-width)">
+        <header className="sticky top-0 z-20 hidden h-[72px] items-center justify-end border-b border-border bg-white px-11 text-[14px] text-muted-foreground lg:flex">
           <HeaderAccount initialUser={initialUser} />
         </header>
         <main
