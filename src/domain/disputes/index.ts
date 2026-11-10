@@ -20,7 +20,7 @@ import {
   canResolveDispute,
   isValidDisputeNote,
   normalizeDisputeNote,
-} from "@/features/requests/request-rules";
+} from "@/domain/requests/lifecycle";
 
 // Framework-free (no next/*): raising and resolving disputes on reported work. The requests table still
 // calls the open-dispute flag and note `issue` / `issueNote`.

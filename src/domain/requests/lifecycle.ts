@@ -1,7 +1,7 @@
 import { RequestStatus } from "@/domain/requests/types";
 
-// Minimal structural input shared by the in-memory transition seam and the
-// database-backed server actions, so both enforce identical lifecycle rules.
+// Minimal structural input for the lifecycle predicates, so every caller
+// enforces identical rules.
 export interface RuleCheckRequest {
   status: RequestStatus;
   cancelled?: boolean | null;
@@ -9,15 +9,6 @@ export interface RuleCheckRequest {
   issue?: boolean | null;
   specialistId?: number | null;
 }
-
-// Ordered execution pipeline: every stage knows its successor.
-const NEXT_STEP: Record<RequestStatus, RequestStatus> = {
-  [RequestStatus.Created]: RequestStatus.Accepted,
-  [RequestStatus.Accepted]: RequestStatus.InProgress,
-  [RequestStatus.InProgress]: RequestStatus.AwaitingConfirmation,
-  [RequestStatus.AwaitingConfirmation]: RequestStatus.Completed,
-  [RequestStatus.Completed]: RequestStatus.Completed,
-};
 
 // Stages still in flight (visible in agendas and active counters).
 const ACTIVE_STAGES: readonly RequestStatus[] = [
@@ -55,14 +46,18 @@ export function canClaim(request: RuleCheckRequest): boolean {
   );
 }
 
-// Specialist execution step: unassigned work is claimed, accepted work jumps
-// straight to "В процес".
-export function nextExecutionStep(status: RequestStatus): RequestStatus {
-  return NEXT_STEP[status];
-}
-
 export function canAdvance(request: RuleCheckRequest): boolean {
   return !request.cancelled && PRE_CONFIRMATION_STAGES.includes(request.status);
+}
+
+// Accepted work the assigned specialist can start.
+export function canStartWork(request: RuleCheckRequest): boolean {
+  return !request.cancelled && request.status === RequestStatus.Accepted;
+}
+
+// Accepted, not yet started work the specialist can hand back to the pool.
+export function canHandBack(request: RuleCheckRequest): boolean {
+  return !request.cancelled && request.status === RequestStatus.Accepted;
 }
 
 export function requiresCompletionReport(status: RequestStatus): boolean {
@@ -82,7 +77,7 @@ export function normalizeDisputeNote(value: string | undefined): string {
 }
 
 // A dispute needs a note, and a bounded one. Shared by the database-backed
-// domain module and the in-memory demo transitions.
+// domain modules.
 export function isValidDisputeNote(note: string): boolean {
   return note.length > 0 && note.length <= MAX_DISPUTE_NOTE_LENGTH;
 }

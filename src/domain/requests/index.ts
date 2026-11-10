@@ -14,11 +14,13 @@ import type { Action, Actor } from "@/domain/authorization";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import {
   canCancelAsClient,
+  canHandBack,
+  canStartWork,
   canConfirmCompletion,
   canRate,
   isValidRating,
   requiresCompletionReport,
-} from "@/features/requests/request-rules";
+} from "./lifecycle";
 import { RequestPriority, RequestStatus } from "@/domain/requests/types";
 import type { CategoryId } from "@/domain/requests/types";
 
@@ -388,7 +390,7 @@ export function startWork(
   requestId: number,
 ): Promise<RequestDto> {
   return mutate(actor, requestId, "request.work", (row) => {
-    if (row.cancelled || row.status !== RequestStatus.Accepted) {
+    if (!canStartWork(row)) {
       invalidState("Only an accepted request can be started.");
     }
     return {
@@ -475,7 +477,7 @@ export function cancelRequest(
 ): Promise<RequestDto> {
   return mutate(actor, requestId, "request.cancel", (row, who) => {
     if (who.role === UserRole.Specialist) {
-      if (row.cancelled || row.status !== RequestStatus.Accepted) {
+      if (!canHandBack(row)) {
         invalidState("Only an accepted request can be handed back.");
       }
       return {

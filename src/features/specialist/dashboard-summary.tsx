@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { isActiveStage } from "@/features/requests/request-rules";
+import { isActiveStage } from "@/domain/requests/lifecycle";
 import { localDate, money } from "@/lib/format";
 import { RequestStatus } from "@/domain/requests/types";
 import type { ServiceRequest } from "@/domain/requests/types";

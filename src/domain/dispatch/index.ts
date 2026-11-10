@@ -3,7 +3,7 @@ import { requireDb, requests, specialistProfiles, users } from "@/db";
 import type { RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
-import type { OutboxEventInput } from "@/domain/notifications";
+import type { OutboxEvent } from "@/domain/notifications/events";
 import type { Actor } from "@/domain/authorization";
 import {
   RequestError,
@@ -16,7 +16,7 @@ import {
 } from "@/domain/requests";
 import type { RequestDto, Tx } from "@/domain/requests";
 import { UserRole, UserStatus } from "@/domain/identity/types";
-import { canClaim } from "@/features/requests/request-rules";
+import { canClaim } from "@/domain/requests/lifecycle";
 import { RequestStatus } from "@/domain/requests/types";
 
 // Framework-free (no next/*): dispatch decides who may take an open request.
@@ -124,7 +124,7 @@ async function dispatchChange(
     type: string;
     values: Partial<typeof requests.$inferInsert>;
     // Side effect to deliver once this change commits.
-    outbox?: OutboxEventInput;
+    outbox?: OutboxEvent;
   }>,
 ): Promise<RequestDto> {
   const actor = requireActor(actorOrNull);
@@ -158,7 +158,7 @@ async function dispatchChange(
 }
 
 // Claiming and admin assignment both leave the request accepted.
-const acceptedEvent = (requestId: number): OutboxEventInput => ({
+const acceptedEvent = (requestId: number): OutboxEvent => ({
   type: "request.accepted",
   payload: { requestId },
 });
