@@ -3,7 +3,9 @@ import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { BookingButton } from "@/features/bookings/booking-button";
 import { ClientDashboard } from "@/features/client-dashboard/client-dashboard";
-import { findClientRequests } from "@/features/requests/server/queries";
+import { isDbConfigured } from "@/db";
+import { listClientRequests } from "@/domain/requests";
+import { presentClientRequest } from "@/features/requests/presenter";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 import { getServerSession } from "@/features/auth/server/session";
 
@@ -15,7 +17,9 @@ export default async function ClientDashboardPage() {
   const user = await getServerSession();
   if (!user) redirect("/api/auth/logout?next=/login");
   const [initialRequests, initialSubscription] = await Promise.all([
-    findClientRequests(user),
+    isDbConfigured
+      ? listClientRequests(user).then((list) => list.map(presentClientRequest))
+      : [],
     findUserSubscription(user),
   ]);
 
@@ -29,7 +33,7 @@ export default async function ClientDashboardPage() {
         <BookingButton />
       </PageHeading>
       <ClientDashboard
-        requests={initialRequests ?? []}
+        requests={initialRequests}
         subscription={initialSubscription}
       />
     </>

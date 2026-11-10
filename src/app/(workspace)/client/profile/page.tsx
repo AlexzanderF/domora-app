@@ -9,7 +9,7 @@ import { isDbConfigured } from "@/db";
 import { getServerSession } from "@/features/auth/server/session";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { ClientProfileForm } from "@/features/client-profile/client-profile-form";
-import { findClientRequests } from "@/features/requests/server/queries";
+import { listClientRequests } from "@/domain/requests";
 import { findUserSubscription } from "@/features/subscriptions/server/queries";
 
 export const metadata: Metadata = { title: "Моят профил" };
@@ -49,7 +49,10 @@ export default async function ClientProfilePage() {
   }
 
   const [subscription, requests] = user
-    ? await Promise.all([findUserSubscription(user), findClientRequests(user)])
+    ? await Promise.all([
+        findUserSubscription(user),
+        isDbConfigured ? listClientRequests(user) : [],
+      ])
     : [null, null];
 
   const latestRequestAddress = requests?.find((request) =>

@@ -4,7 +4,9 @@ import { PageHeading } from "@/components/page-heading";
 import { Card } from "@/components/ui/card";
 import { BookingButton } from "@/features/bookings/booking-button";
 import { RequestList } from "@/features/requests/request-list";
-import { findClientRequests } from "@/features/requests/server/queries";
+import { isDbConfigured } from "@/db";
+import { listClientRequests } from "@/domain/requests";
+import { presentClientRequest } from "@/features/requests/presenter";
 import { getServerSession } from "@/features/auth/server/session";
 
 export const metadata: Metadata = { title: "Моите заявки" };
@@ -14,7 +16,9 @@ export default async function ClientRequestsPage() {
   const user = await getServerSession();
   if (!user) redirect("/api/auth/logout?next=/login");
 
-  const initialRequests = (await findClientRequests(user)) ?? [];
+  const initialRequests = isDbConfigured
+    ? (await listClientRequests(user)).map(presentClientRequest)
+    : [];
 
   return (
     <>
