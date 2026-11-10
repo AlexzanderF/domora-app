@@ -135,10 +135,10 @@ export function AuthProvider({
   const refreshUser = useCallback(async (): Promise<User | null> => {
     try {
       const res = await refreshUserAction();
-      if (res.success && res.user) {
-        setUser(res.user);
+      if (res.success && res.data) {
+        setUser(res.data);
         setStatus("authenticated");
-        return res.user;
+        return res.data;
       }
       setUser(null);
       setStatus("unauthenticated");
