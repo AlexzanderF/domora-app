@@ -39,7 +39,7 @@ export interface RequestResource {
 }
 
 // Pure policy: client owns request; specialist assigned (or Active and
-// claiming); admin any; Pending/Rejected specialist nothing.
+// claiming); admin dispatches only; Pending/Rejected specialist nothing.
 export function can(
   actor: Actor,
   action: Action,
@@ -50,9 +50,15 @@ export function can(
   }
   switch (actor.role) {
     case UserRole.Admin:
-      // Disputes and photos belong to the request's client or assigned
-      // specialist, never added on their behalf.
+      // Administrators dispatch (cancel, assign, recommend) and resolve
+      // disputes. Claiming and execution belong to specialists; disputes,
+      // confirmation, ratings and photos to the request's client or assigned
+      // specialist, never done on their behalf.
       return (
+        action !== "request.claim" &&
+        action !== "request.work" &&
+        action !== "request.confirm" &&
+        action !== "request.rate" &&
         action !== "request.release" &&
         action !== "request.dispute" &&
         action !== "request.attach_photo" &&

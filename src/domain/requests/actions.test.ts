@@ -171,6 +171,22 @@ describe("availableActions: admin", () => {
     );
   });
 
+  it("only dispatches: cancel, assign, recommend", () => {
+    expect(availableActions(actors.admin, request())).toEqual([
+      "cancel",
+      "assign",
+      "recommend",
+    ]);
+    expect(availableActions(actors.admin, request(accepted))).toEqual([
+      "cancel",
+    ]);
+    expect(availableActions(actors.admin, request(inProgress))).toEqual([
+      "cancel",
+    ]);
+    expect(availableActions(actors.admin, request(awaiting))).toEqual([]);
+    expect(availableActions(actors.admin, request(completed))).toEqual([]);
+  });
+
   it("cannot hand back", () => {
     expect(availableActions(actors.admin, request(accepted))).not.toContain(
       "release",

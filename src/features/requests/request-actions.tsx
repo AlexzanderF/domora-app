@@ -4,21 +4,59 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast-provider";
-import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import {
+  adminAssignSpecialistAction,
+  adminRecommendSpecialistAction,
+  transitionRequestServerAction,
+} from "@/features/requests/server/actions";
+import { UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 import { IssueDialog } from "./issue-dialog";
 import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 
-// Renders only the actions the server sent with the request.
-export function RequestActions({ request }: { request: ServiceRequest }) {
+// Renders only the actions the server sent with the request. `specialists` is
+// passed on the Administrator's screen: it makes the cancel button say whose
+// request it cancels and powers the assign and recommend controls.
+export function RequestActions({
+  request,
+  specialists,
+}: {
+  request: ServiceRequest;
+  specialists?: User[];
+}) {
   const router = useRouter();
   const notify = useToast();
   const [issueOpen, setIssueOpen] = useState(false);
+  const [specialistId, setSpecialistId] = useState("");
+  const asAdmin = specialists !== undefined;
   const can = (kind: ServiceRequest["actions"][number]) =>
     request.actions.includes(kind);
 
   const perform = async (action: RequestAction, message: string) => {
     try {
       const res = await transitionRequestServerAction(request.id, action);
+      if (!res.success) {
+        notify(res.error ?? "Грешка при изпълнение на действието.");
+        return;
+      }
+    } catch {
+      notify("Грешка при изпълнение на действието. Опитайте отново.");
+      return;
+    }
+    notify(message);
+    router.refresh();
+  };
+
+  const dispatch = async (
+    run: typeof adminAssignSpecialistAction,
+    message: string,
+  ) => {
+    if (!specialistId) {
+      notify("Първо изберете специалист от падащия списък.");
+      return;
+    }
+    try {
+      const res = await run(request.id, Number(specialistId));
       if (!res.success) {
         notify(res.error ?? "Грешка при изпълнение на действието.");
         return;
@@ -46,13 +84,66 @@ export function RequestActions({ request }: { request: ServiceRequest }) {
           <Button
             variant="secondary"
             onClick={() => {
-              if (window.confirm("Да отменим ли тази заявка?")) {
+              if (
+                window.confirm(
+                  asAdmin
+                    ? "Да отменим ли заявката на клиента?"
+                    : "Да отменим ли тази заявка?",
+                )
+              ) {
                 void perform({ type: "cancel" }, "Заявката е отказана.");
               }
             }}
           >
-            Откажи заявката
+            {asAdmin ? "Откажи заявката на клиента" : "Откажи заявката"}
           </Button>
+        )}
+        {(can("assign") || can("recommend")) && (
+          <>
+            <select
+              className="rounded-lg border border-border px-3 py-2 text-[14px]"
+              value={specialistId}
+              onChange={(e) => setSpecialistId(e.target.value)}
+              aria-label={`Избор на специалист за ${request.service}`}
+            >
+              <option value="">Избери специалист…</option>
+              {(specialists ?? [])
+                .filter((s) => s.status === UserStatus.Active)
+                .map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.specialistProfile?.category
+                      ? ` · ${s.specialistProfile.category}`
+                      : ""}
+                  </option>
+                ))}
+            </select>
+            {can("assign") && (
+              <Button
+                onClick={() =>
+                  void dispatch(
+                    adminAssignSpecialistAction,
+                    "Заявката е разпределена към специалиста.",
+                  )
+                }
+              >
+                Разпредели
+              </Button>
+            )}
+            {can("recommend") && (
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  void dispatch(
+                    adminRecommendSpecialistAction,
+                    "Заявката е препоръчана на специалиста.",
+                  )
+                }
+              >
+                Препоръчай
+              </Button>
+            )}
+          </>
         )}
         {can("claim") && (
           <Button

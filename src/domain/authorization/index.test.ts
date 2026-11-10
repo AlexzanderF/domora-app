@@ -70,10 +70,14 @@ const resources: Record<string, RequestResource> = {
   assignedOnly: { clientId: OTHER_ID, specialistId: ACTOR_ID },
 };
 
-// Only the request's client raises a dispute or attaches booking photos; only
-// its assigned specialist attaches report photos; only an admin resolves a
-// dispute.
+// Administrators dispatch (cancel, assign, recommend) and resolve disputes;
+// they never claim or execute work, and the client's own acts (dispute,
+// confirm, rate, photos) are never done on their behalf.
 const NEVER_ADMIN: readonly Action[] = [
+  "request.claim",
+  "request.work",
+  "request.confirm",
+  "request.rate",
   "request.release",
   "request.dispute",
   "request.attach_photo",
