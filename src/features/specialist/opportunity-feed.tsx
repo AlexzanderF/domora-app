@@ -11,7 +11,7 @@ import { categories } from "@/features/services/catalog";
 import { useToast } from "@/components/ui/toast-provider";
 import {
   assignSpecialistAction,
-  transitionRequestServerAction,
+  declineRecommendationAction,
 } from "@/features/requests/server/actions";
 import { money } from "@/lib/format";
 import { RequestPriority } from "@/domain/requests/types";
@@ -72,9 +72,7 @@ export function OpportunityFeed({
   async function decline(request: ServiceRequest) {
     setBusyId(request.id);
     try {
-      const result = await transitionRequestServerAction(request.id, {
-        type: "decline",
-      });
+      const result = await declineRecommendationAction(request.id);
       if (!result.success) {
         notify(result.error ?? "Грешка при отказ на препоръката.");
         return;
