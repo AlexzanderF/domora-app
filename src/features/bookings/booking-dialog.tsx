@@ -125,8 +125,8 @@ function BookingForm({
       if (actionResult.success) {
         // The request is saved first; photos attach to it afterwards.
         const upload =
-          photos.length && actionResult.request
-            ? await uploadRequestPhotos(actionResult.request.id, photos)
+          photos.length && actionResult.data
+            ? await uploadRequestPhotos(actionResult.data.id, photos)
             : null;
         closeBooking();
         router.push("/client/requests");

@@ -60,8 +60,17 @@ const REVALIDATION_SETS = {
     "/specialist",
     "/admin",
   ],
+  dispatch: [
+    "/requests",
+    "/client/requests",
+    "/client",
+    "/specialist",
+    "/specialist/opportunities",
+    "/admin",
+  ],
   subscriptions: ["/client/plan", "/client/requests", "/client"],
   tariffs: ["/admin", "/plans", "/"],
+  profile: ["/client/profile"],
   specialists: [
     "/admin/specialists",
     "/admin",

@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { isDbConfigured } from "@/db";
 import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import {
   assignSpecialist,
@@ -10,7 +8,6 @@ import {
   recommendRequest,
 } from "@/domain/dispatch";
 import {
-  RequestError,
   requireActor,
   cancelRequest,
   releaseRequest,
@@ -21,10 +18,14 @@ import {
   submitReport,
 } from "@/domain/requests";
 import { withActions } from "@/domain/requests/actions";
-import type { RequestErrorCode } from "@/domain/requests";
-import type { Actor } from "@/domain/authorization";
 import { findTariffs } from "@/domain/pricing/tariffs";
-import { getActor } from "@/features/auth/server/actor";
+import { PRICE_CHANGED_MESSAGE, runAction } from "@/lib/server/action";
+import type {
+  ActionErrorCode,
+  ActionResult,
+  RevalidationSet,
+} from "@/lib/server/action";
+import type { Actor } from "@/domain/authorization";
 import type { RequestPriority } from "@/domain/requests/types";
 import type {
   CategoryId,
@@ -48,58 +49,22 @@ export interface CreateServiceRequestInput {
   priority?: RequestPriority;
 }
 
-export interface ServiceRequestActionResult {
-  success: boolean;
-  error?: string;
-  request?: ServiceRequest;
+export type ServiceRequestActionResult = ActionResult<ServiceRequest> & {
   // Fresh Tariffs, returned when a booking was rejected for a stale price.
   tariffs?: Tariffs;
-}
-
-function revalidateWorkspaceRequests(): void {
-  revalidatePath("/requests");
-  revalidatePath("/client/requests");
-  revalidatePath("/client");
-  revalidatePath("/specialist");
-  revalidatePath("/admin");
-}
-
-const PRICE_CHANGED_MESSAGE = "Цената е променена, моля прегледайте отново.";
-
-const DEFAULT_ERRORS: Record<RequestErrorCode, string> = {
-  UNAUTHENTICATED: "Неоторизиран достъп.",
-  FORBIDDEN: "Нямате право да извършите това действие.",
-  NOT_FOUND: "Заявката не е намерена.",
-  INVALID_INPUT: "Невалидни данни.",
-  INVALID_STATE: "Действието не е възможно на този етап от заявката.",
-  PRICE_CHANGED: PRICE_CHANGED_MESSAGE,
 };
 
-// Runs a domain call as the signed-in actor and maps its outcome to the
-// action result shape; domain rejections become Bulgarian messages.
-async function runAsActor(
-  run: (actor: Actor | null) => Promise<ServiceRequest | void>,
-  messages: Partial<Record<RequestErrorCode, string>> = {},
-): Promise<ServiceRequestActionResult> {
-  try {
-    const request = await run(await getActor());
-    revalidateWorkspaceRequests();
-    return request ? { success: true, request } : { success: true };
-  } catch (error) {
-    if (error instanceof RequestError) {
-      return {
-        success: false,
-        error: messages[error.code] ?? DEFAULT_ERRORS[error.code],
-      };
-    }
-    throw error;
-  }
-}
+const run = (
+  action: (actor: Actor | null) => Promise<ServiceRequest | void>,
+  messages: Partial<Record<ActionErrorCode, string>> = {},
+  revalidate: readonly RevalidationSet[] = ["requests"],
+): Promise<ServiceRequestActionResult> =>
+  runAction({ run: action, messages, revalidate });
 
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
-  const result = await runAsActor(
+  const result = await run(
     async (actor) => {
       const created = await createRequest(actor, {
         category: input.category,
@@ -144,7 +109,7 @@ export async function createServiceRequestAction(
 export async function assignSpecialistAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await claimRequest(actor, requestId);
     },
@@ -159,7 +124,7 @@ export async function assignSpecialistAction(
 export async function startWorkAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await startWork(actor, requestId);
     },
@@ -172,7 +137,7 @@ export async function completeWorkAction(
   requestId: number,
   report?: string,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await submitReport(actor, requestId, report ?? "");
     },
@@ -186,7 +151,7 @@ export async function completeWorkAction(
 export async function cancelRequestAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await cancelRequest(actor, requestId);
     },
@@ -198,7 +163,7 @@ export async function cancelRequestAction(
 export async function releaseRequestAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await releaseRequest(actor, requestId);
     },
@@ -209,7 +174,7 @@ export async function releaseRequestAction(
 export async function declineRecommendationAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await declineRecommendation(actor, requestId);
     },
@@ -220,7 +185,7 @@ export async function declineRecommendationAction(
 export async function confirmCompletionAction(
   requestId: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await confirmCompletion(actor, requestId);
     },
@@ -232,7 +197,7 @@ export async function rateRequestAction(
   requestId: number,
   rating: number,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await rateRequest(actor, requestId, rating);
     },
@@ -247,7 +212,7 @@ export async function raiseDisputeAction(
   requestId: number,
   note: string,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await raiseDispute(actor, requestId, note);
     },
@@ -264,7 +229,7 @@ export async function resolveDisputeAction(
   requestId: number,
   resolutionNote?: string,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  return run(
     async (actor) => {
       await resolveDispute(actor, requestId, resolutionNote);
     },
@@ -277,7 +242,8 @@ export async function resolveDisputeAction(
   );
 }
 
-const DISPATCH_ERRORS: Partial<Record<RequestErrorCode, string>> = {
+const DISPATCH_MESSAGES: Partial<Record<ActionErrorCode, string>> = {
+  NO_DATABASE: "Административният панел изисква база данни.",
   FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
   INVALID_INPUT: "Избраният специалист не е активен.",
   INVALID_STATE: "Заявката вече е разпределена.",
@@ -287,32 +253,24 @@ export async function adminAssignSpecialistAction(
   requestId: number,
   specialistId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Административният панел изисква база данни.",
-    };
-  }
-  const result = await runAsActor(async (actor) => {
-    await assignSpecialist(actor, requestId, specialistId);
-  }, DISPATCH_ERRORS);
-  if (result.success) revalidatePath("/specialist/opportunities");
-  return result;
+  return run(
+    async (actor) => {
+      await assignSpecialist(actor, requestId, specialistId);
+    },
+    DISPATCH_MESSAGES,
+    ["dispatch"],
+  );
 }
 
 export async function adminRecommendSpecialistAction(
   requestId: number,
   specialistId: number,
 ): Promise<ServiceRequestActionResult> {
-  if (!isDbConfigured) {
-    return {
-      success: false,
-      error: "Административният панел изисква база данни.",
-    };
-  }
-  const result = await runAsActor(async (actor) => {
-    await recommendRequest(actor, requestId, specialistId);
-  }, DISPATCH_ERRORS);
-  if (result.success) revalidatePath("/specialist/opportunities");
-  return result;
+  return run(
+    async (actor) => {
+      await recommendRequest(actor, requestId, specialistId);
+    },
+    DISPATCH_MESSAGES,
+    ["dispatch"],
+  );
 }

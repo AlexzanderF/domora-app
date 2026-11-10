@@ -1,7 +1,6 @@
 "use server";
 
 import bcrypt from "bcryptjs";
-import { isDbConfigured } from "@/db";
 import {
   IdentityError,
   authenticate,
@@ -30,6 +29,7 @@ import { createSession, deleteSession, getServerSession } from "./session";
 
 export type AuthActionResult = ActionResult<User>;
 
+const GENERIC_ERROR = "Грешка при изпълнение на действието. Опитайте отново.";
 const REGISTRATION_INVALID = "Моля, проверете въведените данни за грешки.";
 
 // Signs the user in and returns them, for every action that ends in a session.
@@ -99,23 +99,12 @@ export async function registerSpecialistAction(
   });
 }
 
-export async function refreshUserAction(): Promise<{
-  success: boolean;
-  user: User | null;
-}> {
-  if (!isDbConfigured) {
-    return { success: true, user: null };
-  }
-
-  const user = await getServerSession();
-  return { success: true, user };
+export async function refreshUserAction(): Promise<ActionResult<User | null>> {
+  return runAction({ run: () => getServerSession() });
 }
 
-export async function logoutAction(): Promise<{ success: boolean }> {
-  if (isDbConfigured) {
-    await deleteSession();
-  }
-  return { success: true };
+export async function logoutAction(): Promise<ActionResult> {
+  return runAction({ run: () => deleteSession() });
 }
 
 // Succeeds whether or not the email has an account, so the form cannot be
@@ -127,12 +116,13 @@ export async function requestPasswordResetAction(
   if (validationError) {
     return { success: false, error: validationError };
   }
-  if (!isDbConfigured) {
-    return { success: false, error: "Грешка при свързване с базата данни." };
-  }
-
-  await requestPasswordReset(email);
-  return { success: true };
+  const result = await runAction({
+    messages: { NO_DATABASE: "Грешка при свързване с базата данни." },
+    run: () => requestPasswordReset(email),
+  });
+  return result.success
+    ? { success: true }
+    : { success: false, error: result.error ?? GENERIC_ERROR };
 }
 
 export async function resetPasswordAction(
@@ -145,26 +135,29 @@ export async function resetPasswordAction(
   if (validationError) {
     return { success: false, error: validationError };
   }
-  if (!isDbConfigured) {
-    return { success: false, error: "Грешка при свързване с базата данни." };
-  }
 
   const invalidLink = {
     success: false,
     error: "Връзката е невалидна или е изтекла.",
     invalidLink: true,
   } as const;
-  // Checked first so a made-up token never costs a password hash.
-  if (!(await isPasswordResetTokenValid(token))) {
-    return invalidLink;
-  }
-  try {
-    await resetPassword(token, await bcrypt.hash(password, 10));
-  } catch (error) {
-    if (error instanceof IdentityError && error.code === "INVALID_TOKEN") {
-      return invalidLink;
-    }
-    throw error;
-  }
-  return { success: true };
+  const result = await runAction<typeof invalidLink | void>({
+    messages: { NO_DATABASE: "Грешка при свързване с базата данни." },
+    run: async () => {
+      // Checked first so a made-up token never costs a password hash.
+      if (!(await isPasswordResetTokenValid(token))) return invalidLink;
+      try {
+        await resetPassword(token, await bcrypt.hash(password, 10));
+      } catch (error) {
+        if (error instanceof IdentityError && error.code === "INVALID_TOKEN") {
+          return invalidLink;
+        }
+        throw error;
+      }
+    },
+  });
+  if (result.data) return result.data;
+  return result.success
+    ? { success: true }
+    : { success: false, error: result.error ?? GENERIC_ERROR };
 }

@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { IdentityError, updateClientProfile } from "@/domain/identity";
 import type { User } from "@/domain/identity/types";
 import { runAction } from "@/lib/server/action";
@@ -65,6 +64,7 @@ export async function updateClientProfileAction(
       UNAUTHENTICATED: "Влезте с клиентски профил, за да редактирате данните.",
       FORBIDDEN: "Влезте с клиентски профил, за да редактирате данните.",
     },
+    revalidate: ["profile"],
     run: async (actor) => {
       if (!actor) {
         throw new IdentityError("UNAUTHENTICATED", "Sign in required.");
@@ -80,7 +80,6 @@ export async function updateClientProfileAction(
     };
   }
 
-  revalidatePath("/client/profile");
   return {
     success: true,
     user: result.data,
