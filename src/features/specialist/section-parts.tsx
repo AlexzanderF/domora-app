@@ -66,7 +66,11 @@ export function RequestRow({
 }
 
 export function RequestActions({ children }: { children: ReactNode }) {
-  return <div className="mt-[13px] flex flex-wrap gap-2">{children}</div>;
+  return (
+    <div className="mt-[13px] flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      {children}
+    </div>
+  );
 }
 
-export const actionButton = "px-3 py-[7px] text-sm";
+export const actionButton = "w-full px-3 text-sm sm:w-auto";
