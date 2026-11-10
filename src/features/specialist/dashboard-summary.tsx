@@ -31,14 +31,14 @@ export function DashboardSummary({
   const { activeJobs, todaysEarnings } = computeStats(initialRequests);
 
   return (
-    <div className="mb-7 flex flex-wrap items-stretch gap-4">
-      <Card className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+    <div className="mb-7 grid grid-cols-2 gap-3 md:flex md:flex-wrap md:items-stretch md:gap-4">
+      <Card className="flex min-w-0 flex-col gap-1.5 md:min-w-[180px] md:flex-1">
         <span className="text-[13px] text-muted-foreground">
           Активни задачи
         </span>
         <strong className="text-[28px]">{activeJobs}</strong>
       </Card>
-      <Card className="flex min-w-[180px] flex-1 flex-col gap-1.5">
+      <Card className="flex min-w-0 flex-col gap-1.5 md:min-w-[180px] md:flex-1">
         <span className="text-[13px] text-muted-foreground">
           Приходи за днес
         </span>
@@ -46,7 +46,7 @@ export function DashboardSummary({
       </Card>
       <Link
         href="/specialist/history"
-        className="flex items-center text-sm font-semibold whitespace-nowrap text-primary no-underline hover:underline"
+        className="col-span-2 flex min-h-11 items-center justify-center text-sm font-semibold whitespace-nowrap text-primary no-underline hover:underline md:justify-start"
       >
         История &amp; приходи →
       </Link>

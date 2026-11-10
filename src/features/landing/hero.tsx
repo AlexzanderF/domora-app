@@ -10,7 +10,7 @@ const trustBadges = [
 export function Hero() {
   return (
     <section
-      className="relative grid grid-cols-1 items-center gap-[clamp(1.5rem,4vw,3.25rem)] overflow-hidden rounded-[18px] bg-[#174c41] px-5 py-7 text-white sm:rounded-3xl sm:p-[clamp(1.75rem,4vw,3.25rem)] lg:min-h-[430px] lg:grid-cols-[minmax(0,1.35fr)_minmax(250px,0.65fr)] before:absolute before:-bottom-[170px] before:-left-[110px] before:size-[360px] before:rounded-full before:border before:border-white/12 before:content-['']"
+      className="relative grid grid-cols-1 items-center gap-6 md:gap-10 lg:gap-12 overflow-hidden rounded-[18px] bg-[#174c41] px-5 py-7 text-white sm:rounded-3xl sm:p-8 md:p-12 lg:min-h-[430px] lg:grid-cols-[minmax(0,1.35fr)_minmax(250px,0.65fr)] before:absolute before:-bottom-[170px] before:-left-[110px] before:size-[360px] before:rounded-full before:border before:border-white/12 before:content-['']"
       aria-labelledby="landing-hero-title"
     >
       <div className="relative z-[1] max-w-[720px]">
@@ -19,24 +19,24 @@ export function Hero() {
         </p>
         <h1
           id="landing-hero-title"
-          className="m-0 max-w-[700px] text-4xl leading-[1.03] tracking-[-0.045em] text-balance text-white md:text-5xl lg:text-[clamp(3rem,4.5vw,4.75rem)]"
+          className="m-0 max-w-[700px] text-4xl leading-[1.03] tracking-[-0.045em] text-balance text-white md:text-5xl lg:text-6xl"
         >
           Спокойствие за вашия дом — надеждни домашни услуги и абонаменти
         </h1>
-        <p className="mt-4 mb-0 max-w-[610px] text-[clamp(1rem,1.4vw,1.2rem)] leading-[1.65] text-[#d9e8e3]">
+        <p className="mt-4 mb-0 max-w-[610px] text-base md:text-lg leading-[1.65] text-[#d9e8e3]">
           Планирайте почистване, ремонти и редовна поддръжка с ясни цени и
           проверени специалисти на едно място.
         </p>
-        <div className="mt-[1.45rem] grid gap-3 sm:flex sm:flex-wrap">
+        <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap">
           <Button
             asChild
-            className="inline-flex min-h-[50px] items-center justify-center rounded-[10px] border-2 border-transparent bg-accent px-[1.35rem] py-[0.8rem] font-[750] text-[#17362f] hover:bg-[#e5f6a3] focus-visible:outline-white"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] border-2 border-transparent sm:w-auto bg-accent px-[1.35rem] py-[0.8rem] font-[750] text-[#17362f] hover:bg-[#e5f6a3] focus-visible:outline-white"
           >
             <Link href="/signup">Регистрирай се</Link>
           </Button>
           <Button
             asChild
-            className="inline-flex min-h-[50px] items-center justify-center rounded-[10px] border-2 border-solid border-white/65 bg-transparent px-[1.35rem] py-[0.8rem] font-[750] text-white hover:border-white hover:bg-white/9 focus-visible:outline-white"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-[10px] border-2 border-solid sm:w-auto border-white/65 bg-transparent px-[1.35rem] py-[0.8rem] font-[750] text-white hover:border-white hover:bg-white/9 focus-visible:outline-white"
           >
             <Link href="#services">Разгледай услугите</Link>
           </Button>

@@ -4,6 +4,15 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogBody,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,6 +92,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
   const [quantity, setQuantity] = useState(80);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const option = planOptions[plan];
   const validQuantity =
     Number.isInteger(quantity) && quantity >= 1 && quantity <= 1000;
@@ -148,12 +158,99 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
     }
   }
 
+  function renderForm(inSheet: boolean) {
+    return (
+      <form
+        className={
+          inSheet
+            ? "contents"
+            : "hidden gap-4 border-t border-[#dbe5df] pt-5 lg:grid"
+        }
+        onSubmit={submit}
+        noValidate
+      >
+        {inSheet ? (
+          <DialogHeader>
+            <span className="text-xs font-[800] text-[#668078]">СТЪПКА 04</span>
+            <DialogTitle className="m-0 text-[1.35rem] leading-[1.18] text-[#17372f]">
+              Заявете старт
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Адрес, начална дата и часови диапазон за абонамента.
+            </DialogDescription>
+          </DialogHeader>
+        ) : (
+          <div className="grid gap-[0.15rem]">
+            <span className="text-xs font-[800] text-[#668078]">СТЪПКА 04</span>
+            <h3 className="text-[1.15rem] text-[#17372f]">Заявете старт</h3>
+          </div>
+        )}
+        <FormBody inSheet={inSheet} className="grid content-start gap-[0.9rem]">
+          <Field
+            label="Адрес на имота"
+            error={errors.address}
+            id="address-error"
+          >
+            <Input
+              name="address"
+              autoComplete="street-address"
+              className={fieldControl}
+              aria-invalid={Boolean(errors.address)}
+              aria-describedby={errors.address ? "address-error" : undefined}
+              placeholder="Град, улица, номер, вход"
+            />
+          </Field>
+          <Field
+            label="Предпочитана начална дата"
+            error={errors.date}
+            id="date-error"
+          >
+            <DateField
+              min={today}
+              className={fieldControl}
+              invalid={Boolean(errors.date)}
+              describedBy={errors.date ? "date-error" : undefined}
+            />
+          </Field>
+          <Field label="Часови диапазон" error={errors.time} id="time-error">
+            <TimeRangeSelect
+              invalid={Boolean(errors.time)}
+              describedBy={errors.time ? "time-error" : undefined}
+            />
+          </Field>
+          <Label className={fieldLabel}>
+            Бележки{" "}
+            <span className="font-normal text-[#74847f]">(по желание)</span>
+            <Textarea
+              name="notes"
+              rows={3}
+              className={cn(fieldControl, "min-h-[86px]")}
+              placeholder="Достъп, предпочитания или друга важна информация"
+            />
+          </Label>
+        </FormBody>
+        <FormFoot inSheet={inSheet} className="mt-[0.35rem] grid gap-4">
+          <Button
+            className="min-h-12 rounded-[7px] bg-[#175246] px-0 py-0 font-extrabold hover:bg-[#103c33]"
+            type="submit"
+            disabled={saving}
+          >
+            {saving ? "Обработва се..." : "Заявете абонамент"}
+          </Button>
+          <small className="text-center text-xs text-[#74847f]">
+            Демо заявка без плащане. Графикът подлежи на потвърждение.
+          </small>
+        </FormFoot>
+      </form>
+    );
+  }
+
   if (plan === Plan.Home) {
     return <HomePlanPreview onChooseEntry={() => choosePlan(Plan.Entry)} />;
   }
 
   return (
-    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid grid-cols-1 items-start gap-[clamp(2rem,5vw,5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
+    <div className="mt-[clamp(2.5rem,6vw,4.5rem)] grid pb-24 lg:pb-0 grid-cols-1 items-start gap-[clamp(2rem,5vw,5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(330px,420px)]">
       <section className="grid gap-10" aria-labelledby="configure-title">
         <div className={section}>
           <span className={step}>01</span>
@@ -212,7 +309,7 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
           </div>
           <div className="mt-4 flex flex-col items-start justify-between gap-4 text-[0.9rem] font-[650] text-[#3f554e] sm:flex-row sm:items-center">
             <span>Посещения на месец</span>
-            <div className="grid grid-cols-[40px_46px_40px] items-center overflow-hidden rounded-[7px] border border-[#ccd9d1] bg-white">
+            <div className="grid grid-cols-[44px_46px_44px] items-center overflow-hidden rounded-[7px] border border-[#ccd9d1] bg-white">
               <Button
                 type="button"
                 variant="ghost"
@@ -333,81 +430,71 @@ export function PlansConfigurator({ tariffs }: { tariffs: Tariffs }) {
             {discount && " × 0.90"}
           </p>
 
-          <form
-            className="grid gap-4 border-t border-[#dbe5df] pt-5"
-            onSubmit={submit}
-            noValidate
-          >
-            <div className="grid gap-[0.15rem]">
-              <span className="text-xs font-[800] text-[#668078]">
-                СТЪПКА 04
-              </span>
-              <h3 className="text-[1.15rem] text-[#17372f]">Заявете старт</h3>
-            </div>
-            <div className="grid gap-[0.9rem]">
-              <Field
-                label="Адрес на имота"
-                error={errors.address}
-                id="address-error"
-              >
-                <Input
-                  name="address"
-                  autoComplete="street-address"
-                  className={fieldControl}
-                  aria-invalid={Boolean(errors.address)}
-                  aria-describedby={
-                    errors.address ? "address-error" : undefined
-                  }
-                  placeholder="Град, улица, номер, вход"
-                />
-              </Field>
-              <Field
-                label="Предпочитана начална дата"
-                error={errors.date}
-                id="date-error"
-              >
-                <DateField
-                  min={today}
-                  className={fieldControl}
-                  invalid={Boolean(errors.date)}
-                  describedBy={errors.date ? "date-error" : undefined}
-                />
-              </Field>
-              <Field
-                label="Часови диапазон"
-                error={errors.time}
-                id="time-error"
-              >
-                <TimeRangeSelect
-                  invalid={Boolean(errors.time)}
-                  describedBy={errors.time ? "time-error" : undefined}
-                />
-              </Field>
-              <Label className={fieldLabel}>
-                Бележки{" "}
-                <span className="font-normal text-[#74847f]">(по желание)</span>
-                <Textarea
-                  name="notes"
-                  rows={3}
-                  className={cn(fieldControl, "min-h-[86px]")}
-                  placeholder="Достъп, предпочитания или друга важна информация"
-                />
-              </Label>
-            </div>
-            <Button
-              className="mt-[0.35rem] min-h-12 rounded-[7px] bg-[#175246] px-0 py-0 font-extrabold hover:bg-[#103c33]"
-              type="submit"
-              disabled={saving}
-            >
-              {saving ? "Обработва се..." : "Заявете абонамент"}
-            </Button>
-            <small className="text-center text-xs text-[#74847f]">
-              Демо заявка без плащане. Графикът подлежи на потвърждение.
-            </small>
-          </form>
+          {renderForm(false)}
         </Card>
       </aside>
+
+      {!sheetOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-[#cad8d0] bg-white px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgb(22_60_50/10%)] lg:hidden">
+          <div className="grid" aria-live="polite">
+            <strong className="text-[1.25rem] text-[#17372f]">
+              {price === null ? "—" : money(price)}
+              <span className="ml-1 text-xs font-normal text-tone-687b75">
+                / месец
+              </span>
+            </strong>
+            <span className="text-xs text-tone-687b75">
+              {visits} {visits === 1 ? "посещение" : "посещения"} ·{" "}
+              {quantity || "—"} {option.unit}
+            </span>
+          </div>
+          <Button
+            type="button"
+            className="min-h-12 rounded-[7px] bg-[#175246] px-5 font-extrabold hover:bg-[#103c33]"
+            onClick={() => setSheetOpen(true)}
+          >
+            Заявете старт
+          </Button>
+        </div>
+      )}
+      <Dialog open={sheetOpen} onOpenChange={setSheetOpen}>
+        <DialogContent className="lg:hidden">{renderForm(true)}</DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function FormBody({
+  inSheet,
+  className,
+  children,
+}: {
+  inSheet: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return inSheet ? (
+    <DialogBody className={className}>{children}</DialogBody>
+  ) : (
+    <div className={className}>{children}</div>
+  );
+}
+
+function FormFoot({
+  inSheet,
+  className,
+  children,
+}: {
+  inSheet: boolean;
+  className: string;
+  children: React.ReactNode;
+}) {
+  return inSheet ? (
+    <DialogFooter className="flex-col-reverse sm:flex-col">
+      <div className="grid w-full gap-3">{children}</div>
+    </DialogFooter>
+  ) : (
+    <div className={className}>{children}</div>
   );
 }
 
