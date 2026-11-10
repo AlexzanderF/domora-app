@@ -62,3 +62,11 @@ _Avoid_: Issue, Complaint, Ticket
 **Admin Recommendation**:
 An unassigned service request explicitly suggested to a specific specialist by an Administrator, appearing in their opportunities feed with high priority without forcing an instant lock.
 _Avoid_: Admin invite, Manual ping
+
+**Hand-back**:
+The assigned specialist returning an accepted service request to the open pool before work starts; the request goes back to unassigned. Code name: `release`.
+_Avoid_: Drop, Unassign, Cancel (cancelling is the client's or Administrator's act)
+
+**Tariff**:
+The Administrator-configured rates (per trade category, per square metre for the Home plan, per visit for the Entry plan) and pricing settings (diagnostic fee, volume discount) that every quote is computed from, on the server at booking time.
+_Avoid_: Price list, Rate card
