@@ -101,7 +101,7 @@ export function HomePlanPreview({
           <label className="mt-4 flex cursor-pointer items-center gap-[0.85rem] rounded-lg border border-[#ccd9d1] p-4">
             <input
               type="checkbox"
-              className="m-0 size-[1.2rem] shrink-0 accent-[#175246]"
+              className="m-0 size-5 shrink-0 accent-[#175246]"
               checked={extraVisit}
               onChange={(event) => setExtraVisit(event.target.checked)}
             />

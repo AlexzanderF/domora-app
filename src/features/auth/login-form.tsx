@@ -202,7 +202,7 @@ export function LoginForm() {
         </AuthField>
 
         <div className="mt-0.5 flex items-center justify-between gap-3">
-          <AuthLabel className="inline-flex cursor-pointer items-center gap-2">
+          <AuthLabel className="inline-flex min-h-11 cursor-pointer items-center gap-2">
             <AuthCheckbox
               id="rememberMe"
               name="rememberMe"
@@ -213,7 +213,7 @@ export function LoginForm() {
           </AuthLabel>
           <AuthLink
             href="/forgot-password"
-            className="text-[13px] whitespace-nowrap"
+            className="inline-flex min-h-11 items-center text-[13px] whitespace-nowrap lg:min-h-0"
           >
             Забравена парола?
           </AuthLink>
