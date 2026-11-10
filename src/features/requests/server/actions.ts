@@ -23,6 +23,7 @@ import {
 } from "@/domain/requests";
 import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
+import { findTariffs } from "@/domain/pricing/tariffs";
 import { getActor } from "@/features/auth/server/actor";
 import { UserRole } from "@/domain/identity/types";
 import { RequestPriority, RequestStatus } from "@/domain/requests/types";
@@ -31,6 +32,7 @@ import type {
   Plan,
   RequestAction,
   ServiceRequest,
+  Tariffs,
 } from "@/domain/requests/types";
 
 export interface CreateServiceRequestInput {
@@ -40,7 +42,10 @@ export interface CreateServiceRequestInput {
   description: string;
   date?: string;
   time?: string;
-  price: number;
+  // The price the dialog displayed; the server prices the booking itself.
+  expectedPrice: number;
+  serviceIndex?: number;
+  quantity?: number;
   plan?: Plan;
   priority?: RequestPriority;
 }
@@ -49,6 +54,8 @@ export interface ServiceRequestActionResult {
   success: boolean;
   error?: string;
   request?: ServiceRequest;
+  // Fresh Tariffs, returned when a booking was rejected for a stale price.
+  tariffs?: Tariffs;
 }
 
 function revalidateWorkspaceRequests(): void {
@@ -59,12 +66,15 @@ function revalidateWorkspaceRequests(): void {
   revalidatePath("/admin");
 }
 
+const PRICE_CHANGED_MESSAGE = "Цената е променена, моля прегледайте отново.";
+
 const DEFAULT_ERRORS: Record<RequestErrorCode, string> = {
   UNAUTHENTICATED: "Неоторизиран достъп.",
   FORBIDDEN: "Нямате право да извършите това действие.",
   NOT_FOUND: "Заявката не е намерена.",
   INVALID_INPUT: "Невалидни данни.",
   INVALID_STATE: "Действието не е възможно на този етап от заявката.",
+  PRICE_CHANGED: PRICE_CHANGED_MESSAGE,
 };
 
 // Runs a domain call as the signed-in actor and maps its outcome to the
@@ -91,14 +101,17 @@ async function runAsActor(
 export async function createServiceRequestAction(
   input: CreateServiceRequestInput,
 ): Promise<ServiceRequestActionResult> {
-  return runAsActor(
+  const result = await runAsActor(
     async (actor) => {
       const created = await createRequest(actor, {
         category: input.category,
         service: input.service,
         description: input.description,
         address: input.address,
-        price: input.price,
+        expectedPrice: input.expectedPrice,
+        serviceIndex: input.serviceIndex,
+        plan: input.plan,
+        quantity: input.quantity,
         priority: input.priority,
         scheduledDate: input.date ?? "",
         scheduledTime: input.time ?? "",
@@ -118,9 +131,12 @@ export async function createServiceRequestAction(
     },
     {
       INVALID_INPUT:
-        "Моля, въведете коректен адрес, услуга, описание с поне 5 символа, дата и час и валидна цена.",
+        "Моля, въведете коректен адрес, услуга, описание с поне 5 символа, дата и час.",
     },
   );
+  return !result.success && result.error === PRICE_CHANGED_MESSAGE
+    ? { ...result, tariffs: await findTariffs() }
+    : result;
 }
 
 export async function assignSpecialistAction(

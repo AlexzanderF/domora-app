@@ -22,7 +22,7 @@ const booking: CreateRequestInput = {
   service: "Смяна на кран",
   description: "Тече кранът в кухнята",
   address: "София, ул. Тест 1",
-  price: 45,
+  expectedPrice: 45,
   scheduledDate: "2030-05-17",
   scheduledTime: "09:00 - 12:00",
 };
@@ -107,8 +107,6 @@ describe("createRequest", () => {
   it.each([
     ["a blank address", { address: "  " }],
     ["a too-short description", { description: "abc" }],
-    ["a non-positive price", { price: 0 }],
-    ["an oversized price", { price: 3_000_000_000 }],
     ["an invalid date", { scheduledDate: "2030-02-31" }],
     ["a malformed date", { scheduledDate: "17.05.2030" }],
     ["a blank time window", { scheduledTime: " " }],
@@ -117,6 +115,26 @@ describe("createRequest", () => {
     expect(
       await rejection(createRequest(client, { ...booking, ...override })),
     ).toBe("INVALID_INPUT");
+    expect(await listRequests(admin)).toEqual([]);
+  });
+});
+
+describe("createRequest pricing", () => {
+  it("stores the price computed from the Tariffs, not a client price", async () => {
+    const created = await createRequest(client, {
+      ...booking,
+      category: 1,
+      expectedPrice: 35,
+    });
+    expect(created.price).toBe(35);
+  });
+
+  it("rejects a tampered or stale price and creates nothing", async () => {
+    for (const expectedPrice of [1, 0, 3_000_000_000]) {
+      expect(
+        await rejection(createRequest(client, { ...booking, expectedPrice })),
+      ).toBe("PRICE_CHANGED");
+    }
     expect(await listRequests(admin)).toEqual([]);
   });
 });

@@ -53,7 +53,7 @@ const booking = (priority?: RequestPriority): CreateRequestInput => ({
   service: "Смяна на кран",
   description: "Тече кранът в кухнята",
   address: "София, ул. Тест 1",
-  price: 45,
+  expectedPrice: 45,
   scheduledDate: "2026-12-01",
   scheduledTime: "10:00 - 12:00",
   priority,
