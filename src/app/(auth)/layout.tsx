@@ -16,12 +16,12 @@ export default function AuthLayout({
     <>
       <SkipLink />
       <LandingHeader />
-      <div className="flex min-h-[calc(100vh-78px)] flex-col items-center justify-center bg-background px-4 py-12">
+      <div className="flex min-h-[calc(100dvh-78px)] flex-col items-center justify-center bg-background px-4 py-12">
         <main
           id="main"
-          className="m-auto flex min-h-[calc(100vh-130px)] w-full max-w-[480px] scroll-mt-[72px] flex-col items-center px-11 py-[38px] min-[1500px]:pt-[50px] max-[1100px]:p-7 max-[700px]:min-h-[65vh] max-[700px]:px-[18px] max-[700px]:py-6"
+          className="m-auto flex min-h-[65dvh] w-full max-w-[480px] scroll-mt-[72px] flex-col items-center px-[18px] py-6 md:min-h-[calc(100dvh-130px)] md:p-7 lg:px-11 lg:py-[38px] min-[1500px]:pt-[50px]"
         >
-          <Card className="w-full rounded-2xl px-8 py-9 shadow-[0_4px_20px_rgba(0,0,0,0.04)] max-[700px]:px-8 max-[700px]:py-9">
+          <Card className="w-full rounded-2xl px-8 py-9 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
             {children}
           </Card>
         </main>
