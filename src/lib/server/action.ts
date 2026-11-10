@@ -17,13 +17,17 @@ export type ActionErrorCode =
   | "FORBIDDEN"
   | "NOT_FOUND"
   | "INVALID_INPUT"
-  | "INVALID_STATE";
+  | "INVALID_STATE"
+  | "PRICE_CHANGED";
 
 export interface ActionResult<T = never> {
   success: boolean;
   error?: string;
   data?: T;
 }
+
+export const PRICE_CHANGED_MESSAGE =
+  "Цената е променена, моля прегледайте отново.";
 
 const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   NO_DATABASE: "Няма връзка с базата данни.",
@@ -32,6 +36,7 @@ const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   NOT_FOUND: "Заявката не е намерена.",
   INVALID_INPUT: "Невалидни данни.",
   INVALID_STATE: "Действието не е възможно на този етап от заявката.",
+  PRICE_CHANGED: PRICE_CHANGED_MESSAGE,
 };
 
 const GENERIC_ERROR = "Грешка при изпълнение на действието. Опитайте отново.";
