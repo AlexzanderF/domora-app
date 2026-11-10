@@ -89,6 +89,22 @@ describe("runAction", () => {
       "Действието не е възможно на този етап от заявката.",
     ],
     [new RequestError("UNAUTHENTICATED", "x"), "Неоторизиран достъп."],
+    [
+      new IdentityError("EMAIL_TAKEN", "x"),
+      "Вече съществува потребител с този имейл адрес.",
+    ],
+    [
+      new IdentityError("PHONE_TAKEN", "x"),
+      "Вече съществува потребител с този телефонен номер.",
+    ],
+    [
+      new IdentityError("INVALID_CREDENTIALS", "x"),
+      "Невалиден имейл/телефон или парола.",
+    ],
+    [
+      new IdentityError("REJECTED_SPECIALIST", "x"),
+      "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
+    ],
   ])("maps domain error %# to Bulgarian default copy", async (error, text) => {
     const result = await runAction({
       run: async () => {

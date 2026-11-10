@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { isDbConfigured } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { IdentityError } from "@/domain/identity";
+import { PricingError } from "@/domain/pricing/tariffs";
 import { RequestError } from "@/domain/requests";
 import { SubscriptionError } from "@/domain/subscriptions";
 import { getActor } from "@/features/auth/server/actor";
@@ -18,7 +19,11 @@ export type ActionErrorCode =
   | "NOT_FOUND"
   | "INVALID_INPUT"
   | "INVALID_STATE"
-  | "PRICE_CHANGED";
+  | "PRICE_CHANGED"
+  | "EMAIL_TAKEN"
+  | "PHONE_TAKEN"
+  | "INVALID_CREDENTIALS"
+  | "REJECTED_SPECIALIST";
 
 export interface ActionResult<T = never> {
   success: boolean;
@@ -37,6 +42,11 @@ const DEFAULT_MESSAGES: Record<ActionErrorCode, string> = {
   INVALID_INPUT: "Невалидни данни.",
   INVALID_STATE: "Действието не е възможно на този етап от заявката.",
   PRICE_CHANGED: PRICE_CHANGED_MESSAGE,
+  EMAIL_TAKEN: "Вече съществува потребител с този имейл адрес.",
+  PHONE_TAKEN: "Вече съществува потребител с този телефонен номер.",
+  INVALID_CREDENTIALS: "Невалиден имейл/телефон или парола.",
+  REJECTED_SPECIALIST:
+    "Кандидатурата ви като специалист е отказана. За повече информация се свържете с екипа на DOMORA.",
 };
 
 const GENERIC_ERROR = "Грешка при изпълнение на действието. Опитайте отново.";
@@ -51,6 +61,7 @@ const REVALIDATION_SETS = {
     "/admin",
   ],
   subscriptions: ["/client/plan", "/client/requests", "/client"],
+  tariffs: ["/admin", "/plans", "/"],
   specialists: [
     "/admin/specialists",
     "/admin",
@@ -72,7 +83,8 @@ function domainErrorCode(error: unknown): ActionErrorCode | null {
   if (
     error instanceof RequestError ||
     error instanceof SubscriptionError ||
-    error instanceof IdentityError
+    error instanceof IdentityError ||
+    error instanceof PricingError
   ) {
     return error.code in DEFAULT_MESSAGES
       ? (error.code as ActionErrorCode)

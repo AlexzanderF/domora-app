@@ -6,7 +6,7 @@ import { sessions } from "@/db/schema";
 import { SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "../constants";
 import type { User } from "@/domain/identity/types";
 import { findUserBySessionToken } from "./queries";
-import { hashSessionToken } from "./token";
+import { hashSessionToken } from "@/domain/identity/token";
 
 export { SESSION_COOKIE_NAME, SESSION_MAX_AGE };
 
