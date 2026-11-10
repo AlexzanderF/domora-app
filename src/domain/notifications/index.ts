@@ -1,6 +1,7 @@
 import { and, asc, eq, isNull, lte, sql } from "drizzle-orm";
 import { notificationDeliveries, outboxEvents, requireDb } from "@/db";
 import type { DomoraDatabase, OutboxEventSelect } from "@/db";
+import type { EventType, OutboxEvent } from "./events";
 import type { Notifier, NotificationMessage } from "./notifier";
 
 // Framework-free (no next/*): the transactional outbox. Domain code calls
@@ -18,20 +19,7 @@ export function backoffMs(attempt: number): number {
   return BASE_BACKOFF_MS * 2 ** (attempt - 1);
 }
 
-export interface OutboxEventInput {
-  type: string;
-  // Bump when the payload shape changes so old events stay readable.
-  version?: number;
-  // A `secrets` key (here and in a message's data) is for values that must
-  // not outlive the email, such as a reset token: it is removed from the
-  // event at fan-out and from the delivery once it is sent or given up on.
-  payload: Record<string, unknown>;
-}
-
-export async function enqueueEvent(
-  tx: Tx,
-  event: OutboxEventInput,
-): Promise<void> {
+export async function enqueueEvent(tx: Tx, event: OutboxEvent): Promise<void> {
   await tx.insert(outboxEvents).values({
     type: event.type,
     version: event.version ?? 1,
@@ -45,14 +33,15 @@ export type EventHandler = (
   event: OutboxEventSelect,
   tx: Tx,
 ) => NotificationMessage[] | Promise<NotificationMessage[]>;
-export type EventHandlers = Record<string, EventHandler>;
-
-// Registered per event type as notification tickets land.
-export const defaultHandlers: EventHandlers = {};
+// Handlers for some event types; an event without one produces no messages.
+export type EventHandlers = Partial<Record<EventType, EventHandler | null>>;
+// The worker's map: every event type has a handler or an explicit null
+// ("no notification"), so a new event cannot be forgotten.
+export type ExhaustiveEventHandlers = Record<EventType, EventHandler | null>;
 
 export interface ProcessOptions {
   notifier: Notifier;
-  handlers?: EventHandlers;
+  handlers: EventHandlers;
   now?: Date;
 }
 
@@ -77,7 +66,7 @@ async function fanOut(handlers: EventHandlers, now: Date): Promise<number> {
 
     let done = 0;
     for (const event of events) {
-      const handler = handlers[event.type];
+      const handler = handlers[event.type as EventType] ?? null;
       try {
         // Savepoint: a failing handler leaves no partial deliveries.
         await tx.transaction(async (sp) => {
@@ -181,7 +170,7 @@ export async function processOutbox(
   options: ProcessOptions,
 ): Promise<ProcessResult> {
   const now = options.now ?? new Date();
-  const events = await fanOut(options.handlers ?? defaultHandlers, now);
+  const events = await fanOut(options.handlers, now);
   const delivered = await deliver(options.notifier, now);
   return { events, ...delivered };
 }
