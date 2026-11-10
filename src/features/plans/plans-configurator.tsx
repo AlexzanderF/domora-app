@@ -67,11 +67,11 @@ const sectionTitle = "mt-[0.35rem] mb-[1.2rem] text-[1.35rem] text-[#17372f]";
 const fieldLabel =
   "m-0 grid content-start gap-[0.38rem] text-[0.82rem] leading-[1.55] font-bold text-[#40564f]";
 const fieldControl =
-  "mt-0 min-h-11 rounded-md border-[#ccd9d1] text-[0.92rem] leading-[1.55] aria-invalid:border-[#b14545]";
+  "mt-0 min-h-11 rounded-md border-[#ccd9d1] text-base leading-[1.55] aria-invalid:border-[#b14545]";
 const checkItem =
   "before:mr-[0.65rem] before:font-[850] before:text-[#287057] before:content-['✓']";
 const stepperButton =
-  "h-10 rounded-none p-0 text-[1.25rem] font-[650] text-[#175246] hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-[#a9b6b1] disabled:opacity-100";
+  "h-11 rounded-none p-0 text-[1.25rem] font-[650] text-[#175246] hover:bg-white disabled:pointer-events-auto disabled:cursor-not-allowed disabled:text-[#a9b6b1] disabled:opacity-100";
 const errorText =
   "mt-[0.3rem] block text-[0.76rem] font-[650] text-tone-a33b3b";
 
