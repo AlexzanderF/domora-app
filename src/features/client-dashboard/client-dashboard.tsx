@@ -9,7 +9,6 @@ import { useToast } from "@/components/ui/toast-provider";
 import { useBooking } from "@/features/bookings/booking-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
 import { IssueDialog } from "@/features/requests/issue-dialog";
-import { RequestStatus } from "@/domain/requests/types";
 import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
 import { ServiceIcon } from "@/features/services/service-icon";
@@ -22,6 +21,7 @@ import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   getRecentCompletedRequests,
+  getTrackerControls,
   getTrackerSegments,
   getTrackerStageIndex,
   selectActiveRequest,
@@ -310,6 +310,7 @@ function ActiveRequest({
   onRate: (rating: number) => void;
 }) {
   const stage = getTrackerStageIndex(request.status);
+  const controls = getTrackerControls(request, ratingOpen);
 
   return (
     <div className="grid gap-[22px]">
@@ -400,23 +401,27 @@ function ActiveRequest({
         )}
       </div>
 
-      {request.status === RequestStatus.AwaitingConfirmation && !ratingOpen && (
+      {(controls.confirm || controls.dispute) && (
         <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-          <Button
-            type="button"
-            className="w-full sm:w-auto"
-            onClick={onConfirm}
-          >
-            Потвърди и оцени
-          </Button>
-          <Button
-            variant="secondary"
-            type="button"
-            className="w-full sm:w-auto"
-            onClick={onIssue}
-          >
-            Сигнализирай проблем
-          </Button>
+          {controls.confirm && (
+            <Button
+              type="button"
+              className="w-full sm:w-auto"
+              onClick={onConfirm}
+            >
+              Потвърди и оцени
+            </Button>
+          )}
+          {controls.dispute && (
+            <Button
+              variant="secondary"
+              type="button"
+              className="w-full sm:w-auto"
+              onClick={onIssue}
+            >
+              Сигнализирай проблем
+            </Button>
+          )}
         </div>
       )}
       {request.issue && (
@@ -424,7 +429,7 @@ function ActiveRequest({
           Сигналът очаква преглед от DOMORA.
         </p>
       )}
-      {ratingOpen && (
+      {controls.rate && (
         <div
           className="flex flex-wrap items-center justify-between gap-2.5 rounded-md border border-tone-dce5df bg-tone-f8faf8 p-3.5"
           role="group"
