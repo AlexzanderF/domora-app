@@ -3,16 +3,14 @@ import { requestDisputes, requireDb, requests } from "@/db";
 import type { RequestDisputeSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import type { Actor } from "@/domain/authorization";
-import { enqueueEvent } from "@/domain/notifications";
 import {
   RequestError,
-  forbidden,
   invalidState,
-  recordEvent,
   requireActor,
   resourceOf,
+  forbidden,
 } from "@/domain/requests";
-import type { Tx } from "@/domain/requests";
+import { transitionRequest } from "@/domain/requests/transition";
 import { UserRole } from "@/domain/identity/types";
 import {
   MAX_DISPUTE_NOTE_LENGTH,
@@ -62,16 +60,6 @@ function cleanResolutionNote(value: string | undefined): string {
   return note;
 }
 
-async function lockRequest(tx: Tx, requestId: number) {
-  const [row] = await tx
-    .select()
-    .from(requests)
-    .where(eq(requests.id, requestId))
-    .for("update");
-  if (!row) throw new RequestError("NOT_FOUND", "Request not found.");
-  return row;
-}
-
 // The request's client flags a problem with the reported work. The note is
 // stored, the request is flagged for the specialist and the admin triage queue.
 export async function raiseDispute(
@@ -88,55 +76,51 @@ export async function raiseDispute(
     );
   }
 
-  return requireDb().transaction(async (tx) => {
-    const row = await lockRequest(tx, requestId);
-    if (!can(actor, "request.dispute", resourceOf(row))) forbidden();
-    // Raising again while a dispute is open changes nothing: hand back the
-    // open one instead of failing, so a repeated click is harmless.
-    if (row.issue) {
-      const [open] = await tx
-        .select()
-        .from(requestDisputes)
-        .where(
-          and(
-            eq(requestDisputes.requestId, row.id),
-            isNull(requestDisputes.resolvedAt),
-          ),
+  let dispute: RequestDisputeSelect | undefined;
+  await transitionRequest(
+    actor,
+    requestId,
+    { action: "request.dispute" },
+    async (row, _actor, tx) => {
+      // Raising again while a dispute is open changes nothing: hand back the
+      // open one instead of failing, so a repeated click is harmless.
+      if (row.issue) {
+        [dispute] = await tx
+          .select()
+          .from(requestDisputes)
+          .where(
+            and(
+              eq(requestDisputes.requestId, row.id),
+              isNull(requestDisputes.resolvedAt),
+            ),
+          );
+        if (dispute) return null;
+      }
+      if (!canRaiseDispute(row)) {
+        invalidState(
+          "A dispute can only be raised on work awaiting confirmation.",
         );
-      if (open) return toDisputeDto(open);
-    }
-    if (!canRaiseDispute(row)) {
-      invalidState(
-        "A dispute can only be raised on work awaiting confirmation.",
-      );
-    }
-    const now = new Date();
-    const [dispute] = await tx
-      .insert(requestDisputes)
-      .values({
-        requestId: row.id,
-        raisedById: actor.id,
-        note: text,
-        raisedAt: now,
-      })
-      .returning();
-    await tx
-      .update(requests)
-      .set({ issue: true, issueNote: text, issueOpenedAt: now, updatedAt: now })
-      .where(eq(requests.id, row.id));
-    await recordEvent(tx, {
-      requestId: row.id,
-      actorId: actor.id,
-      type: "request.dispute_raised",
-      fromStatus: row.status,
-      toStatus: row.status,
-    });
-    await enqueueEvent(tx, {
-      type: "request.dispute_raised",
-      payload: { requestId: row.id, disputeId: dispute.id },
-    });
-    return toDisputeDto(dispute);
-  });
+      }
+      const now = new Date();
+      [dispute] = await tx
+        .insert(requestDisputes)
+        .values({
+          requestId: row.id,
+          raisedById: actor.id,
+          note: text,
+          raisedAt: now,
+        })
+        .returning();
+      return {
+        event: {
+          type: "request.dispute_raised",
+          payload: { requestId: row.id, disputeId: dispute.id },
+        },
+        values: { issue: true, issueNote: text, issueOpenedAt: now },
+      };
+    },
+  );
+  return toDisputeDto(dispute!);
 }
 
 // An admin closes the open dispute. The dispute row is kept, stamped with who
@@ -149,59 +133,55 @@ export async function resolveDispute(
   const actor = requireActor(actorOrNull);
   const text = cleanResolutionNote(resolutionNote);
 
-  return requireDb().transaction(async (tx) => {
-    const row = await lockRequest(tx, requestId);
-    if (!can(actor, "request.resolve_dispute", resourceOf(row))) forbidden();
-    if (!canResolveDispute(row)) {
-      invalidState("There is no open dispute on this request.");
-    }
-    const now = new Date();
-    let [dispute] = await tx
-      .update(requestDisputes)
-      .set({
-        resolvedById: actor.id,
-        resolutionNote: text || null,
-        resolvedAt: now,
-      })
-      .where(
-        and(
-          eq(requestDisputes.requestId, row.id),
-          isNull(requestDisputes.resolvedAt),
-        ),
-      )
-      .returning();
-    // A flag set before disputes were stored has no row yet; record it
-    // as resolved so the history still shows it.
-    if (!dispute) {
+  let dispute: RequestDisputeSelect | undefined;
+  await transitionRequest(
+    actor,
+    requestId,
+    { action: "request.resolve_dispute" },
+    async (row, _actor, tx) => {
+      if (!canResolveDispute(row)) {
+        invalidState("There is no open dispute on this request.");
+      }
+      const now = new Date();
       [dispute] = await tx
-        .insert(requestDisputes)
-        .values({
-          requestId: row.id,
-          note: row.issueNote ?? "—",
-          raisedAt: row.issueOpenedAt ?? now,
+        .update(requestDisputes)
+        .set({
           resolvedById: actor.id,
           resolutionNote: text || null,
           resolvedAt: now,
         })
+        .where(
+          and(
+            eq(requestDisputes.requestId, row.id),
+            isNull(requestDisputes.resolvedAt),
+          ),
+        )
         .returning();
-    }
-    await tx
-      .update(requests)
-      .set({ issue: false, issueNote: null, updatedAt: now })
-      .where(eq(requests.id, row.id));
-    await recordEvent(tx, {
-      requestId: row.id,
-      actorId: actor.id,
-      type: "request.dispute_resolved",
-      fromStatus: row.status,
-      toStatus: row.status,
-    });
-    await enqueueEvent(tx, {
-      type: "request.dispute_resolved",
-      payload: { requestId: row.id, resolutionNote: text },
-    });
-    return toDisputeDto(dispute);
-  });
+      // A flag set before disputes were stored has no row yet; record it
+      // as resolved so the history still shows it.
+      if (!dispute) {
+        [dispute] = await tx
+          .insert(requestDisputes)
+          .values({
+            requestId: row.id,
+            note: row.issueNote ?? "—",
+            raisedAt: row.issueOpenedAt ?? now,
+            resolvedById: actor.id,
+            resolutionNote: text || null,
+            resolvedAt: now,
+          })
+          .returning();
+      }
+      return {
+        event: {
+          type: "request.dispute_resolved",
+          payload: { requestId: row.id, resolutionNote: text },
+        },
+        values: { issue: false, issueNote: null },
+      };
+    },
+  );
+  return toDisputeDto(dispute!);
 }
 
 // Every dispute raised on one request, newest first. Visible to the request's

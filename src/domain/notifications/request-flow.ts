@@ -122,6 +122,8 @@ export const requestFlowHandlers: EventHandlers = {
   "request.created": onCreated,
   "request.accepted": (event, tx) =>
     toClient("request-accepted", tx, payloadOf(event)),
+  "request.assigned": (event, tx) =>
+    toClient("request-accepted", tx, payloadOf(event)),
   "request.report_submitted": (event, tx) =>
     toClient("report-submitted", tx, payloadOf(event)),
   "request.recommended": onRecommended,

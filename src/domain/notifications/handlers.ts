@@ -8,6 +8,12 @@ import { requestFlowHandlers } from "./request-flow";
 export const eventHandlers: ExhaustiveEventHandlers = {
   "request.created": requestFlowHandlers["request.created"]!,
   "request.accepted": requestFlowHandlers["request.accepted"]!,
+  "request.assigned": requestFlowHandlers["request.assigned"]!,
+  "request.recommendation_declined": null,
+  "request.started": null,
+  "request.rated": null,
+  "request.cancelled": null,
+  "request.released": null,
   "request.recommended": requestFlowHandlers["request.recommended"]!,
   "request.report_submitted": requestFlowHandlers["request.report_submitted"]!,
   "request.completed": null,

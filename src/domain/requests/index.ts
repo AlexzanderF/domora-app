@@ -7,7 +7,7 @@ import {
   tariffs,
   users,
 } from "@/db";
-import type { DomoraDatabase, RequestSelect } from "@/db";
+import type { RequestSelect } from "@/db";
 import { can } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
 import { calculateQuote, tariffsFromRows } from "@/domain/pricing";
@@ -29,6 +29,9 @@ import {
   isValidRating,
   requiresCompletionReport,
 } from "./lifecycle";
+import { RequestError, forbidden, invalidState, requireActor } from "./errors";
+import { resourceOf, transitionRequest } from "./transition";
+import type { Change, Tx } from "./transition";
 import { Plan, RequestPriority, RequestStatus } from "@/domain/requests/types";
 import type { CategoryId } from "@/domain/requests/types";
 import { SubscriptionPlan } from "@/domain/subscriptions/types";
@@ -40,23 +43,10 @@ const SUBSCRIPTION_CATEGORY = 4;
 // request lifecycle state. Every function takes the Actor first and enforces
 // it via can(); callers pass null for an unauthenticated visitor.
 
-export type RequestErrorCode =
-  | "UNAUTHENTICATED"
-  | "FORBIDDEN"
-  | "NOT_FOUND"
-  | "INVALID_INPUT"
-  | "INVALID_STATE"
-  | "PRICE_CHANGED";
-
-export class RequestError extends Error {
-  constructor(
-    readonly code: RequestErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "RequestError";
-  }
-}
+export { RequestError, forbidden, invalidState, requireActor };
+export type { RequestErrorCode } from "./errors";
+export { resourceOf };
+export type { Tx };
 
 export interface CreateRequestInput {
   category: CategoryId;
@@ -116,8 +106,6 @@ export interface RequestDto {
   updatedAt: string;
 }
 
-export type Tx = Parameters<Parameters<DomoraDatabase["transaction"]>[0]>[0];
-
 const iso = (date: Date | null): string | null => date?.toISOString() ?? null;
 
 export function toDto(row: RequestSelect): RequestDto {
@@ -150,25 +138,6 @@ export function toDto(row: RequestSelect): RequestDto {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
-}
-
-export function resourceOf(row: RequestSelect) {
-  return { clientId: row.clientId, specialistId: row.specialistId };
-}
-
-export function requireActor(actor: Actor | null): Actor {
-  if (!actor) {
-    throw new RequestError("UNAUTHENTICATED", "Sign-in is required.");
-  }
-  return actor;
-}
-
-export function forbidden(): never {
-  throw new RequestError("FORBIDDEN", "This actor may not do that.");
-}
-
-export function invalidState(message: string): never {
-  throw new RequestError("INVALID_STATE", message);
 }
 
 function isCalendarDate(value: string): boolean {
@@ -289,69 +258,16 @@ async function quoteSubscription(
   };
 }
 
-export async function recordEvent(
-  tx: Tx,
-  event: {
-    requestId: number;
-    actorId: number;
-    type: string;
-    fromStatus: RequestStatus | null;
-    toStatus: RequestStatus;
-  },
-): Promise<void> {
-  await tx.insert(requestEvents).values(event);
-}
-
-interface Change {
-  type: string;
-  values: Partial<typeof requests.$inferInsert>;
-  // Extra writes that must commit or roll back with the change.
-  afterWrite?: (tx: Tx) => Promise<void>;
-}
-
-// Loads the request under a row lock, authorizes the actor against it, lets
-// `apply` validate the transition and describe the change, then writes the
-// change and its audit event in the same transaction.
+// Request changes after creation: authorizes `action`, lets `apply` validate
+// and describe the change, and writes it with its audit entry and outbox event.
 async function mutate(
-  actorOrNull: Actor | null,
+  actor: Actor | null,
   requestId: number,
   action: Action,
-  apply: (row: RequestSelect, actor: Actor) => Change,
+  apply: (row: RequestSelect) => Change,
 ): Promise<RequestDto> {
-  const actor = requireActor(actorOrNull);
-  return requireDb().transaction(async (tx) => {
-    const [row] = await tx
-      .select()
-      .from(requests)
-      .where(eq(requests.id, requestId))
-      .for("update");
-    if (!row) throw new RequestError("NOT_FOUND", "Request not found.");
-    if (!can(actor, action, resourceOf(row))) forbidden();
-    const change = apply(row, actor);
-    const updated = await update(tx, row.id, change.values);
-    await change.afterWrite?.(tx);
-    await recordEvent(tx, {
-      requestId: row.id,
-      actorId: actor.id,
-      type: change.type,
-      fromStatus: row.status,
-      toStatus: updated.status,
-    });
-    return toDto(updated);
-  });
-}
-
-async function update(
-  tx: Tx,
-  requestId: number,
-  values: Partial<typeof requests.$inferInsert>,
-): Promise<RequestSelect> {
-  const [row] = await tx
-    .update(requests)
-    .set({ ...values, updatedAt: new Date() })
-    .where(eq(requests.id, requestId))
-    .returning();
-  return row;
+  const updated = await transitionRequest(actor, requestId, { action }, apply);
+  return toDto(updated!);
 }
 
 async function insertRequest(
@@ -396,7 +312,7 @@ async function insertRequest(
       subscriptionId: input.subscriptionId ?? null,
     })
     .returning();
-  await recordEvent(tx, {
+  await tx.insert(requestEvents).values({
     requestId: row.id,
     actorId: actor.id,
     type: "request.created",
@@ -519,7 +435,7 @@ export function startWork(
       invalidState("Only an accepted request can be started.");
     }
     return {
-      type: "request.started",
+      event: { type: "request.started", payload: { requestId: row.id } },
       values: { status: RequestStatus.InProgress },
     };
   });
@@ -541,17 +457,15 @@ export function submitReport(
       throw new RequestError("INVALID_INPUT", "A report is required.");
     }
     return {
-      type: "request.report_submitted",
+      event: {
+        type: "request.report_submitted",
+        payload: { requestId: row.id },
+      },
       values: {
         status: RequestStatus.AwaitingConfirmation,
         report: text,
         reportSubmittedAt: new Date(),
       },
-      afterWrite: (tx) =>
-        enqueueEvent(tx, {
-          type: "request.report_submitted",
-          payload: { requestId: row.id },
-        }),
     };
   });
 }
@@ -566,7 +480,7 @@ export function confirmCompletion(
       invalidState("There is no completed work awaiting confirmation.");
     }
     return {
-      type: "request.completed",
+      event: { type: "request.completed", payload: { requestId: row.id } },
       values: { status: RequestStatus.Completed, completedAt: new Date() },
     };
   });
@@ -588,7 +502,7 @@ export function rateRequest(
       invalidState("This request cannot be rated.");
     }
     return {
-      type: "request.rated",
+      event: { type: "request.rated", payload: { requestId: row.id } },
       values: { rating, ratedAt: new Date() },
     };
   });
@@ -605,7 +519,7 @@ export function cancelRequest(
     }
     const { subscriptionId } = row;
     return {
-      type: "request.cancelled",
+      event: { type: "request.cancelled", payload: { requestId: row.id } },
       values: { cancelled: true },
       // A cancelled booking gives its subscription visit back.
       afterWrite: subscriptionId
@@ -626,7 +540,7 @@ export function releaseRequest(
       invalidState("Only an accepted request can be handed back.");
     }
     return {
-      type: "request.released",
+      event: { type: "request.released", payload: { requestId: row.id } },
       values: { specialistId: null, status: RequestStatus.Created },
     };
   });
