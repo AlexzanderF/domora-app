@@ -29,7 +29,6 @@ import { mapsSearchUrl } from "./maps-link";
 import { hasUnsavedReport } from "./report-draft";
 import { DiscardReportSheet } from "./discard-report-sheet";
 import { money } from "@/lib/format";
-import { RequestStatus } from "@/domain/requests/types";
 import type { ServiceRequest } from "@/domain/requests/types";
 import {
   RequestActions,
@@ -192,7 +191,7 @@ export function DailyAgenda({
               </p>
             )}
             <RequestActions>
-              {request.status === RequestStatus.Accepted && (
+              {request.actions.includes("start") && (
                 <Button
                   size="compact"
                   className={actionButton}
@@ -202,7 +201,7 @@ export function DailyAgenda({
                   {busyId === request.id ? "Стартиране…" : "Започни работа"}
                 </Button>
               )}
-              {request.status === RequestStatus.InProgress && (
+              {request.actions.includes("submitReport") && (
                 <Button
                   size="compact"
                   className={actionButton}
