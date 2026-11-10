@@ -19,6 +19,8 @@ export interface EventPayloads {
   "specialist.rejected": { userId: number };
   "password.reset_requested": { userId: number; secrets: { token: string } };
   "password.reset_completed": { userId: number };
+  "account.client_registered": { userId: number };
+  "account.profile_updated": { userId: number };
   "tariffs.updated": { actorId: number; tariffs: Tariffs };
 }
 
