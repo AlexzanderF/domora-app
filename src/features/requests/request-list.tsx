@@ -33,7 +33,7 @@ export function RequestList({
       {items.map((request) => (
         <article
           id={`request-${request.id}`}
-          className="flex items-start border-b border-border py-[19px] first:pt-0 last:border-b-0 last:pb-0 gap-2.5 md:gap-4 [&_p]:mt-[5px] [&_p]:mb-2.5 [&_p]:text-[14px] [&_p]:text-muted-foreground"
+          className="flex scroll-mt-20 items-start border-b border-border py-[19px] first:pt-0 last:border-b-0 last:pb-0 gap-2.5 md:gap-4 [&_p]:mt-[5px] [&_p]:mb-2.5 [&_p]:text-[14px] [&_p]:text-muted-foreground"
           key={request.id}
           aria-label={request.service}
         >

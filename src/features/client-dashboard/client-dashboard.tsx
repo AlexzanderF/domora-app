@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast-provider";
 import { useBooking } from "@/features/bookings/booking-provider";
 import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import { IssueDialog } from "@/features/requests/issue-dialog";
 import { RequestStatus } from "@/domain/requests/types";
 import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
@@ -21,6 +22,7 @@ import { money } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   getRecentCompletedRequests,
+  getTrackerSegments,
   getTrackerStageIndex,
   selectActiveRequest,
   trackerStages,
@@ -67,6 +69,7 @@ export function ClientDashboard({
   const router = useRouter();
   const notify = useToast();
   const [ratingRequestId, setRatingRequestId] = useState<number | null>(null);
+  const [issueOpen, setIssueOpen] = useState(false);
   const activeRequest = useMemo(
     () => selectActiveRequest(requests),
     [requests],
@@ -130,17 +133,7 @@ export function ClientDashboard({
                 "Услугата е потвърдена. Оставете оценка.",
               );
             }}
-            onIssue={() => {
-              const note = window
-                .prompt("Опишете проблема с работата:")
-                ?.trim();
-              if (!note) return;
-              void performAction(
-                trackedRequest,
-                { type: "dispute", note },
-                "Сигналът е изпратен за преглед.",
-              );
-            }}
+            onIssue={() => setIssueOpen(true)}
             onRate={(rating) => {
               void performAction(
                 trackedRequest,
@@ -165,6 +158,19 @@ export function ClientDashboard({
               </p>
             </div>
           </div>
+        )}
+        {trackedRequest && (
+          <IssueDialog
+            open={issueOpen}
+            onOpenChange={setIssueOpen}
+            onSubmit={(note) =>
+              void performAction(
+                trackedRequest,
+                { type: "dispute", note },
+                "Сигналът е изпратен за преглед.",
+              )
+            }
+          />
         )}
       </Card>
 
@@ -324,8 +330,25 @@ function ActiveRequest({
         </strong>
       </div>
 
+      <div className="grid gap-2 sm:hidden">
+        <div className="grid grid-cols-4 gap-1" aria-hidden="true">
+          {getTrackerSegments(request.status).map((filled, index) => (
+            <span
+              key={index}
+              className={cn(
+                "h-2 rounded-full bg-border",
+                filled && "bg-primary",
+              )}
+            />
+          ))}
+        </div>
+        <p className="m-0 text-[0.8rem] font-bold text-primary">
+          Стъпка {stage + 1} от {trackerStages.length}: {trackerStages[stage]}
+        </p>
+      </div>
+
       <ol
-        className="m-0 grid list-none grid-cols-1 gap-2 p-0 sm:grid-cols-4 sm:gap-0"
+        className="m-0 hidden list-none grid-cols-4 p-0 sm:grid"
         aria-label="Прогрес на услугата"
       >
         {trackerStages.map((label, index) => {
@@ -378,11 +401,20 @@ function ActiveRequest({
       </div>
 
       {request.status === RequestStatus.AwaitingConfirmation && !ratingOpen && (
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Button type="button" onClick={onConfirm}>
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+          <Button
+            type="button"
+            className="w-full sm:w-auto"
+            onClick={onConfirm}
+          >
             Потвърди и оцени
           </Button>
-          <Button variant="secondary" type="button" onClick={onIssue}>
+          <Button
+            variant="secondary"
+            type="button"
+            className="w-full sm:w-auto"
+            onClick={onIssue}
+          >
             Сигнализирай проблем
           </Button>
         </div>
@@ -405,7 +437,7 @@ function ActiveRequest({
                 key={rating}
                 type="button"
                 variant="secondary"
-                className="min-w-[38px] rounded-[5px] border-tone-d6dfd9 p-[7px] font-normal"
+                className="min-w-11 rounded-[5px] border-tone-d6dfd9 p-[7px] font-normal"
                 aria-label={`${rating} звезди`}
                 onClick={() => onRate(rating)}
               >
