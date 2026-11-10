@@ -1,8 +1,10 @@
 "use server";
 
 import { startSubscription } from "@/domain/requests";
+import { findTariffs } from "@/domain/pricing/tariffs";
+import type { Tariffs } from "@/domain/requests/types";
 import { cancelSubscription, createSubscription } from "@/domain/subscriptions";
-import { runAction } from "@/lib/server/action";
+import { PRICE_CHANGED_MESSAGE, runAction } from "@/lib/server/action";
 import type { ActionResult } from "@/lib/server/action";
 import type {
   Subscription,
@@ -24,15 +26,15 @@ export interface StartSubscriptionInput extends SubscribeInput {
     description: string;
     date: string;
     time: string;
-    // Price of that one visit.
-    price: number;
   };
+  // The plan total the configurator displayed; the server re-quotes it.
+  expectedPrice: number;
 }
 
-export type SubscriptionActionResult = ActionResult<Subscription>;
-
-// Subscription visits are booked under the general-maintenance category.
-const SUBSCRIPTION_CATEGORY = 4;
+export type SubscriptionActionResult = ActionResult<Subscription> & {
+  // Fresh Tariffs, sent when the quoted price was stale so the client re-quotes.
+  tariffs?: Tariffs;
+};
 
 const MESSAGES = {
   UNAUTHENTICATED: "Влезте в профила си, за да управлявате абонамент.",
@@ -58,23 +60,25 @@ export async function createSubscriptionAction(
 export async function startSubscriptionAction(
   input: StartSubscriptionInput,
 ): Promise<SubscriptionActionResult> {
-  return runAction({
+  const result = await runAction({
     messages: MESSAGES,
     revalidate: ["subscriptions"],
     run: async (actor) => {
-      const { firstVisit, ...plan } = input;
+      const { firstVisit, expectedPrice, ...plan } = input;
       const { subscription } = await startSubscription(actor, plan, {
-        category: SUBSCRIPTION_CATEGORY,
         service: firstVisit.service,
         description: firstVisit.description,
         address: input.propertyAddress,
-        price: firstVisit.price,
+        expectedPrice,
         scheduledDate: firstVisit.date,
         scheduledTime: firstVisit.time,
       });
       return subscription;
     },
   });
+  return !result.success && result.error === PRICE_CHANGED_MESSAGE
+    ? { ...result, tariffs: await findTariffs() }
+    : result;
 }
 
 export async function cancelSubscriptionAction(): Promise<SubscriptionActionResult> {

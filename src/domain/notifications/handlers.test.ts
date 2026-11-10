@@ -22,6 +22,8 @@ describe("worker handler map", () => {
       "specialist.rejected",
       "password.reset_requested",
       "password.reset_completed",
+      "account.client_registered",
+      "account.profile_updated",
       "tariffs.updated",
     ].sort();
     expect(Object.keys(eventHandlers).sort()).toEqual(expected);

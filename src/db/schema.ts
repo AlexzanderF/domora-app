@@ -314,6 +314,39 @@ export const tariffs = pgTable("tariffs", {
     .notNull(),
 });
 
+// A single row (id is pinned to 1): the diagnostic fee and the volume discount.
+export const pricingSettings = pgTable(
+  "pricing_settings",
+  {
+    id: integer("id").primaryKey().default(1),
+    diagnosticFee: integer("diagnostic_fee").notNull().default(25),
+    volumeDiscountMinVisits: integer("volume_discount_min_visits")
+      .notNull()
+      .default(4),
+    volumeDiscountPercent: integer("volume_discount_percent")
+      .notNull()
+      .default(10),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    check("pricing_settings_single_row", sql`${table.id} = 1`),
+    check(
+      "pricing_settings_diagnostic_fee_range",
+      sql`${table.diagnosticFee} between 1 and 10000`,
+    ),
+    check(
+      "pricing_settings_min_visits_range",
+      sql`${table.volumeDiscountMinVisits} between 1 and 8`,
+    ),
+    check(
+      "pricing_settings_discount_percent_range",
+      sql`${table.volumeDiscountPercent} between 0 and 100`,
+    ),
+  ],
+);
+
 export const notificationStatusEnum = pgEnum("notification_status", [
   "PENDING",
   "SENT",

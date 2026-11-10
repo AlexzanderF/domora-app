@@ -4,6 +4,7 @@ import { outboxEvents, requireDb, tariffs } from "@/db";
 import { UserRole } from "@/domain/identity/types";
 import { createActor } from "../../../tests/db/factories";
 import { defaultTariffs } from "./index";
+import { createRequest } from "@/domain/requests";
 import { findTariffs, saveTariffs } from "./tariffs";
 
 describe("findTariffs (DB-backed)", () => {
@@ -36,6 +37,9 @@ const newTariffs = {
   categories: { 0: 50, 1: 40, 2: 60, 3: 30, 4: 70, 5: 28 },
   home: 1.7,
   entry: 21,
+  diagnosticFee: 30,
+  volumeDiscountMinVisits: 3,
+  volumeDiscountPercent: 20,
 };
 
 async function code(promise: Promise<unknown>) {
@@ -97,5 +101,65 @@ describe("saveTariffs", () => {
     );
     expect(await findTariffs()).toEqual(defaultTariffs);
     expect(await requireDb().select().from(outboxEvents)).toHaveLength(0);
+  });
+});
+
+describe("pricing settings", () => {
+  it("defaults to a 25 diagnostic fee and a 10% discount from 4 visits", async () => {
+    const result = await findTariffs();
+    expect(result.diagnosticFee).toBe(25);
+    expect(result.volumeDiscountMinVisits).toBe(4);
+    expect(result.volumeDiscountPercent).toBe(10);
+  });
+
+  it("saves the settings and re-saving updates the single row", async () => {
+    const admin = await createActor(UserRole.Admin);
+
+    await saveTariffs(admin, newTariffs);
+    await saveTariffs(admin, { ...newTariffs, diagnosticFee: 33 });
+
+    const saved = await findTariffs();
+    expect(saved).toEqual({ ...newTariffs, diagnosticFee: 33 });
+  });
+
+  it("rejects out-of-range settings without writing", async () => {
+    const admin = await createActor(UserRole.Admin);
+
+    for (const override of [
+      { diagnosticFee: 0 },
+      { volumeDiscountMinVisits: 9 },
+      { volumeDiscountPercent: 101 },
+      { volumeDiscountPercent: 10.5 },
+    ]) {
+      expect(
+        await code(saveTariffs(admin, { ...newTariffs, ...override })),
+      ).toBe("INVALID_INPUT");
+    }
+    expect(await findTariffs()).toEqual(defaultTariffs);
+  });
+
+  it("applies a changed diagnostic fee to a new booking's price", async () => {
+    const admin = await createActor(UserRole.Admin);
+    const client = await createActor(UserRole.Client);
+    const booking = {
+      category: 2 as const,
+      serviceIndex: 1,
+      service: "Оглед",
+      description: "Оглед на проблема",
+      address: "София, ул. Тест 1",
+      scheduledDate: "2030-05-17",
+      scheduledTime: "09:00 - 12:00",
+    };
+
+    await saveTariffs(admin, newTariffs);
+
+    expect(
+      await code(createRequest(client, { ...booking, expectedPrice: 25 })),
+    ).toBe("PRICE_CHANGED");
+    const created = await createRequest(client, {
+      ...booking,
+      expectedPrice: 30,
+    });
+    expect(created.price).toBe(30);
   });
 });
