@@ -1,9 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq } from "drizzle-orm";
-import { getDb, isDbConfigured } from "@/db";
-import { requests } from "@/db/schema";
+import { isDbConfigured } from "@/db";
 import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import {
   assignSpecialist,
@@ -18,7 +16,6 @@ import {
   releaseRequest,
   confirmCompletion,
   createRequest,
-  getRequest,
   rateRequest,
   startWork,
   submitReport,
@@ -28,12 +25,10 @@ import type { RequestErrorCode } from "@/domain/requests";
 import type { Actor } from "@/domain/authorization";
 import { findTariffs } from "@/domain/pricing/tariffs";
 import { getActor } from "@/features/auth/server/actor";
-import { UserRole } from "@/domain/identity/types";
-import { RequestPriority, RequestStatus } from "@/domain/requests/types";
+import type { RequestPriority } from "@/domain/requests/types";
 import type {
   CategoryId,
   Plan,
-  RequestAction,
   ServiceRequest,
   Tariffs,
 } from "@/domain/requests/types";
@@ -172,8 +167,7 @@ export async function startWorkAction(
   );
 }
 
-// The specialist's work completion report. The client's later confirmation
-// goes through the "complete" transition.
+// The specialist's work completion report; the client confirms it later.
 export async function completeWorkAction(
   requestId: number,
   report?: string,
@@ -194,105 +188,93 @@ export async function cancelRequestAction(
 ): Promise<ServiceRequestActionResult> {
   return runAsActor(
     async (actor) => {
-      // Hand-back is the specialist's own action; everyone else cancels.
-      if (actor?.role === UserRole.Specialist) {
-        await releaseRequest(actor, requestId);
-      } else {
-        await cancelRequest(actor, requestId);
-      }
+      await cancelRequest(actor, requestId);
     },
     { INVALID_STATE: "Заявката вече не може да бъде отказана." },
   );
 }
 
-export async function transitionRequestServerAction(
+// The Specialist's Hand-back: the request returns to the open pool.
+export async function releaseRequestAction(
   requestId: number,
-  action: RequestAction,
 ): Promise<ServiceRequestActionResult> {
-  switch (action.type) {
-    case "advance": {
-      const db = getDb();
-      if (!db) return { success: false, error: "Няма връзка с базата данни." };
-      const [req] = await db
-        .select()
-        .from(requests)
-        .where(eq(requests.id, requestId));
-      if (!req) return { success: false, error: "Заявката не е намерена." };
+  return runAsActor(
+    async (actor) => {
+      await releaseRequest(actor, requestId);
+    },
+    { INVALID_STATE: "Заявката вече не може да бъде отказана." },
+  );
+}
 
-      if (req.status === RequestStatus.Created) {
-        return assignSpecialistAction(requestId);
-      }
-      if (req.status === RequestStatus.InProgress) {
-        return completeWorkAction(requestId, action.report);
-      }
-      return startWorkAction(requestId);
-    }
-    case "complete":
-      return runAsActor(
-        async (actor) => {
-          await confirmCompletion(actor, requestId);
-        },
-        { INVALID_STATE: "Няма завършена работа, която да потвърдите." },
-      );
-    case "cancel":
-      return cancelRequestAction(requestId);
-    case "decline":
-      // A recommended job returns to the open pool; declining anything else
-      // unassigned only dismisses it for this specialist.
-      return runAsActor(
-        async (actor) => {
-          const current = await getRequest(actor, requestId);
-          if (actor?.role === UserRole.Specialist && !current.specialistId) {
-            if (current.recommendedSpecialistId === actor.id) {
-              await declineRecommendation(actor, requestId);
-            }
-            return;
-          }
-          if (actor?.role === UserRole.Specialist) {
-            await releaseRequest(actor, requestId);
-          } else {
-            await cancelRequest(actor, requestId);
-          }
-        },
-        { INVALID_STATE: "Заявката вече не може да бъде отказана." },
-      );
-    case "rate":
-      return runAsActor(
-        async (actor) => {
-          await rateRequest(actor, requestId, action.rating);
-        },
-        {
-          INVALID_INPUT: "Оценката трябва да е цяло число от 1 до 5.",
-          INVALID_STATE: "Тази заявка не може да бъде оценена.",
-        },
-      );
-    case "dispute":
-      return runAsActor(
-        async (actor) => {
-          await raiseDispute(actor, requestId, action.note ?? "");
-        },
-        {
-          FORBIDDEN: "Само клиентът на заявката може да подаде сигнал.",
-          INVALID_INPUT: "Моля, опишете проблема (до 2000 символа).",
-          INVALID_STATE:
-            "Сигнал за проблем може да се подаде след приключване на работата.",
-        },
-      );
-    case "resolve-dispute":
-      return runAsActor(
-        async (actor) => {
-          await resolveDispute(actor, requestId, action.resolutionNote);
-        },
-        {
-          FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
-          INVALID_INPUT: "Бележката към решението е твърде дълга.",
-          NOT_FOUND: "Заявката не е намерена.",
-          INVALID_STATE: "Няма активен сигнал по тази заявка.",
-        },
-      );
-    default:
-      return { success: true };
-  }
+export async function declineRecommendationAction(
+  requestId: number,
+): Promise<ServiceRequestActionResult> {
+  return runAsActor(
+    async (actor) => {
+      await declineRecommendation(actor, requestId);
+    },
+    { INVALID_STATE: "Заявката вече не може да бъде отказана." },
+  );
+}
+
+export async function confirmCompletionAction(
+  requestId: number,
+): Promise<ServiceRequestActionResult> {
+  return runAsActor(
+    async (actor) => {
+      await confirmCompletion(actor, requestId);
+    },
+    { INVALID_STATE: "Няма завършена работа, която да потвърдите." },
+  );
+}
+
+export async function rateRequestAction(
+  requestId: number,
+  rating: number,
+): Promise<ServiceRequestActionResult> {
+  return runAsActor(
+    async (actor) => {
+      await rateRequest(actor, requestId, rating);
+    },
+    {
+      INVALID_INPUT: "Оценката трябва да е цяло число от 1 до 5.",
+      INVALID_STATE: "Тази заявка не може да бъде оценена.",
+    },
+  );
+}
+
+export async function raiseDisputeAction(
+  requestId: number,
+  note: string,
+): Promise<ServiceRequestActionResult> {
+  return runAsActor(
+    async (actor) => {
+      await raiseDispute(actor, requestId, note);
+    },
+    {
+      FORBIDDEN: "Само клиентът на заявката може да подаде сигнал.",
+      INVALID_INPUT: "Моля, опишете проблема (до 2000 символа).",
+      INVALID_STATE:
+        "Сигнал за проблем може да се подаде след приключване на работата.",
+    },
+  );
+}
+
+export async function resolveDisputeAction(
+  requestId: number,
+  resolutionNote?: string,
+): Promise<ServiceRequestActionResult> {
+  return runAsActor(
+    async (actor) => {
+      await resolveDispute(actor, requestId, resolutionNote);
+    },
+    {
+      FORBIDDEN: "Неоторизиран достъп. Изискват се администраторски права.",
+      INVALID_INPUT: "Бележката към решението е твърде дълга.",
+      NOT_FOUND: "Заявката не е намерена.",
+      INVALID_STATE: "Няма активен сигнал по тази заявка.",
+    },
+  );
 }
 
 const DISPATCH_ERRORS: Partial<Record<RequestErrorCode, string>> = {

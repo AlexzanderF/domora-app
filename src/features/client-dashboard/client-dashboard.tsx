@@ -7,9 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast-provider";
 import { useBooking } from "@/features/bookings/booking-provider";
-import { transitionRequestServerAction } from "@/features/requests/server/actions";
+import {
+  confirmCompletionAction,
+  raiseDisputeAction,
+  rateRequestAction,
+  type ServiceRequestActionResult,
+} from "@/features/requests/server/actions";
 import { IssueDialog } from "@/features/requests/issue-dialog";
-import type { RequestAction, ServiceRequest } from "@/domain/requests/types";
+import type { ServiceRequest } from "@/domain/requests/types";
 import { categories } from "@/features/services/catalog";
 import { ServiceIcon } from "@/features/services/service-icon";
 import {
@@ -84,12 +89,11 @@ export function ClientDashboard({
   );
 
   async function performAction(
-    request: ServiceRequest,
-    action: RequestAction,
+    run: () => Promise<ServiceRequestActionResult>,
     message: string,
   ) {
     try {
-      const result = await transitionRequestServerAction(request.id, action);
+      const result = await run();
       if (!result.success) {
         notify(result.error ?? "Действието не беше завършено.");
         return;
@@ -128,16 +132,14 @@ export function ClientDashboard({
             onConfirm={() => {
               setRatingRequestId(trackedRequest.id);
               void performAction(
-                trackedRequest,
-                { type: "complete" },
+                () => confirmCompletionAction(trackedRequest.id),
                 "Услугата е потвърдена. Оставете оценка.",
               );
             }}
             onIssue={() => setIssueOpen(true)}
             onRate={(rating) => {
               void performAction(
-                trackedRequest,
-                { type: "rate", rating },
+                () => rateRequestAction(trackedRequest.id, rating),
                 "Благодарим за оценката!",
               );
               setRatingRequestId(null);
@@ -165,8 +167,7 @@ export function ClientDashboard({
             onOpenChange={setIssueOpen}
             onSubmit={(note) =>
               void performAction(
-                trackedRequest,
-                { type: "dispute", note },
+                () => raiseDisputeAction(trackedRequest.id, note),
                 "Сигналът е изпратен за преглед.",
               )
             }
