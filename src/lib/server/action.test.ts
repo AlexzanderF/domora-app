@@ -7,7 +7,7 @@ const { revalidatePath, getActor, dbState } = vi.hoisted(() => ({
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
-vi.mock("@/features/auth/server/actor", () => ({ getActor }));
+vi.mock("@/lib/server/session", () => ({ getActor }));
 vi.mock("@/db", () => ({
   get isDbConfigured() {
     return dbState.configured;

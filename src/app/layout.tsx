@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
-import { getServerSession } from "@/features/auth/server/session";
+import { getServerSession } from "@/lib/server/session";
 import { findTariffs } from "@/domain/pricing/tariffs";
 import { Providers } from "./providers";
 import "./globals.css";

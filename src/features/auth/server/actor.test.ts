@@ -9,7 +9,13 @@ const { redirect, getServerSession, dbState } = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({ redirect }));
-vi.mock("./session", () => ({ getServerSession }));
+vi.mock("@/lib/server/session", () => ({
+  getServerSession,
+  getActor: async () => {
+    const u = await getServerSession();
+    return u ? { id: u.id, role: u.role, status: u.status } : null;
+  },
+}));
 vi.mock("@/db", () => ({
   get isDbConfigured() {
     return dbState.isDbConfigured;

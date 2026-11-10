@@ -5,7 +5,7 @@ import { IdentityError } from "@/domain/identity";
 import { PricingError } from "@/domain/pricing/tariffs";
 import { RequestError } from "@/domain/requests";
 import { SubscriptionError } from "@/domain/subscriptions";
-import { getActor } from "@/features/auth/server/actor";
+import { getActor } from "@/lib/server/session";
 
 // The one adapter behind Server Actions: resolves the Actor, guards database
 // availability, runs the domain call, turns domain error codes into Bulgarian

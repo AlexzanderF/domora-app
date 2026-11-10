@@ -3,9 +3,10 @@ import { cookies, headers } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { sessions } from "@/db/schema";
-import { SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "../constants";
+import { SESSION_COOKIE_NAME, SESSION_MAX_AGE } from "./session-constants";
+import type { Actor } from "@/domain/authorization";
 import type { User } from "@/domain/identity/types";
-import { findUserBySessionToken } from "./queries";
+import { findUserBySessionToken } from "@/domain/identity/session-user";
 import { hashSessionToken } from "@/domain/identity/token";
 
 export { SESSION_COOKIE_NAME, SESSION_MAX_AGE };
@@ -103,4 +104,9 @@ export async function deleteSession(): Promise<void> {
   } catch {
     // Gracefully handle deletion in static or non-request environments
   }
+}
+
+export async function getActor(): Promise<Actor | null> {
+  const user = await getServerSession();
+  return user ? { id: user.id, role: user.role, status: user.status } : null;
 }
