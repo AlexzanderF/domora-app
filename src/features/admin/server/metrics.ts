@@ -1,9 +1,6 @@
-import { and, count, desc, eq, gte, inArray, ne, or, sum } from "drizzle-orm";
+import { and, count, eq, gte, inArray, ne, or, sum } from "drizzle-orm";
 import { getDb, isDbConfigured } from "@/db";
 import { requests, users } from "@/db/schema";
-import type { Actor } from "@/domain/authorization";
-import { withActions } from "@/domain/requests/actions";
-import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { RequestStatus } from "@/domain/requests/types";
 import { RequestPriority } from "@/domain/requests/types";
@@ -130,56 +127,4 @@ export async function findOperationalMetrics(): Promise<WorkspaceStatsData | nul
     completed: completedResult?.value ?? 0,
     totalSpecialists: specialistsResult?.value ?? 0,
   };
-}
-
-export async function findAllRequestsForAdmin(
-  actor: Actor | null,
-): Promise<ServiceRequest[] | null> {
-  if (!isDbConfigured || !actor) {
-    return null;
-  }
-
-  const db = getDb();
-  if (!db) return null;
-
-  const rows = await db
-    .select({
-      request: requests,
-      specialist: users,
-    })
-    .from(requests)
-    .leftJoin(users, eq(requests.specialistId, users.id))
-    .orderBy(desc(requests.createdAt));
-
-  return rows.map(({ request, specialist }) => {
-    const rawCategory = Number(request.category);
-    const category: CategoryId =
-      rawCategory >= 0 && rawCategory <= 5 ? (rawCategory as CategoryId) : 0;
-
-    return withActions(
-      actor,
-      {
-        id: request.id,
-        category,
-        service: request.title,
-        address: request.address,
-        date: request.createdAt.toISOString().split("T")[0],
-        time: request.createdAt.toLocaleTimeString("bg-BG", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        price: request.price,
-        status: request.status,
-        priority: request.priority,
-        description: request.description,
-        cancelled: request.cancelled,
-        report: request.report ?? undefined,
-        rating: request.rating ?? undefined,
-        issue: request.issue || undefined,
-        issueNote: request.issueNote ?? undefined,
-        specialist: specialist?.name,
-      },
-      request,
-    );
-  });
 }

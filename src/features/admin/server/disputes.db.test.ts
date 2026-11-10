@@ -4,10 +4,7 @@ import { raiseDispute, resolveDispute } from "@/domain/disputes";
 import { UserRole } from "@/domain/identity/types";
 import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../../tests/db/factories";
-import {
-  findDisputedRequestsForAdmin,
-  findResolvedDisputesForAdmin,
-} from "./queries";
+import { findResolvedDisputesForAdmin } from "./queries";
 
 let client: Actor;
 let specialist: Actor;
@@ -26,18 +23,13 @@ beforeEach(async () => {
 });
 
 describe("admin dispute triage queries", () => {
-  it("lists an open dispute with its note, then moves it to history", async () => {
+  it("moves a resolved dispute into history", async () => {
     await raiseDispute(client, requestId, "Течът остава");
 
-    const open = await findDisputedRequestsForAdmin(admin);
-    expect(open?.map((r) => [r.id, r.issueNote])).toEqual([
-      [requestId, "Течът остава"],
-    ]);
     expect(await findResolvedDisputesForAdmin()).toEqual([]);
 
     await resolveDispute(admin, requestId, "Поправено");
 
-    expect(await findDisputedRequestsForAdmin(admin)).toEqual([]);
     const history = await findResolvedDisputesForAdmin();
     expect(history).toHaveLength(1);
     expect(history?.[0]).toMatchObject({

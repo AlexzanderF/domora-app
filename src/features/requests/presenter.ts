@@ -1,4 +1,4 @@
-import type { ClientRequest } from "@/domain/requests";
+import type { AdminRequest, ClientRequest } from "@/domain/requests";
 import type { CategoryId, ServiceRequest } from "@/domain/requests/types";
 
 // The one place a domain request becomes the UI view model: display values and
@@ -33,5 +33,17 @@ export function presentClientRequest(request: ClientRequest): ServiceRequest {
     specialist: request.specialistName ?? undefined,
     specialistPhone: request.specialistPhone ?? undefined,
     actions: request.actions,
+  };
+}
+
+// The admin view of a request: the same view model plus the dispatch fields.
+export function presentAdminRequest(request: AdminRequest): ServiceRequest {
+  return {
+    ...presentClientRequest(request),
+    priority: request.priority,
+    recommendedSpecialistId: request.recommendedSpecialistId ?? undefined,
+    dispatchedByAdmin: request.dispatchedByAdmin || undefined,
+    clientName: request.clientName ?? undefined,
+    clientPhone: request.clientPhone,
   };
 }

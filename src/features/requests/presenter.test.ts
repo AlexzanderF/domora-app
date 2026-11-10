@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ClientRequest } from "@/domain/requests";
 import { RequestPriority, RequestStatus } from "@/domain/requests/types";
-import { presentClientRequest } from "./presenter";
+import { presentAdminRequest, presentClientRequest } from "./presenter";
 
 const base: ClientRequest = {
   id: 1,
@@ -54,5 +54,15 @@ describe("presentClientRequest", () => {
     });
     expect(view.date).toBe("2030-01-02");
     expect(view.time).toMatch(/\d{2}:\d{2}/);
+  });
+});
+
+describe("presentAdminRequest", () => {
+  it("shows the visit date with the dispatch fields", () => {
+    const view = presentAdminRequest({ ...base, clientName: "Иван" });
+    expect(view.date).toBe("2030-05-17");
+    expect(view.clientName).toBe("Иван");
+    expect(view.priority).toBe(RequestPriority.Standard);
+    expect(view.dispatchedByAdmin).toBeUndefined();
   });
 });

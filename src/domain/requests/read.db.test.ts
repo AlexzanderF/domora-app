@@ -4,7 +4,7 @@ import { raiseDispute } from "@/domain/disputes";
 import { UserRole, UserStatus } from "@/domain/identity/types";
 import { RequestStatus } from "@/domain/requests/types";
 import { createActor, insertRequest } from "../../../tests/db/factories";
-import { listClientRequests } from "./read";
+import { listAll, listClientRequests, listTriage } from "./read";
 
 let client: Actor;
 let otherClient: Actor;
@@ -82,5 +82,79 @@ describe("listClientRequests", () => {
     await expect(listClientRequests(null)).rejects.toMatchObject({
       code: "UNAUTHENTICATED",
     });
+  });
+});
+
+describe("admin reads", () => {
+  let admin: Actor;
+  beforeEach(async () => {
+    admin = await createActor(UserRole.Admin);
+  });
+
+  it("refuses non-Administrators", async () => {
+    for (const actor of [client, specialist]) {
+      await expect(listAll(actor)).rejects.toMatchObject({
+        code: "FORBIDDEN",
+      });
+      await expect(listTriage(actor, "unassigned")).rejects.toMatchObject({
+        code: "FORBIDDEN",
+      });
+      await expect(listTriage(actor, "disputed")).rejects.toMatchObject({
+        code: "FORBIDDEN",
+      });
+    }
+  });
+
+  it("listAll returns every request newest first with client name and visit date", async () => {
+    const first = await insertRequest({ clientId: client.id });
+    const second = await insertRequest({
+      clientId: otherClient.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+      scheduledDate: "2030-05-17",
+    });
+
+    const list = await listAll(admin);
+
+    expect(list.map((r) => r.id)).toEqual([second, first]);
+    expect(list[0].scheduledDate).toBe("2030-05-17");
+    expect(list[0].specialistName).toBeTruthy();
+    expect(list[1].clientName).toBeTruthy();
+    expect(list[1].actions).toEqual(
+      expect.arrayContaining(["cancel", "assign"]),
+    );
+  });
+
+  it("unassigned triage is claimable requests only, urgent first", async () => {
+    const standard = await insertRequest({ clientId: client.id });
+    const urgent = await insertRequest({
+      clientId: client.id,
+      priority: "URGENT",
+    });
+    await insertRequest({ clientId: client.id, cancelled: true });
+    await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.Accepted,
+    });
+
+    const list = await listTriage(admin, "unassigned");
+
+    expect(list.map((r) => r.id)).toEqual([urgent, standard]);
+  });
+
+  it("disputed triage lists open disputes with the client's note", async () => {
+    const id = await insertRequest({
+      clientId: client.id,
+      specialistId: specialist.id,
+      status: RequestStatus.AwaitingConfirmation,
+    });
+    await raiseDispute(client, id, "Течът остава");
+
+    const list = await listTriage(admin, "disputed");
+
+    expect(list.map((r) => [r.id, r.issueNote])).toEqual([
+      [id, "Течът остава"],
+    ]);
   });
 });
