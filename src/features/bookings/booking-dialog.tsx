@@ -153,7 +153,7 @@ function BookingForm({
       <DialogContent
         showCloseButton={false}
         aria-describedby={undefined}
-        className="max-h-[min(96dvh,820px)] w-[min(720px,94vw)] rounded-[14px] p-[18px] sm:p-[22px]"
+        className="sm:max-h-[min(96dvh,820px)] sm:w-[min(720px,94vw)] sm:rounded-[14px] sm:p-[22px]"
       >
         <div className="mb-4 flex items-start justify-between gap-[18px]">
           <div>
