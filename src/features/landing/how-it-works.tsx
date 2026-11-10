@@ -26,7 +26,7 @@ export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="scroll-mt-34 py-10 md:py-[clamp(2.5rem,5vw,4.25rem)]"
+      className="scroll-mt-34 py-12 md:py-16"
       aria-labelledby="how-it-works-title"
     >
       <div className="mb-[1.65rem] max-w-[680px]">
@@ -35,7 +35,7 @@ export function HowItWorks() {
         </p>
         <h2
           id="how-it-works-title"
-          className="text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]"
+          className="text-3xl md:text-4xl lg:text-5xl tracking-[-0.035em]"
         >
           Как работи DOMORA
         </h2>
@@ -48,7 +48,7 @@ export function HowItWorks() {
       <ol className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
         {steps.map((step, index) => (
           <li key={step.title} className="min-w-0">
-            <Card className="h-full rounded-[18px] border-[#dbe4de] p-[clamp(1.15rem,2.4vw,1.6rem)]">
+            <Card className="h-full rounded-[18px] border-[#dbe4de] p-5 md:p-6">
               <div className="mb-7 flex items-start justify-between md:mb-[1.55rem]">
                 <span
                   className="grid size-[3.25rem] place-items-center rounded-[14px] bg-[#eaf2ec] text-primary"

@@ -7,13 +7,13 @@ import { Card } from "@/components/ui/card";
 import { money } from "@/lib/format";
 
 const cardAction =
-  "mt-[0.8rem] cursor-pointer border-0 bg-transparent p-0 font-[750] text-primary no-underline hover:underline hover:underline-offset-4";
+  "mt-2 inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent p-0 font-[750] text-primary no-underline hover:underline hover:underline-offset-4";
 
 export function ServiceShowcase() {
   return (
     <section
       id="services"
-      className="scroll-mt-34 py-[clamp(2.5rem,5vw,4.25rem)]"
+      className="scroll-mt-34 py-12 md:py-16"
       aria-labelledby="services-title"
     >
       <div className="mb-[1.65rem] flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
@@ -23,7 +23,7 @@ export function ServiceShowcase() {
           </p>
           <h2
             id="services-title"
-            className="text-[clamp(2rem,4vw,3.25rem)] tracking-[-0.035em]"
+            className="text-3xl md:text-4xl lg:text-5xl tracking-[-0.035em]"
           >
             Услуги и абонаменти
           </h2>
@@ -37,7 +37,7 @@ export function ServiceShowcase() {
       <ul className="m-0 grid list-none grid-cols-1 gap-4 p-0 md:grid-cols-3">
         {landingServiceHighlights.map((highlight) => (
           <li key={highlight.title} className="min-w-0">
-            <Card className="flex h-full flex-col items-start rounded-[18px] border-[#dbe4de] p-[clamp(1.15rem,2.4vw,1.6rem)]">
+            <Card className="flex h-full flex-col items-start rounded-[18px] border-[#dbe4de] p-5 md:p-6">
               <div
                 className="mb-[1.15rem] grid size-[3.4rem] place-items-center rounded-[14px] bg-[#eaf2ec] [&_svg]:size-[1.8rem] [&_svg]:stroke-primary"
                 aria-hidden="true"
@@ -72,12 +72,12 @@ export function ServiceShowcase() {
         ))}
       </ul>
 
-      <div className="mt-4 flex flex-col items-start justify-between gap-8 rounded-[18px] bg-[#174c41] p-[clamp(1.15rem,2.7vw,1.8rem)] text-white md:flex-row md:items-center">
+      <div className="mt-4 flex flex-col items-start justify-between gap-8 rounded-[18px] bg-[#174c41] p-5 md:p-7 text-white md:flex-row md:items-center">
         <div>
           <span className="text-xs font-[850] tracking-[0.14em]">
             ПО-МАЛКО ЗАДАЧИ. ПОВЕЧЕ ВРЕМЕ.
           </span>
-          <h3 className="mt-[0.4rem] text-[clamp(1.35rem,3vw,2rem)]">
+          <h3 className="mt-[0.4rem] text-2xl md:text-3xl">
             Спестете до 20% с месечен абонамент
           </h3>
           <p className="mt-[0.65rem] mb-0 max-w-[650px]">
@@ -85,13 +85,13 @@ export function ServiceShowcase() {
             търсене при всяко посещение.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
-            <span className="grid min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-xs font-[850] tracking-[0.14em]">
+            <span className="grid min-w-0 sm:min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-xs font-[850] tracking-[0.14em]">
               <small className="text-xs font-bold">Еднократни посещения</small>
               <strong className="text-[0.86rem]">
                 Стандартна цена при всяка заявка
               </strong>
             </span>
-            <span className="grid min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-xs font-[850] tracking-[0.14em]">
+            <span className="grid min-w-0 sm:min-w-[210px] gap-[0.15rem] rounded-[10px] border border-accent/28 bg-white/12 px-[0.9rem] py-3 text-xs font-[850] tracking-[0.14em]">
               <small className="text-xs font-bold">Месечен абонамент</small>
               <strong className="text-[0.86rem]">
                 До 20% по-ниска обща цена
