@@ -3,11 +3,27 @@ import { isDbConfigured } from "@/db";
 import type { Actor } from "@/domain/authorization";
 import { getRoleDashboardPath } from "../navigation";
 import { UserRole, UserStatus } from "@/domain/identity/types";
+import type { User } from "@/domain/identity/types";
 import { getServerSession } from "./session";
 
 export async function getActor(): Promise<Actor | null> {
   const user = await getServerSession();
   return user ? { id: user.id, role: user.role, status: user.status } : null;
+}
+
+// The signed-in user's full record, for pages that display profile data.
+export async function getUser(): Promise<User | null> {
+  return getServerSession();
+}
+
+// For sign-in, sign-up, forgot-password and the landing page: a signed-in
+// visitor goes straight to their own dashboard.
+export async function redirectIfSignedIn(): Promise<void> {
+  if (!isDbConfigured) return;
+  const actor = await getActor();
+  if (actor) {
+    redirect(getRoleDashboardPath(actor.role, actor.status));
+  }
 }
 
 // Guard for pages and layouts. Returns null only in demo mode (no database),

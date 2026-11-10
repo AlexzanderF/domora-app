@@ -1,11 +1,7 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { SpecialistsReview } from "@/features/admin/specialists-review";
 import { findSpecialistApplications } from "@/features/admin/server/queries";
-import { UserRole } from "@/domain/identity/types";
-import { getServerSession } from "@/features/auth/server/session";
-import { isDbConfigured } from "@/db";
 
 export const metadata: Metadata = {
   title: "Кандидатури на специалисти · Администрация DOMORA",
@@ -15,16 +11,6 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminSpecialistsPage() {
-  const user = await getServerSession();
-  if (isDbConfigured) {
-    if (!user) {
-      redirect("/api/auth/logout?next=/login");
-    }
-    if (user.role !== UserRole.Admin) {
-      redirect(user.role === UserRole.Specialist ? "/specialist" : "/client");
-    }
-  }
-
   const initialSpecialists = await findSpecialistApplications();
 
   return (

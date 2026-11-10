@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { PageHeading } from "@/components/page-heading";
 import { Card } from "@/components/ui/card";
@@ -7,17 +6,15 @@ import { RequestList } from "@/features/requests/request-list";
 import { isDbConfigured } from "@/db";
 import { listClientRequests } from "@/domain/requests";
 import { presentClientRequest } from "@/features/requests/presenter";
-import { getServerSession } from "@/features/auth/server/session";
+import { getActor } from "@/features/auth/server/actor";
 
 export const metadata: Metadata = { title: "Моите заявки" };
 export const dynamic = "force-dynamic";
 
 export default async function ClientRequestsPage() {
-  const user = await getServerSession();
-  if (!user) redirect("/api/auth/logout?next=/login");
-
-  const initialRequests = isDbConfigured
-    ? (await listClientRequests(user)).map(presentClientRequest)
+  const actor = isDbConfigured ? await getActor() : null;
+  const initialRequests = actor
+    ? (await listClientRequests(actor)).map(presentClientRequest)
     : [];
 
   return (
