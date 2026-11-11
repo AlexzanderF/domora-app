@@ -13,6 +13,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast-provider";
 import { DateField, TimeRangeSelect } from "@/components/ui/schedule-fields";
@@ -173,50 +180,62 @@ function BookingForm({
           </DialogHeader>
           <DialogBody className="grid content-start gap-4">
             <div className={fieldGridClass}>
-              <Label className={fieldClass}>
-                Категория
-                <select
+              <div className={fieldClass}>
+                <Label htmlFor="category" className="m-0">
+                  Категория
+                </Label>
+                <Select
                   disabled={Boolean(plan)}
-                  value={category}
-                  onChange={(event) => {
-                    const value = Number(event.target.value);
+                  value={String(category)}
+                  onValueChange={(raw) => {
+                    const value = Number(raw);
                     if (isCategoryId(value)) {
                       setCategory(value);
                       setServiceIndex(0);
                     }
                   }}
                 >
-                  {categories.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </Label>
-              <Label className={fieldClass}>
-                Услуга
-                <select
+                  <SelectTrigger id="category" className="min-h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((item) => (
+                      <SelectItem key={item.id} value={String(item.id)}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={fieldClass}>
+                <Label htmlFor="service" className="m-0">
+                  Услуга
+                </Label>
+                <Select
                   disabled={Boolean(plan)}
-                  value={serviceIndex}
-                  onChange={(event) =>
-                    setServiceIndex(Number(event.target.value))
-                  }
+                  value={String(serviceIndex)}
+                  onValueChange={(raw) => setServiceIndex(Number(raw))}
                 >
-                  {plan ? (
-                    <option value={0}>
-                      {plan === Plan.Home
-                        ? "Абонаментно почистване на дома"
-                        : "Абонаментно почистване на общите части"}
-                    </option>
-                  ) : (
-                    categories[category].services.map((service, index) => (
-                      <option key={service} value={index}>
-                        {service}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </Label>
+                  <SelectTrigger id="service" className="min-h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {plan ? (
+                      <SelectItem value="0">
+                        {plan === Plan.Home
+                          ? "Абонаментно почистване на дома"
+                          : "Абонаментно почистване на общите части"}
+                      </SelectItem>
+                    ) : (
+                      categories[category].services.map((service, index) => (
+                        <SelectItem key={service} value={String(index)}>
+                          {service}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <Field
               label="Описание на проблема"

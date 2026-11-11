@@ -12,6 +12,7 @@ import { can, type Actor } from "@/domain/authorization";
 import { enqueueEvent } from "@/domain/notifications";
 import { hashSessionToken } from "@/domain/identity/token";
 import { UserRole, UserStatus } from "@/domain/identity/types";
+import { DomainError } from "@/domain/errors";
 
 // Framework-free (no next/*): who may use the platform. Specialists sign up as
 // Pending and an admin approves or rejects them. Status is read from the
@@ -28,15 +29,7 @@ export type IdentityErrorCode =
   | "INVALID_CREDENTIALS"
   | "REJECTED_SPECIALIST";
 
-export class IdentityError extends Error {
-  constructor(
-    readonly code: IdentityErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = "IdentityError";
-  }
-}
+export class IdentityError extends DomainError<IdentityErrorCode> {}
 
 export interface RegisterSpecialistInput {
   name: string;
